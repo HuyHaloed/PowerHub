@@ -8,8 +8,8 @@ import threading
 # CoreIOT Configuration
 COREIOT_BROKER = "app.coreiot.io"
 COREIOT_PORT = 1883
-COREIOT_ACCESS_TOKEN = "rsoMvGsRuM9iNbDZBZd3"
-COREIOT_ACCESS_USERNAME = "IOT_DEVICE_3"
+COREIOT_ACCESS_TOKEN = "ZS9KjbmsPcXtniB8q9yP"
+COREIOT_ACCESS_USERNAME = "IOT_DEVICE_1"
 
 # YoloUno Serial Configuration
 BAUD_RATE = 115200
@@ -76,7 +76,7 @@ class IOTGateway:
             print(f"YoloUno Serial Connection Error: {e}")
             return False
 
-    def on_coreiot_connect(self, client, userdata, flags, rc):
+    def on_coreiot_connect(self, client, userdata, flags, rc, props):
         """Callback when connected to CoreIOT"""
         if rc == 0:
             print("Connected to CoreIOT successfully!")
