@@ -4,6 +4,7 @@ import LoginPage from "./pages/Auth/Login";
 import HomePage from "./pages/Home";
 import DashboardPage from "./pages/Admin/Dashboard";
 import ProfilePage from "./pages/Protected/Profile";
+import DoctorSearchPage from "./pages/Protected/Search/Doctor";
 
 export const AuthRoutes = {
   layout: Layouts.AuthLayout,
@@ -32,6 +33,10 @@ export const ProtectedRoutes = {
       path: paths.Profile,
       element: ProfilePage,
     },
+    {
+      path: paths.DoctorSearch,
+      element: DoctorSearchPage
+    }
   ],
 };
 

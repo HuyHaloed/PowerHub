@@ -4,4 +4,5 @@ export const paths = {
   Signup: "/sign-up",
   Profile: "/profile",
   AdminDashboard: "/dashboard",
+  DoctorSearch: "/search/doctor",
 };
