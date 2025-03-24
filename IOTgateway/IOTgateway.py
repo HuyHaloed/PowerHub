@@ -158,10 +158,16 @@ class IOTGateway:
 
     def read_yolouno_data(self): 
         """Liên tục đọc dữ liệu từ YoloUno và đưa vào hàng đợi"""
-        count_timeout = 0
+        count_timeout = 0           # Biến đếm số lần timeout
         while True:
             try:
-                if self.connection_type == 'wifi' and self.wifi_socket:
+                if self.connection_type == 'serial' and self.serial_connection and self.serial_connection.in_waiting > 0:
+                    data = self.serial_connection.readline().decode().strip()
+                    if data:
+                        print(f"Data from YoloUno: {data}")
+                        with self.queue_lock:
+                            self.data_queue.put(data)
+                elif self.connection_type == 'wifi' and self.wifi_socket:
                     try:
                         data = self.wifi_socket.recv(1024).decode().strip()
                         if data:
