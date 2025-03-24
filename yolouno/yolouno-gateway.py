@@ -113,7 +113,7 @@ SSID = "Bonjour"
 PASSWORD = "hellosine"
 
 # Địa chỉ IP của IoT Gateway
-IOTGATEWAY_IP = "10.0.129.253"  # Thay bằng IP thực tế của IoT Gateway
+IOTGATEWAY_IP = "10.0.126.9"  # Thay bằng IP thực tế của IoT Gateway
 IOTGATEWAY_PORT = 12345          # Cổng của IoT Gateway
 
 # Kết nối WiFi
@@ -175,24 +175,23 @@ try:
     while True:
         try:
             if not wifi.isconnected():
-                print("Mất kết nối WiFi! Thử kết nối lại...")
+                print("Mất kết nối tới WiFi! Đang thử kết nối lại...")
                 wifi = connect_wifi()
                 if wifi is None:
-                    continue  # Nếu không kết nối lại được, tiếp tục vòng lặp
-    
+                    continue 
             if sock is None:
-                print("Không có kết nối IoT Gateway, thử kết nối lại...")
+                print("Không có kết nối với IoT Gateway trên Laptop, đang thử kết nối lại...")
                 sock = connect_gateway()
                 if sock is None:
                     time.sleep(5)
-                    continue  # Nếu không kết nối lại được, tiếp tục vòng lặp
+                    continue
             try:
+                # Chuẩn bị và gửi dữ liệu cảm biến
                 dht_sensor.measure()
                 temperature = dht_sensor.temperature()
                 humidity = dht_sensor.humidity()
                 counter += 1
-        
-                # Gửi dữ liệu đến IoT Gateway dưới dạng JSON
+                
                 data = {
                     "counter": counter,
                     "temperature": temperature,
@@ -201,36 +200,41 @@ try:
                 json_data = json.dumps(data)
                 print("Gửi dữ liệu:", json_data)
                 sock.send(json_data.encode())
-        
-                # Đọc phản hồi từ IoT Gateway
-                sock.settimeout(5)  # Timeout để tránh chờ vô hạn
+                
+                # Đợi xác nhận từ gateway ........................................................................
+                sock.settimeout(5)
                 try:
                     response = sock.recv(1024).decode().strip()
                     print("Phản hồi từ Gateway:", response)
+                    # Giao tiếp thành công - đợi trước khi gửi dữ liệu tiếp theo
+                    time.sleep(2)
                 except socket.timeout:
-                    print("Timeout khi nhận phản hồi từ Gateway.")
-                        
-                # Hiển thị trên OLED
+                    print("Timeout khi đợi phản hồi từ Gateway.")
+                    # Không có phản hồi - xem xét việc kết nối lại
+                    sock.close()
+                    sock = None
+                    continue
                 oled.fill(0)
                 oled.text("SendtoGateway:", 0, 0)
                 oled.text(f"Temp: {temperature}C", 0, 10)
                 oled.text(f"Hum: {humidity}%", 0, 20)
                 oled.text(f"Count: {counter}", 0, 30)
                 oled.show()
-        
-                time.sleep(2)
+                
             except (OSError, BrokenPipeError, ConnectionResetError) as e:
                 print(f"Lỗi gửi dữ liệu: {e}, đóng kết nối và thử lại...")
-                sock.close()
-                sock = None  # Reset socket để kết nối lại
-
-            time.sleep(2)
-            
+                if sock:
+                    sock.close()
+                sock = None
+                time.sleep(2) 
+                
         except Exception as e:
-            print(f"Lỗi trong vòng lặp: {e}")
-            sock = None  # Reset kết nối
-            time.sleep(5)  # Chờ 5 giây trước khi thử lại
-
+            print(f"Lỗi trong vòng lặp chính: {e}")
+            if sock:
+                sock.close()
+            sock = None
+            time.sleep(5)
+            
 except KeyboardInterrupt:
     print("\nNgắt kết nối từ bàn phím.")
 

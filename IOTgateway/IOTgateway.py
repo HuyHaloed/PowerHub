@@ -156,54 +156,45 @@ class IOTGateway:
             except Exception as e:
                 print(f"Error forwarding command: {e}")
 
-    def read_yolouno_data(self):
-        """Continuously read data from YoloUno and put into queue"""
+    def read_yolouno_data(self): 
+        """Liên tục đọc dữ liệu từ YoloUno và đưa vào hàng đợi"""
         count_timeout = 0
         while True:
             try:
-                if self.connection_type == 'serial' and self.serial_connection and self.serial_connection.in_waiting > 0:
-                    data = self.serial_connection.readline().decode().strip()
-                    if data:
-                        print(f"Data from YoloUno: {data}")
-                        self.data_queue.put(data)
-                elif self.connection_type == 'wifi' and self.wifi_socket:
+                if self.connection_type == 'wifi' and self.wifi_socket:
                     try:
                         data = self.wifi_socket.recv(1024).decode().strip()
                         if data:
-                            print(f"Data from ESP32-S3: {data}")
+                            print(f"Dữ liệu từ ESP32-S3: {data}")
                             self.data_queue.put(data)
+                            # Gửi xác nhận ngay sau khi nhận dữ liệu từ bên kia
+                            response = f"Gateway đã nhận: {data}"
+                            self.wifi_socket.sendall(response.encode())
+                            count_timeout = 0
                         else:
                             raise ConnectionResetError("ESP32-S3 đã đóng kết nối")
                     except socket.timeout:
                         count_timeout += 1
                         print(f"Timeout khi nhận dữ liệu từ ESP32-S3 [{count_timeout}]")
-                        if count_timeout >= 20:
+                        if count_timeout >= 10: # khúc này chat ko hiểu nó làm dị chi
                             count_timeout = 0
-                            self.wifi_socket.close()  # Đóng kết nối hiện tại
-                            self.wifi_socket = None  # Reset socket để reconnect
+                            self.wifi_socket.close()
+                            self.wifi_socket = None
                             print("ESP32-S3 không phản hồi, đóng kết nối.")
                             raise ConnectionResetError("ESP32-S3 không phản hồi")
-                    except ConnectionResetError as e:
-                        print(f"Mất kết nối từ ESP32-S3: {e}")
-                        self.wifi_socket.close()  # Đóng kết nối hiện tại
-                        self.wifi_socket = None  # Reset socket để reconnect
-                        # break  # Thoát vòng lặp để chờ kết nối mới
-                    except Exception as e:
-                        print(f"YoloUno Data Reading Error: {e}")
-                        self.wifi_socket.close()  # Đóng kết nối hiện tại
-                        self.wifi_socket = None  # Reset socket để reconnect
-                        # break  # Thoát vòng lặp để chờ kết nối mới
                 elif self.connection_type == 'wifi' and not self.wifi_socket:
                     print("Kết nối với ESP32-S3 đã đóng.")
                     if self.connect_yolouno():
                         print("Kết nối lại thành công.")
-
+                        count_timeout = 0 
+                    else:
+                        time.sleep(2)  
             except Exception as e:
-                print(f"YoloUno Data Reading Error: {e}")
+                print(f"Lỗi đọc dữ liệu YoloUno: {e}")
                 if self.wifi_socket:
-                    self.wifi_socket.close()  # Đóng kết nối hiện tại
-                self.wifi_socket = None  # Reset socket để reconnect
-            time.sleep(0.1)
+                    self.wifi_socket.close()
+                self.wifi_socket = None
+                time.sleep(2)
 
     def process_yolouno_data(self):
         """Continuously process data from queue and forward to CoreIOT"""
