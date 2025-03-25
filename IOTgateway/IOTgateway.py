@@ -6,6 +6,7 @@ import time
 import threading
 import socket
 import queue
+from pymongo import MongoClient
 
 # CoreIOT Configuration
 COREIOT_BROKER = "app.coreiot.io"
@@ -20,6 +21,12 @@ POTENTIAL_PORTS = ["COM12", "COM3", "COM4", "COM5"]
 # Server Configuration
 HOST = ''  # Lắng nghe trên tất cả các địa chỉ IP
 PORT = 12345  # Cổng nhận kết nối từ ESP32-S3
+
+# MongoDB Configuration
+MONGO_URI = "mongodb+srv://tanbanquyen:Fqvqx1311@cluster0.joez7.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+mongo_client = MongoClient(MONGO_URI)
+db = mongo_client["iot-device"]
+collection = db["time-device-working"]
 
 # Define BrokenPipeError for Python 2 compatibility
 try:
@@ -42,8 +49,7 @@ class IOTGateway:
         # Connection Setup
         self.connection_type = connection_type
         self.serial_connection = None
-        self.serial_port = None             # Nếu connection_type = serial: cổng Serial
-                                            # Nếu connection_type = wifi: địa chỉ IP của ESP32-S3
+        self.serial_port = None
         self.wifi_socket = None
         self.connection_queue = queue.Queue()
         self.data_queue = queue.Queue()  # Hàng đợi để lưu trữ dữ liệu từ YoloUno
@@ -74,7 +80,7 @@ class IOTGateway:
             return None, None
         elif self.connection_type == 'wifi':
             try:
-                if self.wifi_socket == None:
+                if self.wifi_socket is None:
                     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                     server_socket.bind((HOST, PORT))
@@ -85,7 +91,7 @@ class IOTGateway:
                     try:
                         conn, addr = server_socket.accept()
                         print(f"Kết nối từ ESP32-S3: {addr}")
-                        conn.settimeout(2.0)  # Đặt timeout để tránh treo khi đọc dữ liệu
+                        conn.settimeout(2.0)
                         self.connection_queue.put((conn, addr))
                         break
                     except socket.timeout:
@@ -156,24 +162,17 @@ class IOTGateway:
             except Exception as e:
                 print(f"Error forwarding command: {e}")
 
-    def read_yolouno_data(self): 
+    def read_yolouno_data(self):
         """Liên tục đọc dữ liệu từ YoloUno và đưa vào hàng đợi"""
-        count_timeout = 0           # Biến đếm số lần timeout
+        count_timeout = 0
         while True:
             try:
-                if self.connection_type == 'serial' and self.serial_connection and self.serial_connection.in_waiting > 0:
-                    data = self.serial_connection.readline().decode().strip()
-                    if data:
-                        print(f"Data from YoloUno: {data}")
-                        with self.queue_lock:
-                            self.data_queue.put(data)
-                elif self.connection_type == 'wifi' and self.wifi_socket:
+                if self.connection_type == 'wifi' and self.wifi_socket:
                     try:
                         data = self.wifi_socket.recv(1024).decode().strip()
                         if data:
                             print(f"Dữ liệu từ ESP32-S3: {data}")
                             self.data_queue.put(data)
-                            # Gửi xác nhận ngay sau khi nhận dữ liệu từ bên kia
                             response = f"Gateway đã nhận: {data}"
                             self.wifi_socket.sendall(response.encode())
                             count_timeout = 0
@@ -182,7 +181,7 @@ class IOTGateway:
                     except socket.timeout:
                         count_timeout += 1
                         print(f"Timeout khi nhận dữ liệu từ ESP32-S3 [{count_timeout}]")
-                        if count_timeout >= 10: # khúc này chat ko hiểu nó làm dị chi
+                        if count_timeout >= 10:
                             count_timeout = 0
                             self.wifi_socket.close()
                             self.wifi_socket = None
@@ -192,9 +191,9 @@ class IOTGateway:
                     print("Kết nối với ESP32-S3 đã đóng.")
                     if self.connect_yolouno():
                         print("Kết nối lại thành công.")
-                        count_timeout = 0 
+                        count_timeout = 0
                     else:
-                        time.sleep(2)  
+                        time.sleep(2)
             except Exception as e:
                 print(f"Lỗi đọc dữ liệu YoloUno: {e}")
                 if self.wifi_socket:
@@ -203,27 +202,34 @@ class IOTGateway:
                 time.sleep(2)
 
     def process_yolouno_data(self):
-        """Continuously process data from queue and forward to CoreIOT"""
+        """Continuously process data from queue and forward to CoreIOT and MongoDB"""
         while True:
             try:
                 data = self.data_queue.get()
                 sensor_data = self.parse_sensor_data(data)
                 if sensor_data:
+                    # Cập nhật dữ liệu mới nhất
                     self.latest_sensor_data.update(sensor_data)
+                    # Gửi lên CoreIOT
                     self.coreiot_client.publish(
                         'v1/devices/me/telemetry',
                         json.dumps(sensor_data),
                         qos=1
                     )
+                    # Lưu vào MongoDB
+                    try:
+                        sensor_data_with_timestamp = sensor_data.copy()
+                        sensor_data_with_timestamp['timestamp'] = time.time()
+                        collection.insert_one(sensor_data_with_timestamp)
+                        print(f"Dữ liệu đã được lưu vào MongoDB: {sensor_data_with_timestamp}")
+                    except Exception as e:
+                        print(f"Lỗi khi lưu vào MongoDB: {e}")
             except Exception as e:
                 print(f"Data Processing Error: {e}")
             time.sleep(0.1)
 
     def parse_sensor_data(self, data):
-        """
-        Parse incoming data from YoloUno.
-        Modify this method based on the actual data format from your YoloUno device.
-        """
+        """Parse incoming data from YoloUno"""
         try:
             parsed_data = json.loads(data)
             return parsed_data
@@ -232,10 +238,7 @@ class IOTGateway:
             return None
 
     def run_ai_prediction(self):
-        """
-        Run AI model for predictions.
-        Placeholder for actual AI model implementation.
-        """
+        """Run AI model for predictions"""
         while True:
             try:
                 if self.latest_sensor_data:
@@ -251,10 +254,7 @@ class IOTGateway:
             time.sleep(5)
 
     def simple_ai_prediction(self, data):
-        """
-        Placeholder for simple AI prediction.
-        Replace with actual machine learning model.
-        """
+        """Simple AI prediction placeholder"""
         if 'temperature' in data:
             return 'High Temperature' if data['temperature'] > 50 else 'Normal Temperature'
         return 'No Prediction'
@@ -283,9 +283,10 @@ class IOTGateway:
             if self.wifi_socket:
                 self.wifi_socket.close()
             self.coreiot_client.disconnect()
+            mongo_client.close()
+            print("Đã đóng kết nối MongoDB.")
 
 def main():
-    # Change connection_type to 'wifi' for WiFi connection
     gateway = IOTGateway(connection_type='wifi')
     gateway.start()
 
