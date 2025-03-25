@@ -35,19 +35,19 @@ print("Connect to MongoDB successfull!")
 # print("The data have been insert to the database successfull!")
 
 # function to access data from coreiot
-def on_message(client, userdata, msg):
+def on_message_db(client, userdata, msg):
     data = json.loads(msg.payload)
     collection.insert_one(data)
     print("Data have been saved successfull to MongoDB: ", data)
 
-mqtt_client = mqtt.Client()
-mqtt_client.connect("mqtt.coreiot.io", 1883, 60)
-mqtt_client.subscribe("coreiot/yolouno/data")
-mqtt_client.on_message = on_message
-mqtt_client.loop_forever()
-
-latest_data = collection.find_one(sort=[("_id", -1)])
-print("latest data:", latest_data)
+    mqtt_client = mqtt.Client()
+    mqtt_client.connect("mqtt.coreiot.io", 1883, 60)
+    mqtt_client.subscribe("coreiot/yolouno/data")
+    mqtt_client.on_message = on_message
+    mqtt_client.loop_forever()
+    
+    latest_data = collection.find_one(sort=[("_id", -1)])
+    print("latest data:", latest_data)
 
 # Define BrokenPipeError for Python 2 compatibility
 try:
@@ -214,6 +214,7 @@ class db_connection:
                     self.wifi_socket.close()
                 self.wifi_socket = None
                 time.sleep(2)
+                
     def process_yolouno_data(self):
         while True:
             try:
