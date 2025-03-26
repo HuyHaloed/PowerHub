@@ -141,26 +141,41 @@ class IOTGateway:
         try:
             payload = json.loads(message.payload.decode("utf-8"))
             print(f"Received from CoreIOT: {payload}")
+            
+            # Add commmand type 
             if 'method' in payload:
-                if payload['method'] == 'setValue':
-                    self.forward_command_to_yolouno(payload)
+                if payload['method'] == 'setValueLight':
+                    print("Light control command detected")
+                    self.forward_command_to_yolouno(payload, command_type='light')
+                elif payload['method'] == 'setValueFan':
+                    print("Fan control command detected")
+                    self.forward_command_to_yolouno(payload, command_type='fan')
+                elif payload['method'] == 'setValue':
+                    print("Generic setValue command detected")
+                    self.forward_command_to_yolouno(payload, command_type='generic')
+                else:
+                    print(f"Unknown command method: {payload['method']}")
+                    self.forward_command_to_yolouno(payload, command_type='unknown')
         except Exception as e:
             print(f"CoreIOT Message Processing Error: {e}")
 
-    def forward_command_to_yolouno(self, command):
-        """Forward commands from CoreIOT to YoloUno"""
+    def forward_command_to_yolouno(self, command, command_type='generic'):
+        """Forward commands from CoreIOT to YoloUno with type identification"""
+        command_with_type = command.copy()
+        command_with_type['command_type'] = command_type
+        
         if self.connection_type == 'serial' and self.serial_connection and self.serial_connection.is_open:
             try:
-                self.serial_connection.write(json.dumps(command).encode('utf-8'))
-                print(f"Forwarded command to YoloUno: {command}")
+                self.serial_connection.write(json.dumps(command_with_type).encode('utf-8'))
+                print(f"Forwarded {command_type} command to YoloUno: {command_with_type}")
             except Exception as e:
-                print(f"Error forwarding command: {e}")
+                print(f"Error forwarding {command_type} command: {e}")
         elif self.connection_type == 'wifi' and self.wifi_socket:
             try:
-                self.wifi_socket.sendall(json.dumps(command).encode('utf-8'))
-                print(f"Forwarded command to ESP32-S3: {command}")
+                self.wifi_socket.sendall(json.dumps(command_with_type).encode('utf-8'))
+                print(f"Forwarded {command_type} command to ESP32-S3: {command_with_type}")
             except Exception as e:
-                print(f"Error forwarding command: {e}")
+                print(f"Error forwarding {command_type} command: {e}")
 
     def read_yolouno_data(self):
         """Liên tục đọc dữ liệu từ YoloUno và đưa vào hàng đợi"""
