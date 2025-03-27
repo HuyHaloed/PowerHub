@@ -1,4 +1,3 @@
-import React from "react";
 import {
   Card,
   CardContent,
@@ -6,13 +5,18 @@ import {
   CardHeader,
 } from "../ui/card";
 import { Button } from "../ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+
 
 const TutorCard = ({ tutor } : any) => {
   return (
     <Card className="relative flex flex-col items-center">
-      <CardHeader>
+      <CardHeader className="w-full">
         {/* Hình ảnh giáo viên (placeholder) */}
-        <div className="w-16 h-16 bg-gray-200 rounded-full mx-auto"></div>
+        <Avatar className="w-20 h-20 mx-auto">
+            <AvatarImage src="https://github.com/shadcn.png" />
+            <AvatarFallback>CN</AvatarFallback>
+        </Avatar>
       </CardHeader>
       <CardContent className="text-center">
         {/* Đánh giá */}
