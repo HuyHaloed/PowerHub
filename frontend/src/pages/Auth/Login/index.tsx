@@ -12,8 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import loginImage from "/src/assets/login-image.png";
-import logo from "/src/assets/logo.png";
+import loginImage from "@/assets/login-image.jpg";
 
 const formSchema = z.object({
   username: z.string().refine(
@@ -122,13 +121,13 @@ export default function LoginPage() {
                   >
                     Đăng nhập
                   </Button>
-                  <Checkbox id="terms1" />
+                  {/* <Checkbox id="terms1" />
                   <label
                     htmlFor="terms1"
                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ml-2"
                   >
                     Ghi nhớ tài khoản
-                  </label>
+                  </label> */}
                 </form>
               </Form>
             </div>

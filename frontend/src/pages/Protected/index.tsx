@@ -1,6 +1,6 @@
 import BookingPage from "./Booking";
 import ProfilePage from "./Profile";
-import DoctorSearchPage from "./Search/Doctor";
+import DoctorSearchPage from "./Search";
 
 export const ProtectedPages = {
   ProfilePage,

@@ -13,6 +13,7 @@ export const tutors = [
     room: "16-117",
     address: "182 đường 3 tháng 2, Quận 10, TP. Hồ Chí Minh",
     isFeatured: false,
+    avatar: "https://ui.shadcn.com/avatars/01.png",
   },
   {
     id: 2,
@@ -28,6 +29,7 @@ export const tutors = [
     room: "A-305",
     address: "201B Nguyễn Chí Thanh, Quận 5, TP. Hồ Chí Minh",
     isFeatured: true,
+    avatar: "https://ui.shadcn.com/avatars/02.png",
   },
   {
     id: 3,
@@ -43,6 +45,7 @@ export const tutors = [
     room: "B-102",
     address: "341 Sư Vạn Hạnh, Quận 10, TP. Hồ Chí Minh",
     isFeatured: false,
+    avatar: "https://ui.shadcn.com/avatars/03.png",
   },
   {
     id: 4,
@@ -58,6 +61,7 @@ export const tutors = [
     room: "C-208",
     address: "215 Hồng Bàng, Quận 5, TP. Hồ Chí Minh",
     isFeatured: false,
+    avatar: "https://ui.shadcn.com/avatars/04.png",
   },
   {
     id: 5,
@@ -73,6 +77,7 @@ export const tutors = [
     room: "D-401",
     address: "280 Điện Biên Phủ, Quận 3, TP. Hồ Chí Minh",
     isFeatured: false,
+    avatar: "https://ui.shadcn.com/avatars/05.png",
   },
   {
     id: 6,
@@ -88,5 +93,6 @@ export const tutors = [
     room: "E-509",
     address: "284 Cống Quỳnh, Quận 1, TP. Hồ Chí Minh",
     isFeatured: false,
+    avatar: "https://ui.shadcn.com/avatars/05.png",
   },
 ];
