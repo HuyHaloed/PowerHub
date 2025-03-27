@@ -3,7 +3,7 @@ import ProfilePage from "./Profile";
 import DoctorSearchPage from "./Search/Doctor";
 
 export const ProtectedPages = {
-    ProfilePage,
-    DoctorSearchPage,
-    BookingPage
-}
+  ProfilePage,
+  DoctorSearchPage,
+  BookingPage,
+};

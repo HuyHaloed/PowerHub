@@ -38,8 +38,8 @@ export const ProtectedRoutes = {
     },
     {
       path: paths.Booking + "/:id",
-      element: ProtectedPages.BookingPage
-    }
+      element: ProtectedPages.BookingPage,
+    },
   ],
 };
 

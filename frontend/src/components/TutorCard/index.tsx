@@ -1,14 +1,8 @@
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-} from "../ui/card";
+import { Card, CardContent, CardFooter, CardHeader } from "../ui/card";
 import { Button } from "../ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link } from "react-router-dom";
 import { paths } from "@/utils/path";
-
 
 const TutorCard = ({ tutor }: any) => {
   return (
