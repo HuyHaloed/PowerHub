@@ -3,36 +3,48 @@ import { useFetchDoctor } from "@/hooks/useFetchDoctor";
 import { useLocation } from "react-router-dom";
 
 const ProfileCard = () => {
-    const location = useLocation();
-    const doctorId = Number(location.pathname.split("/")[2]); // Chuyển đổi thành number
-    const { data: doctor, isLoading } = useFetchDoctor(doctorId);
+  const location = useLocation();
+  const doctorId = Number(location.pathname.split("/")[2]); // Chuyển đổi thành number
+  const { data: doctor, isLoading } = useFetchDoctor(doctorId);
 
-    if (isLoading) return <div>Loading...</div>;
-    if (!doctor) return <div>Không tìm thấy thông tin bác sĩ.</div>;
+  if (isLoading) return <div>Loading...</div>;
+  if (!doctor) return <div>Không tìm thấy thông tin bác sĩ.</div>;
 
-    return (
-        <div className={styles.profileContainer}>
-            <div className={styles.profileCard}>
-                <h2>Thông tin bác sĩ:</h2>
-                <div className={styles.doctorInfo}>
-                    <div className={styles.doctorDetails}>
-                        <h3>{doctor.name}</h3>
-                        <p><strong>Chuyên khoa:</strong> {doctor.specialty}</p>
-                        <p><strong>Chuyên trị:</strong> {doctor.specializedTreatment}</p>
-                        <p><strong>Lịch khám:</strong> {doctor.schedule}</p>
-                    </div>
-                </div>
+  return (
+    <div className={styles.profileContainer}>
+      <div className={styles.profileCard}>
+        <h2>Thông tin bác sĩ:</h2>
+        <div className={styles.doctorInfo}>
+          <div className={styles.doctorDetails}>
+            <h3>{doctor.name}</h3>
+            <p>
+              <strong>Chuyên khoa:</strong> {doctor.specialty}
+            </p>
+            <p>
+              <strong>Chuyên trị:</strong> {doctor.specializedTreatment}
+            </p>
+            <p>
+              <strong>Lịch khám:</strong> {doctor.schedule}
+            </p>
+          </div>
+        </div>
 
-                <h2>Giới thiệu</h2>
-                <p>{doctor.description}</p>
+        <h2>Giới thiệu</h2>
+        <p>{doctor.description}</p>
 
-                <h2>Phòng khám</h2>
-                <p><strong>Bệnh viện:</strong> {doctor.hospital}</p>
-                <p><strong>Phòng khám:</strong> {doctor.room}</p>
-                <p><strong>Địa chỉ:</strong> {doctor.address}</p>
-            </div>
+        <h2>Phòng khám</h2>
+        <p>
+          <strong>Bệnh viện:</strong> {doctor.hospital}
+        </p>
+        <p>
+          <strong>Phòng khám:</strong> {doctor.room}
+        </p>
+        <p>
+          <strong>Địa chỉ:</strong> {doctor.address}
+        </p>
+      </div>
 
-            {/* <div className={styles.sidebar}>
+      {/* <div className={styles.sidebar}>
                 <h2>Dịch vụ:</h2>
                 {doctor.services.length > 0 ? (
                     doctor.services.map((service, index) => (
@@ -62,8 +74,8 @@ const ProfileCard = () => {
 
                 <button className={styles.nextButton}>Tiếp theo</button>
             </div> */}
-        </div>
-    );
+    </div>
+  );
 };
 
 export default ProfileCard;

@@ -4,7 +4,7 @@ import { Button } from "../ui/button";
 import useFetchDoctors from "@/hooks/useFetchDoctors";
 import type { Doctor } from "@/types/doctor";
 
-const TutorList = ({ searchTerm, location } : any) => {
+const TutorList = ({ searchTerm, location }: any) => {
   const [currentPage, setCurrentPage] = useState(1);
   const tutorsPerPage = 4;
 
@@ -15,7 +15,7 @@ const TutorList = ({ searchTerm, location } : any) => {
     return <p>Loading...</p>;
   }
   // Lọc dữ liệu dựa trên tìm kiếm và địa điểm
-  const filteredTutors = tutors.filter((tutor : Doctor) => {
+  const filteredTutors = tutors.filter((tutor: Doctor) => {
     const matchesSearch = tutor.name
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
@@ -27,14 +27,17 @@ const TutorList = ({ searchTerm, location } : any) => {
   // Phân trang
   const indexOfLastTutor = currentPage * tutorsPerPage;
   const indexOfFirstTutor = indexOfLastTutor - tutorsPerPage;
-  const currentTutors = filteredTutors.slice(indexOfFirstTutor, indexOfLastTutor);
+  const currentTutors = filteredTutors.slice(
+    indexOfFirstTutor,
+    indexOfLastTutor,
+  );
   const totalPages = Math.ceil(filteredTutors.length / tutorsPerPage);
 
   return (
     <div>
       {/* Danh sách giáo viên */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-        {currentTutors.map((tutor : Doctor, index : number) => (
+        {currentTutors.map((tutor: Doctor, index: number) => (
           <TutorCard key={index} tutor={tutor} />
         ))}
       </div>
