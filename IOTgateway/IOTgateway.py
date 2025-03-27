@@ -87,7 +87,7 @@ class IOTGateway:
             if topic.startswith("v1/devices/me/rpc/request/"):
                 request_id = topic.split('/')[-1]
                 method = payload.get('method')
-                params = payload.get('params')
+                params = payloads.get('params')
                 print(f"RPC call received - method: {method}, params: {params}")
                 if method in DATA_CONFIG["rpc_methods"]:
                     self.shared_attributes[f"sharedvalue{method[8:]}"] = params
@@ -106,7 +106,7 @@ class IOTGateway:
         for key, value in shared.items():
             if key in self.shared_attributes and self.shared_attributes[key] != value:
                 self.shared_attributes[key] = value
-                method = f"setvalue{key[11:]}"
+                method = f"setValue{key[11:]}"
                 self.forward_command(method, value)
 
     def forward_command(self, method, params):
@@ -122,12 +122,21 @@ class IOTGateway:
             else:
                 print("Cannot send RPC command: No active connection to ESP32-S3")
 
+    def get_rpc_info(self):
+        """Lấy thông tin RPC để thêm vào phản hồi (nếu có)."""
+        with self.lock:
+            for method, param in DATA_CONFIG["rpc_methods"].items():
+                attr_key = f"sharedvalue{method[8:]}"
+                if attr_key in self.shared_attributes:
+                    return {"method": method, "params": self.shared_attributes[attr_key]}
+        return None
+
     def read_esp32_data(self, conn):
         buffer = ""
         while self.running:
             try:
                 data = conn.recv(1024).decode('utf-8')
-                if not data:  # Kết nối bị đóng
+                if not data:
                     print("ESP32-S3 disconnected")
                     break
                 buffer += data
@@ -140,14 +149,16 @@ class IOTGateway:
                             msg_type, msg_data = message.split(':', 1)
                             msg_data = json.loads(msg_data)
                             self.data_queue.put((msg_type, msg_data))
-                            # Gửi phản hồi về ESP32S3
+                            # Tạo phản hồi với thông tin RPC (nếu có)
                             response = {"status": "success", "message": f"Received {msg_type}"}
+                            rpc_info = self.get_rpc_info()
+                            if rpc_info:
+                                response["rpc"] = rpc_info
                             response_str = json.dumps(response) + "\n"
                             conn.sendall(response_str.encode('utf-8'))
                             print(f"Sent ACK to ESP32-S3: {response_str.strip()}")
                         except Exception as e:
                             print(f"Error parsing message: {e}")
-                            # Gửi phản hồi lỗi nếu parse thất bại
                             error_response = {"status": "error", "message": str(e)}
                             conn.sendall((json.dumps(error_response) + "\n").encode('utf-8'))
             except socket.timeout:
@@ -176,6 +187,9 @@ class IOTGateway:
                 elif msg_type == "ATTRIBUTE_REQUEST":
                     keys = msg_data.get("keys", [])
                     response = {"shared": {k: self.shared_attributes[k] for k in keys if k in self.shared_attributes}}
+                    rpc_info = self.get_rpc_info()
+                    if rpc_info:
+                        response["rpc"] = rpc_info
                     with self.lock:
                         if self.wifi_socket:
                             response_str = json.dumps(response) + "\n"
