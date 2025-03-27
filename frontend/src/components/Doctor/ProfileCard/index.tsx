@@ -29,8 +29,10 @@ const ProfileCard = () => {
           </div>
         </div>
 
-        <h2>Giới thiệu</h2>
-        <p>{doctor.description}</p>
+        <div className="mb-5">
+          <h2>Giới thiệu</h2>
+          <p>{doctor.overviews}</p>
+        </div>
 
         <h2>Phòng khám</h2>
         <p>

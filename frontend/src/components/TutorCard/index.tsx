@@ -10,7 +10,7 @@ const TutorCard = ({ tutor }: any) => {
       <CardHeader className="w-full">
         {/* Hình ảnh giáo viên (placeholder) */}
         <Avatar className="w-20 h-20 mx-auto">
-          <AvatarImage src="https://github.com/shadcn.png" />
+          <AvatarImage src={tutor.avatar} />
           <AvatarFallback>CN</AvatarFallback>
         </Avatar>
       </CardHeader>

@@ -4,6 +4,7 @@ import { Button } from "../ui/button";
 import { useLocation, Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { AlignRight, X } from "lucide-react";
+import { paths } from "@/utils/path";
 
 interface ItemProp {
   name: string;
@@ -11,9 +12,9 @@ interface ItemProp {
 }
 
 const items: ItemProp[] = [
-  { name: "Home", path: "/" },
+  { name: "Home", path: paths.Home },
   { name: "About", path: "/about" },
-  { name: "Services", path: "/search/doctor" },
+  { name: "Services", path: paths.DoctorSearch },
   { name: "Contact", path: "/contact" },
 ];
 
