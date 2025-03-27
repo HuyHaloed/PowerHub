@@ -1,9 +1,8 @@
-import { Button } from "../ui/button";
 export default function NotFoundPage() {
   return (
-    <div>
-      <h1 className="text-primary">404 page</h1>
-      <Button variant={"secondary"}>Haha</Button>
+    <div className="flex flex-col items-center justify-center h-screen space-y-4">
+      <h1 className="text-primary">Page Not Found</h1>
+      <h2>404</h2>
     </div>
   );
 }

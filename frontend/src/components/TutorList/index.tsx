@@ -1,65 +1,21 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import TutorCard from "../TutorCard";
 import { Button } from "../ui/button";
+import useFetchDoctors from "@/hooks/useFetchDoctors";
+import type { Doctor } from "@/types/doctor";
 
 const TutorList = ({ searchTerm, location } : any) => {
   const [currentPage, setCurrentPage] = useState(1);
   const tutorsPerPage = 4;
 
   // Dữ liệu giả lập
-  const tutors = [
-    {
-      name: "PSG.TS Ngô Triều Dương",
-      rating: "4.6",
-      reviews: 413,
-      specialty: "Y học cổ truyền",
-      location: "Bệnh viện Quận khu 7",
-      isFeatured: false,
-    },
-    {
-      name: "PSG.TS Ngô Triều Dương",
-      rating: "4.8",
-      reviews: 413,
-      specialty: "Y học cổ truyền",
-      location: "Bệnh viện Quận khu 7",
-      isFeatured: true,
-    },
-    {
-      name: "PSG.TS Ngô Triều Dương",
-      rating: "4.7",
-      reviews: 413,
-      specialty: "Y học cổ truyền",
-      location: "Bệnh viện Quận khu 7",
-      isFeatured: false,
-    },
-    {
-      name: "PSG.TS Ngô Triều Dương",
-      rating: "4.8",
-      reviews: 413,
-      specialty: "Y học cổ truyền",
-      location: "Bệnh viện Quận khu 7",
-      isFeatured: false,
-    },
-    {
-      name: "PSG.TS Ngô Triều Dương",
-      rating: "4.6",
-      reviews: 413,
-      specialty: "Y học cổ truyền",
-      location: "Bệnh viện Quận khu 7",
-      isFeatured: false,
-    },
-    {
-      name: "PSG.TS Ngô Triều Dương",
-      rating: "4.8",
-      reviews: 413,
-      specialty: "Y học cổ truyền",
-      location: "Bệnh viện Quận khu 7",
-      isFeatured: false,
-    },
-  ];
+  const { data: tutors, isLoading } = useFetchDoctors();
 
+  if (isLoading) {
+    return <p>Loading...</p>;
+  }
   // Lọc dữ liệu dựa trên tìm kiếm và địa điểm
-  const filteredTutors = tutors.filter((tutor) => {
+  const filteredTutors = tutors.filter((tutor : Doctor) => {
     const matchesSearch = tutor.name
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
@@ -78,7 +34,7 @@ const TutorList = ({ searchTerm, location } : any) => {
     <div>
       {/* Danh sách giáo viên */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-        {currentTutors.map((tutor, index) => (
+        {currentTutors.map((tutor : Doctor, index : number) => (
           <TutorCard key={index} tutor={tutor} />
         ))}
       </div>
