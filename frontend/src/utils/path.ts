@@ -5,4 +5,5 @@ export const paths = {
   Profile: "/profile",
   AdminDashboard: "/dashboard",
   DoctorSearch: "/search/doctor",
+  Booking: "/booking",
 };

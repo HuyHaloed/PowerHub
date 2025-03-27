@@ -3,8 +3,7 @@ import { paths } from "./utils/path";
 import LoginPage from "./pages/Auth/Login";
 import HomePage from "./pages/Home";
 import DashboardPage from "./pages/Admin/Dashboard";
-import ProfilePage from "./pages/Protected/Profile";
-import DoctorSearchPage from "./pages/Protected/Search/Doctor";
+import { ProtectedPages } from "./pages/Protected";
 
 export const AuthRoutes = {
   layout: Layouts.AuthLayout,
@@ -31,11 +30,15 @@ export const ProtectedRoutes = {
   routes: [
     {
       path: paths.Profile,
-      element: ProfilePage,
+      element: ProtectedPages.ProfilePage,
     },
     {
       path: paths.DoctorSearch,
-      element: DoctorSearchPage
+      element: ProtectedPages.DoctorSearchPage,
+    },
+    {
+      path: paths.Booking + "/:id",
+      element: ProtectedPages.BookingPage
     }
   ],
 };
