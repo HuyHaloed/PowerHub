@@ -8,7 +8,7 @@ import { BrowserRouter as Router } from "react-router-dom";
 // import { ReactQueryClientProvider } from "./hooks/queryProvider.tsx";
 // import { ThemeProvider } from "./components/theme-provider.tsx";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-
+import { ToastContainer } from "react-toastify";
 // Create a client
 const queryClient = new QueryClient();
 
@@ -18,6 +18,7 @@ createRoot(document.getElementById("root")!).render(
       {/* <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme"> */}
       <Router>
         <App />
+        <ToastContainer />
       </Router>
       {/* </ThemeProvider> */}
     </QueryClientProvider>

@@ -2,8 +2,10 @@ import banner from "@/assets/imgs/banner.png";
 import sub from "@/assets/imgs/sub.png";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-
+import { useAccount } from "@/hooks/useAccount";
 export default function HomePage() {
+  const { data: account } = useAccount();
+  console.log(account);
   return (
     <div className="grid lg:grid-cols-2 gap-4 items-center lg:mx-7 sm:mx-5 mx-3 flex-1 mt-3">
       <div className="space-y-5">
