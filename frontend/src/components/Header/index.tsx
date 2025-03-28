@@ -15,7 +15,7 @@ const items: ItemProp[] = [
   { name: "Home", path: paths.Home },
   { name: "About", path: "/about" },
   { name: "Services", path: paths.DoctorSearch },
-  { name: "Contact", path: "/contact" },
+  { name: "Contact us", path: "/contact" },
 ];
 
 export default function Header() {
@@ -24,7 +24,9 @@ export default function Header() {
 
   return (
     <div className="p-4 border-b-3 border-primary flex flex-wrap items-center justify-between relative">
-      <img src={logo} alt="logo" className="md:max-w-[300px] max-w-[150px]" />
+      <Link to={paths.Home}>
+        <img src={logo} alt="logo" className="md:max-w-[300px] max-w-[150px]" />
+      </Link>
 
       {/* Nút mở nav */}
       <AlignRight

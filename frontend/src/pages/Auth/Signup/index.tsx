@@ -17,14 +17,26 @@ import { Link } from "react-router-dom";
 import { paths } from "@/utils/path";
 
 const formSchema = z.object({
-  username: z.string().refine(
+  email: z.string().refine(
     (value) => {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       const phoneRegex = /^[0-9]{10,15}$/;
       return emailRegex.test(value) || phoneRegex.test(value);
     },
     {
-      message: "Username must be a valid email or phone number.",
+      message: "Username must be a valid email.",
+    },
+  ),
+  name: z.string().min(2, {
+    message: "Username must be at least 2 characters.",
+  }),
+  phone: z.string().refine(
+    (value) => {
+      const phoneRegex = /^[0-9]{10,15}$/;
+      return phoneRegex.test(value);
+    },
+    {
+      message: "It must be a phone number.",
     },
   ),
   password: z.string().min(2, {
@@ -32,12 +44,15 @@ const formSchema = z.object({
   }),
 });
 
-export default function LoginPage() {
+export default function SignupPage() {
   // 1. Define your form.
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      username: "",
+      email: "",
+      name: "",
+      phone: "",
+      password: "",
     },
   });
 
@@ -66,7 +81,7 @@ export default function LoginPage() {
       </div>
       <div id="login__right" className="flex justify-center items-center">
         <div className="left mt-20 w-full max-w-md">
-          <h1 className="text-4xl text-center">Login</h1>
+          <h1 className="text-4xl text-center">Sign up</h1>
           <div className="mt-5">
             <Form {...form}>
               <form
@@ -75,17 +90,57 @@ export default function LoginPage() {
               >
                 <FormField
                   control={form.control}
-                  name="username"
+                  name="name"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
                         <span className="text-xl font-light">
-                          Email hoặc số điện thoại
+                          Tên đăng nhập
                         </span>
                       </FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="bespringmike@lonton.com"
+                          placeholder="Nguyễn Văn A"
+                          {...field}
+                          className="w-full border-2 border-blue-300 h-[4rem] rounded-4xl"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        <span className="text-xl font-light">Email</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="helloworld@example.com"
+                          {...field}
+                          className="w-full border-2 border-blue-300 h-[4rem] rounded-4xl"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        <span className="text-xl font-light">
+                          Số điện thoại
+                        </span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="0394529624"
                           {...field}
                           className="w-full border-2 border-blue-300 h-[4rem] rounded-4xl"
                         />
@@ -117,17 +172,10 @@ export default function LoginPage() {
                   type="submit"
                   className="w-full h-[3rem] rounded-2xl hover:bg-blue-800 bg-blue-400"
                 >
-                  Đăng nhập
+                  Đăng ký
                 </Button>
-                {/* <Checkbox id="terms1" />
-                  <label
-                    htmlFor="terms1"
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ml-2"
-                  >
-                    Ghi nhớ tài khoản
-                  </label> */}
-                <Link to={paths.Signup} className="text-center">
-                  <span className="text-blue-500">Chưa có tài khoản?</span>
+                <Link to={paths.Login} className="text-center">
+                  <span className="text-blue-500">Đã có tài khoản?</span>
                 </Link>
               </form>
             </Form>
