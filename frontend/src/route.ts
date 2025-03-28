@@ -1,8 +1,8 @@
 import { Layouts } from "./layouts";
 import { paths } from "./utils/path";
-import LoginPage from "./pages/Auth/Login";
-import HomePage from "./pages/Home";
-import DashboardPage from "./pages/Admin/Dashboard";
+import { AuthPages } from "./pages/Auth";
+import { PublicPages } from "./pages/Public";
+import { AdminPages } from "./pages/Admin";
 import { ProtectedPages } from "./pages/Protected";
 
 export const AuthRoutes = {
@@ -10,7 +10,11 @@ export const AuthRoutes = {
   routes: [
     {
       path: paths.Login,
-      element: LoginPage,
+      element: AuthPages.LoginPage,
+    },
+    {
+      path: paths.Signup,
+      element: AuthPages.SignupPage,
     },
   ],
 };
@@ -20,7 +24,11 @@ export const PublicRoutes = {
   routes: [
     {
       path: paths.Home,
-      element: HomePage,
+      element: PublicPages.HomePage,
+    },
+    {
+      path: paths.Contact,
+      element: PublicPages.ContactPage,
     },
   ],
 };
@@ -48,7 +56,19 @@ export const AdminRoutes = {
   routes: [
     {
       path: paths.AdminDashboard,
-      element: DashboardPage,
+      element: AdminPages.DashboardPage,
+    },
+    {
+      path: paths.AdminDoctors,
+      element: AdminPages.DoctorsPage,
+    },
+    {
+      path: paths.AdminAppointments,
+      element: AdminPages.AppointmentsPage,
+    },
+    {
+      path: paths.AdminSettings,
+      element: AdminPages.SettingsPage,
     },
   ],
 };
