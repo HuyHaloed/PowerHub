@@ -13,8 +13,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 // import { Checkbox } from "@/components/ui/checkbox";
 import loginImage from "@/assets/login-image.jpg";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { paths } from "@/utils/path";
+import { toast } from "react-toastify";
+import { useState } from "react";
+import { signup } from "@/action/signup";
 
 const formSchema = z.object({
   email: z.string().refine(
@@ -45,6 +48,9 @@ const formSchema = z.object({
 });
 
 export default function SignupPage() {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+
   // 1. Define your form.
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -57,8 +63,43 @@ export default function SignupPage() {
   });
 
   // 2. Define a submit handler.
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      setLoading(true);
+      const response = await signup(values);
+
+      if (response.success) {
+        toast.success(response.message, {
+          position: "top-right",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+        navigate(paths.Login);
+      } else {
+        toast.error(response.message, {
+          position: "top-right",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+      }
+    } catch (error) {
+      toast.error("Có lỗi xảy ra, vui lòng thử lại sau", {
+        position: "top-right",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -102,6 +143,7 @@ export default function SignupPage() {
                         <Input
                           placeholder="Nguyễn Văn A"
                           {...field}
+                          disabled={loading}
                           className="w-full border-2 border-blue-300 h-[4rem] rounded-4xl"
                         />
                       </FormControl>
@@ -121,6 +163,7 @@ export default function SignupPage() {
                         <Input
                           placeholder="helloworld@example.com"
                           {...field}
+                          disabled={loading}
                           className="w-full border-2 border-blue-300 h-[4rem] rounded-4xl"
                         />
                       </FormControl>
@@ -142,6 +185,7 @@ export default function SignupPage() {
                         <Input
                           placeholder="0394529624"
                           {...field}
+                          disabled={loading}
                           className="w-full border-2 border-blue-300 h-[4rem] rounded-4xl"
                         />
                       </FormControl>
@@ -161,6 +205,7 @@ export default function SignupPage() {
                         <Input
                           placeholder="123456"
                           {...field}
+                          disabled={loading}
                           className="w-full border-2 border-blue-300 h-[4rem] rounded-4xl"
                         />
                       </FormControl>
@@ -170,9 +215,19 @@ export default function SignupPage() {
                 />
                 <Button
                   type="submit"
-                  className="w-full h-[3rem] rounded-2xl hover:bg-blue-800 bg-blue-400"
+                  disabled={loading}
+                  className="w-full h-[3rem] rounded-2xl hover:bg-blue-800 bg-blue-400 relative"
                 >
-                  Đăng ký
+                  {loading ? (
+                    <>
+                      <span className="opacity-0">Đăng ký</span>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      </div>
+                    </>
+                  ) : (
+                    "Đăng ký"
+                  )}
                 </Button>
                 <Link to={paths.Login} className="text-center">
                   <span className="text-blue-500">Đã có tài khoản?</span>

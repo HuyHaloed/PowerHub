@@ -13,15 +13,20 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 // import { Checkbox } from "@/components/ui/checkbox";
 import loginImage from "@/assets/login-image.jpg";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { paths } from "@/utils/path";
+import { login } from "@/action/login";
+import { useState } from "react";
+// import useToast from "@/hooks/useToast";
+import { toast } from "react-toastify";
 
 const formSchema = z.object({
-  username: z.string().refine(
+  email: z.string().refine(
     (value) => {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      const phoneRegex = /^[0-9]{10,15}$/;
-      return emailRegex.test(value) || phoneRegex.test(value);
+      // const phoneRegex = /^[0-9]{10,15}$/;
+      return emailRegex.test(value);
+      // || phoneRegex.test(value);
     },
     {
       message: "Username must be a valid email or phone number.",
@@ -33,17 +38,33 @@ const formSchema = z.object({
 });
 
 export default function LoginPage() {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
   // 1. Define your form.
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      username: "",
-    },
+    // defaultValues: {
+    //   email: "",
+    // },
   });
 
   // 2. Define a submit handler.
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      setLoading(true);
+      const response = await login(values);
+
+      if (response.success) {
+        toast.success(response.message);
+        navigate(paths.Profile);
+      } else {
+        toast.error(response.message);
+      }
+    } catch (error) {
+      toast.error("Đăng nhập thất bại, vui lòng thử lại");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -75,18 +96,17 @@ export default function LoginPage() {
               >
                 <FormField
                   control={form.control}
-                  name="username"
+                  name="email"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        <span className="text-xl font-light">
-                          Email hoặc số điện thoại
-                        </span>
+                        <span className="text-xl font-light">Email</span>
                       </FormLabel>
                       <FormControl>
                         <Input
                           placeholder="bespringmike@lonton.com"
                           {...field}
+                          disabled={loading}
                           className="w-full border-2 border-blue-300 h-[4rem] rounded-4xl"
                         />
                       </FormControl>
@@ -106,6 +126,7 @@ export default function LoginPage() {
                         <Input
                           placeholder="123456"
                           {...field}
+                          disabled={loading}
                           className="w-full border-2 border-blue-300 h-[4rem] rounded-4xl"
                         />
                       </FormControl>
@@ -115,9 +136,19 @@ export default function LoginPage() {
                 />
                 <Button
                   type="submit"
-                  className="w-full h-[3rem] rounded-2xl hover:bg-blue-800 bg-blue-400"
+                  disabled={loading}
+                  className="w-full h-[3rem] rounded-2xl hover:bg-blue-800 bg-blue-400 relative"
                 >
-                  Đăng nhập
+                  {loading ? (
+                    <>
+                      <span className="opacity-0">Login</span>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      </div>
+                    </>
+                  ) : (
+                    "Login"
+                  )}
                 </Button>
                 {/* <Checkbox id="terms1" />
                   <label
