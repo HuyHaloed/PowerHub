@@ -51,7 +51,7 @@ const SearchBar = ({
   sortBy,
   setSortBy,
   onSearch,
-  onSearchResults
+  onSearchResults,
 }: SearchBarProps) => {
   const [showAdvanced, setShowAdvanced] = useState(false);
 

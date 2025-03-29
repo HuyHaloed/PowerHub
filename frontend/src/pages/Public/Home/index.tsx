@@ -41,7 +41,11 @@ export default function HomePage() {
           </div>
         </div>
         <div>
-          <img src={banner} alt="placeholder" className="w-full h-full object-cover" />
+          <img
+            src={banner}
+            alt="placeholder"
+            className="w-full h-full object-cover"
+          />
         </div>
       </div>
 
@@ -53,7 +57,10 @@ export default function HomePage() {
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
             {features.map((feature, index) => (
-              <div key={index} className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+              <div
+                key={index}
+                className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow"
+              >
                 <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
                   {feature.icon}
                 </div>
@@ -71,7 +78,9 @@ export default function HomePage() {
           <div className="grid md:grid-cols-4 gap-8 text-center">
             {stats.map((stat, index) => (
               <div key={index} className="space-y-2">
-                <div className="text-4xl font-bold text-primary">{stat.value}</div>
+                <div className="text-4xl font-bold text-primary">
+                  {stat.value}
+                </div>
                 <div className="text-gray-600">{stat.label}</div>
               </div>
             ))}
@@ -86,7 +95,8 @@ export default function HomePage() {
             Bắt đầu tìm kiếm bác sĩ ngay hôm nay
           </h2>
           <p className="text-blue-100 mb-8 max-w-2xl mx-auto">
-            Đặt lịch khám với các bác sĩ hàng đầu, được đánh giá cao và tin tưởng bởi hàng nghìn bệnh nhân
+            Đặt lịch khám với các bác sĩ hàng đầu, được đánh giá cao và tin
+            tưởng bởi hàng nghìn bệnh nhân
           </p>
           <Link to="/search">
             <Button variant="secondary" size="lg" className="font-semibold">
@@ -112,7 +122,9 @@ export default function HomePage() {
                   {specialty.icon}
                 </div>
                 <h3 className="font-semibold">{specialty.name}</h3>
-                <p className="text-sm text-gray-600 mt-1">{specialty.count} bác sĩ</p>
+                <p className="text-sm text-gray-600 mt-1">
+                  {specialty.count} bác sĩ
+                </p>
               </div>
             ))}
           </div>
@@ -125,26 +137,62 @@ export default function HomePage() {
 // Data for features section
 const features = [
   {
-    icon: <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>,
+    icon: (
+      <svg
+        className="w-6 h-6 text-primary"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2"
+          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
+      </svg>
+    ),
     title: "Bác sĩ chất lượng",
-    description: "Đội ngũ bác sĩ giàu kinh nghiệm, được đánh giá cao"
+    description: "Đội ngũ bác sĩ giàu kinh nghiệm, được đánh giá cao",
   },
   {
-    icon: <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>,
+    icon: (
+      <svg
+        className="w-6 h-6 text-primary"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2"
+          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
+      </svg>
+    ),
     title: "Đặt lịch dễ dàng",
-    description: "Đặt lịch khám nhanh chóng, theo dõi lịch hẹn thuận tiện"
+    description: "Đặt lịch khám nhanh chóng, theo dõi lịch hẹn thuận tiện",
   },
   {
-    icon: <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-    </svg>,
+    icon: (
+      <svg
+        className="w-6 h-6 text-primary"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2"
+          d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+        />
+      </svg>
+    ),
     title: "Nhiều địa điểm",
-    description: "Mạng lưới bệnh viện và phòng khám rộng khắp"
-  }
+    description: "Mạng lưới bệnh viện và phòng khám rộng khắp",
+  },
 ];
 
 // Data for stats section
@@ -152,38 +200,91 @@ const stats = [
   { value: "1,000+", label: "Bác sĩ" },
   { value: "50+", label: "Chuyên khoa" },
   { value: "100,000+", label: "Bệnh nhân" },
-  { value: "4.8", label: "Đánh giá trung bình" }
+  { value: "4.8", label: "Đánh giá trung bình" },
 ];
 
 // Data for specialties section
 const specialties = [
   {
-    icon: <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-    </svg>,
+    icon: (
+      <svg
+        className="w-6 h-6 text-primary"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2"
+          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+        />
+      </svg>
+    ),
     name: "Tim mạch",
-    count: 48
+    count: 48,
   },
   {
-    icon: <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-    </svg>,
+    icon: (
+      <svg
+        className="w-6 h-6 text-primary"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2"
+          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+        />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2"
+          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+        />
+      </svg>
+    ),
     name: "Mắt",
-    count: 36
+    count: 36,
   },
   {
-    icon: <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-    </svg>,
+    icon: (
+      <svg
+        className="w-6 h-6 text-primary"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2"
+          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+        />
+      </svg>
+    ),
     name: "Da liễu",
-    count: 42
+    count: 42,
   },
   {
-    icon: <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-    </svg>,
+    icon: (
+      <svg
+        className="w-6 h-6 text-primary"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2"
+          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+        />
+      </svg>
+    ),
     name: "Nhi khoa",
-    count: 38
-  }
+    count: 38,
+  },
 ];

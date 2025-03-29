@@ -9,30 +9,33 @@ import useFetchDoctors from "@/hooks/useFetchDoctors";
 // Hàm chuyển đổi dữ liệu từ API sang định dạng mong muốn
 const transformDoctorData = (apiData: any[]) => {
   if (!Array.isArray(apiData)) return [];
-  
-  return apiData.map(doctor => {
-    try {
-      return {
-        id: doctor?.id || Math.random().toString(),
-        name: doctor?.user?.name || "Chưa cập nhật",
-        rating: "4.7",
-        reviews: Math.floor(Math.random() * (500 - 200 + 1)) + 200,
-        specialty: doctor?.specialization || "Chưa cập nhật",
-        specializedTreatment: `${doctor?.bio?.slice(0, 50)}...` || "Chưa cập nhật",
-        symptoms: [],
-        schedule: "Thứ 2 - Thứ 6, 8:00 - 17:00",
-        overviews: doctor?.bio || "Chưa cập nhật",
-        hospital: doctor?.hospital?.name || "Chưa cập nhật",
-        room: `${String.fromCharCode(65 + Math.floor(Math.random() * 6))}-${Math.floor(Math.random() * 900) + 100}`,
-        address: doctor?.hospital?.location || "Chưa cập nhật",
-        isFeatured: doctor?.availableOnline || false,
-        avatar: `https://ui.shadcn.com/avatars/0${Math.floor(Math.random() * 5) + 1}.png`,
-      };
-    } catch (error) {
-      console.error("Error transforming doctor data:", error);
-      return null;
-    }
-  }).filter(Boolean); // Lọc bỏ các giá trị null
+
+  return apiData
+    .map((doctor) => {
+      try {
+        return {
+          id: doctor?.id || Math.random().toString(),
+          name: doctor?.user?.name || "Chưa cập nhật",
+          rating: "4.7",
+          reviews: Math.floor(Math.random() * (500 - 200 + 1)) + 200,
+          specialty: doctor?.specialization || "Chưa cập nhật",
+          specializedTreatment:
+            `${doctor?.bio?.slice(0, 50)}...` || "Chưa cập nhật",
+          symptoms: [],
+          schedule: "Thứ 2 - Thứ 6, 8:00 - 17:00",
+          overviews: doctor?.bio || "Chưa cập nhật",
+          hospital: doctor?.hospital?.name || "Chưa cập nhật",
+          room: `${String.fromCharCode(65 + Math.floor(Math.random() * 6))}-${Math.floor(Math.random() * 900) + 100}`,
+          address: doctor?.hospital?.location || "Chưa cập nhật",
+          isFeatured: doctor?.availableOnline || false,
+          avatar: `https://ui.shadcn.com/avatars/0${Math.floor(Math.random() * 5) + 1}.png`,
+        };
+      } catch (error) {
+        console.error("Error transforming doctor data:", error);
+        return null;
+      }
+    })
+    .filter(Boolean); // Lọc bỏ các giá trị null
 };
 
 function DoctorSearchPage() {
@@ -55,9 +58,13 @@ function DoctorSearchPage() {
     const sorted = [...doctorList];
     switch (sortType) {
       case "rating-desc":
-        return sorted.sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating));
+        return sorted.sort(
+          (a, b) => parseFloat(b.rating) - parseFloat(a.rating),
+        );
       case "rating-asc":
-        return sorted.sort((a, b) => parseFloat(a.rating) - parseFloat(b.rating));
+        return sorted.sort(
+          (a, b) => parseFloat(a.rating) - parseFloat(b.rating),
+        );
       case "reviews-desc":
         return sorted.sort((a, b) => b.reviews - a.reviews);
       case "reviews-asc":
@@ -69,16 +76,17 @@ function DoctorSearchPage() {
 
   // Hàm lọc bác sĩ
   const filterDoctors = (doctorList: any[]) => {
-    return doctorList.filter(doctor => {
-      const matchesSearch = searchTerm 
+    return doctorList.filter((doctor) => {
+      const matchesSearch = searchTerm
         ? doctor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           doctor.specialty.toLowerCase().includes(searchTerm.toLowerCase())
         : true;
-      
-      const matchesLocation = location !== "Tất cả"
-        ? doctor.address.toLowerCase().includes(location.toLowerCase()) ||
-          doctor.hospital.toLowerCase().includes(location.toLowerCase())
-        : true;
+
+      const matchesLocation =
+        location !== "Tất cả"
+          ? doctor.address.toLowerCase().includes(location.toLowerCase()) ||
+            doctor.hospital.toLowerCase().includes(location.toLowerCase())
+          : true;
 
       return matchesSearch && matchesLocation;
     });
@@ -203,7 +211,8 @@ function DoctorSearchPage() {
         {/* Results Stats */}
         <div className="flex items-center justify-between mb-6">
           <div className="text-gray-600">
-            Tìm thấy <span className="font-semibold">{doctors.length}</span> bác sĩ
+            Tìm thấy <span className="font-semibold">{doctors.length}</span> bác
+            sĩ
           </div>
         </div>
 

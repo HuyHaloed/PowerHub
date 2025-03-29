@@ -37,7 +37,7 @@ const initialAppointments = [
     status: "Chờ xác nhận",
     phone: "0123456789",
     symptoms: "Đau đầu, sốt nhẹ",
-    note: "Cần xét nghiệm máu"
+    note: "Cần xét nghiệm máu",
   },
   {
     id: 2,
@@ -49,7 +49,7 @@ const initialAppointments = [
     status: "Chờ xác nhận",
     phone: "0987654321",
     symptoms: "Đau lưng mãn tính",
-    note: "Tái khám sau 2 tuần điều trị"
+    note: "Tái khám sau 2 tuần điều trị",
   },
   {
     id: 3,
@@ -61,7 +61,7 @@ const initialAppointments = [
     status: "Đã hủy",
     phone: "0369852147",
     symptoms: "Dị ứng da",
-    note: "Bệnh nhân có tiền sử dị ứng"
+    note: "Bệnh nhân có tiền sử dị ứng",
   },
   {
     id: 4,
@@ -73,7 +73,7 @@ const initialAppointments = [
     status: "Chờ xác nhận",
     phone: "0912345678",
     symptoms: "Đau ngực, khó thở",
-    note: "Cần đo điện tâm đồ"
+    note: "Cần đo điện tâm đồ",
   },
   {
     id: 5,
@@ -85,7 +85,7 @@ const initialAppointments = [
     status: "Chờ xác nhận",
     phone: "0898765432",
     symptoms: "Ho, sốt cao",
-    note: "Trẻ 5 tuổi, cần khám gấp"
+    note: "Trẻ 5 tuổi, cần khám gấp",
   },
   {
     id: 6,
@@ -97,7 +97,7 @@ const initialAppointments = [
     status: "Chờ xác nhận",
     phone: "0977123456",
     symptoms: "Thai 32 tuần",
-    note: "Khám thai định kỳ"
+    note: "Khám thai định kỳ",
   },
   {
     id: 7,
@@ -109,7 +109,7 @@ const initialAppointments = [
     status: "Chờ xác nhận",
     phone: "0933789123",
     symptoms: "Mờ mắt, nhức mắt",
-    note: "Cần đo thị lực"
+    note: "Cần đo thị lực",
   },
   {
     id: 8,
@@ -121,8 +121,8 @@ const initialAppointments = [
     status: "Chờ xác nhận",
     phone: "0944567890",
     symptoms: "Đau răng khôn",
-    note: "Cần chụp X-quang"
-  }
+    note: "Cần chụp X-quang",
+  },
 ];
 
 export function AppointmentsPage() {
@@ -132,17 +132,21 @@ export function AppointmentsPage() {
 
   // Hàm xử lý xác nhận lịch hẹn
   const handleConfirm = (id: number) => {
-    setAppointments(appointments.map(app => 
-      app.id === id ? {...app, status: "Đã xác nhận"} : app
-    ));
+    setAppointments(
+      appointments.map((app) =>
+        app.id === id ? { ...app, status: "Đã xác nhận" } : app,
+      ),
+    );
     toast.success("Đã xác nhận lịch hẹn thành công!");
   };
 
   // Hàm xử lý hủy lịch hẹn
   const handleCancel = (id: number) => {
-    setAppointments(appointments.map(app => 
-      app.id === id ? {...app, status: "Đã hủy"} : app
-    ));
+    setAppointments(
+      appointments.map((app) =>
+        app.id === id ? { ...app, status: "Đã hủy" } : app,
+      ),
+    );
     toast.info("Đã hủy lịch hẹn!");
   };
 
@@ -273,14 +277,20 @@ export function AppointmentsPage() {
               <div className="space-y-4">
                 <div>
                   <label className="text-sm text-gray-500">Bệnh nhân</label>
-                  <p className="font-medium">{selectedAppointment.patientName}</p>
+                  <p className="font-medium">
+                    {selectedAppointment.patientName}
+                  </p>
                 </div>
                 <div>
                   <label className="text-sm text-gray-500">Bác sĩ</label>
-                  <p className="font-medium">{selectedAppointment.doctorName}</p>
+                  <p className="font-medium">
+                    {selectedAppointment.doctorName}
+                  </p>
                 </div>
                 <div>
-                  <label className="text-sm text-gray-500">Thời gian khám</label>
+                  <label className="text-sm text-gray-500">
+                    Thời gian khám
+                  </label>
                   <p className="font-medium">
                     {selectedAppointment.date} {selectedAppointment.time}
                   </p>
@@ -373,9 +383,7 @@ export function AppointmentsPage() {
 
       {/* Pagination */}
       <div className="flex items-center justify-between">
-        <div className="text-sm text-gray-500">
-          Hiển thị 1-8 trên 8 kết quả
-        </div>
+        <div className="text-sm text-gray-500">Hiển thị 1-8 trên 8 kết quả</div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm">
             Trước

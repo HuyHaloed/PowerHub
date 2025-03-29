@@ -13,7 +13,7 @@ interface AdvancedSearchProps {
 const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
   showAdvanced,
   setShowAdvanced,
-  onSearchResults
+  onSearchResults,
 }) => {
   const advancedPanelRef = useRef<HTMLDivElement>(null);
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
@@ -32,10 +32,11 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
     "Buồn nôn",
     "Phát ban",
     "Đau họng",
-    "Sổ mũi"
+    "Sổ mũi",
   ];
 
-  const { data: doctors, refetch } = useSearchDoctorBySymptoms(selectedSymptoms);
+  const { data: doctors, refetch } =
+    useSearchDoctorBySymptoms(selectedSymptoms);
 
   useEffect(() => {
     if (doctors) {
@@ -44,17 +45,17 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
   }, [doctors]);
 
   const handleSymptomToggle = (symptom: string) => {
-    setSelectedSymptoms(prev => 
+    setSelectedSymptoms((prev) =>
       prev.includes(symptom)
-        ? prev.filter(s => s !== symptom)
-        : [...prev, symptom]
+        ? prev.filter((s) => s !== symptom)
+        : [...prev, symptom],
     );
   };
 
   const handleAddCustomSymptom = () => {
     if (customSymptom.trim()) {
       if (!selectedSymptoms.includes(customSymptom.trim())) {
-        setSelectedSymptoms(prev => [...prev, customSymptom.trim()]);
+        setSelectedSymptoms((prev) => [...prev, customSymptom.trim()]);
         setCustomSymptom("");
       } else {
         toast.warning("Triệu chứng này đã được thêm!");
@@ -83,7 +84,9 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
               {/* Header */}
               <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-6 sticky top-0 z-10">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-2xl font-bold text-white">Tìm kiếm theo triệu chứng</h3>
+                  <h3 className="text-2xl font-bold text-white">
+                    Tìm kiếm theo triệu chứng
+                  </h3>
                   <Button
                     variant="ghost"
                     className="rounded-full h-12 w-12 p-0 hover:bg-white/20 text-white"
@@ -111,7 +114,9 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
                 <div className="space-y-6">
                   {/* Custom Symptom Input */}
                   <div className="bg-gray-50 p-6 rounded-xl">
-                    <h4 className="text-lg font-semibold mb-4 text-gray-700">Thêm triệu chứng mới</h4>
+                    <h4 className="text-lg font-semibold mb-4 text-gray-700">
+                      Thêm triệu chứng mới
+                    </h4>
                     <div className="flex items-center space-x-4">
                       <Input
                         type="text"
@@ -120,7 +125,7 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
                         placeholder="Nhập triệu chứng của bạn..."
                         className="flex-1 rounded-lg py-2 border-2 focus:border-blue-500"
                         onKeyPress={(e) => {
-                          if (e.key === 'Enter') {
+                          if (e.key === "Enter") {
                             handleAddCustomSymptom();
                           }
                         }}
@@ -136,7 +141,9 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
 
                   {/* Common Symptoms */}
                   <div className="bg-gray-50 p-6 rounded-xl">
-                    <h4 className="text-lg font-semibold mb-4 text-gray-700">Triệu chứng phổ biến</h4>
+                    <h4 className="text-lg font-semibold mb-4 text-gray-700">
+                      Triệu chứng phổ biến
+                    </h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                       {commonSymptoms.map((symptom, index) => {
                         const isSelected = selectedSymptoms.includes(symptom);
@@ -147,24 +154,27 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
                             className={`
                               cursor-pointer rounded-lg p-3 transition-all duration-200
                               flex items-center justify-between
-                              ${isSelected 
-                                ? 'bg-blue-500 text-white hover:bg-blue-600' 
-                                : 'bg-white hover:bg-gray-100'
+                              ${
+                                isSelected
+                                  ? "bg-blue-500 text-white hover:bg-blue-600"
+                                  : "bg-white hover:bg-gray-100"
                               }
                             `}
                           >
-                            <span className="text-sm font-medium">{symptom}</span>
+                            <span className="text-sm font-medium">
+                              {symptom}
+                            </span>
                             {isSelected && (
-                              <svg 
-                                className="w-4 h-4 flex-shrink-0 ml-2" 
-                                fill="none" 
-                                stroke="currentColor" 
+                              <svg
+                                className="w-4 h-4 flex-shrink-0 ml-2"
+                                fill="none"
+                                stroke="currentColor"
                                 viewBox="0 0 24 24"
                               >
-                                <path 
-                                  strokeLinecap="round" 
-                                  strokeLinejoin="round" 
-                                  strokeWidth="2" 
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth="2"
                                   d="M5 13l4 4L19 7"
                                 />
                               </svg>
@@ -202,11 +212,11 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
                                 className="opacity-0 group-hover:opacity-100 transition-opacity 
                                          duration-200 hover:bg-blue-100 rounded-full p-1"
                               >
-                                <svg 
-                                  className="w-3 h-3 text-blue-600" 
-                                  viewBox="0 0 24 24" 
-                                  fill="none" 
-                                  stroke="currentColor" 
+                                <svg
+                                  className="w-3 h-3 text-blue-600"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
                                   strokeWidth="2"
                                 >
                                   <line x1="18" y1="6" x2="6" y2="18"></line>

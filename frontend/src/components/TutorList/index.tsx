@@ -21,7 +21,7 @@ const TutorList = ({ doctors }: TutorListProps) => {
   // Xử lý chuyển trang
   const handlePageChange = (pageNumber: number) => {
     setCurrentPage(pageNumber);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   // Tạo mảng số trang để hiển thị
@@ -40,13 +40,13 @@ const TutorList = ({ doctors }: TutorListProps) => {
         for (let i = 1; i <= 4; i++) {
           pageNumbers.push(i);
         }
-        pageNumbers.push('...');
+        pageNumbers.push("...");
         pageNumbers.push(totalPages);
       }
       // Nếu đang ở gần cuối
       else if (currentPage >= totalPages - 2) {
         pageNumbers.push(1);
-        pageNumbers.push('...');
+        pageNumbers.push("...");
         for (let i = totalPages - 3; i <= totalPages; i++) {
           pageNumbers.push(i);
         }
@@ -54,11 +54,11 @@ const TutorList = ({ doctors }: TutorListProps) => {
       // Nếu đang ở giữa
       else {
         pageNumbers.push(1);
-        pageNumbers.push('...');
+        pageNumbers.push("...");
         for (let i = currentPage - 1; i <= currentPage + 1; i++) {
           pageNumbers.push(i);
         }
-        pageNumbers.push('...');
+        pageNumbers.push("...");
         pageNumbers.push(totalPages);
       }
     }
@@ -73,7 +73,7 @@ const TutorList = ({ doctors }: TutorListProps) => {
         {currentDoctors.map((doctor) => (
           <TutorCard key={doctor.id} tutor={doctor} />
         ))}
-        
+
         {doctors.length === 0 && (
           <div className="col-span-full text-center py-10">
             <div className="text-gray-500 text-lg">
@@ -96,8 +96,18 @@ const TutorList = ({ doctors }: TutorListProps) => {
               size="icon"
               className="w-9 h-9 rounded-md border border-gray-200 disabled:opacity-50"
             >
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M15 19l-7-7 7-7"
+                />
               </svg>
             </Button>
 
@@ -106,15 +116,17 @@ const TutorList = ({ doctors }: TutorListProps) => {
               {getPageNumbers().map((number, index) => (
                 <Button
                   key={index}
-                  onClick={() => typeof number === 'number' && handlePageChange(number)}
-                  disabled={number === '...'}
+                  onClick={() =>
+                    typeof number === "number" && handlePageChange(number)
+                  }
+                  disabled={number === "..."}
                   variant={currentPage === number ? "default" : "outline"}
                   className={`w-9 h-9 p-0 text-sm font-medium rounded-md ${
-                    number === '...' 
-                      ? 'border-none hover:bg-transparent cursor-default'
+                    number === "..."
+                      ? "border-none hover:bg-transparent cursor-default"
                       : currentPage === number
-                      ? 'bg-blue-500 text-white hover:bg-blue-600 border-blue-500'
-                      : 'border border-gray-200 hover:bg-gray-50'
+                        ? "bg-blue-500 text-white hover:bg-blue-600 border-blue-500"
+                        : "border border-gray-200 hover:bg-gray-50"
                   }`}
                 >
                   {number}
@@ -130,15 +142,26 @@ const TutorList = ({ doctors }: TutorListProps) => {
               size="icon"
               className="w-9 h-9 rounded-md border border-gray-200 disabled:opacity-50"
             >
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M9 5l7 7-7 7"
+                />
               </svg>
             </Button>
           </div>
 
           {/* Hiển thị thông tin trang */}
           <div className="text-sm text-gray-500">
-            Hiển thị {indexOfFirstTutor + 1}-{Math.min(indexOfLastTutor, doctors.length)} 
+            Hiển thị {indexOfFirstTutor + 1}-
+            {Math.min(indexOfLastTutor, doctors.length)}
             trong tổng số {doctors.length} bác sĩ
           </div>
         </div>

@@ -16,7 +16,7 @@ export const tutors = [
       "Phát ban",
       "Vết thâm",
       "Rụng tóc",
-      "Da nhờn"
+      "Da nhờn",
     ],
     schedule: "Tất cả ngày Online",
     overviews:
@@ -44,7 +44,7 @@ export const tutors = [
       "Tức ngực",
       "Tim đập nhanh",
       "Phù chân",
-      "Cao huyết áp"
+      "Cao huyết áp",
     ],
     schedule: "Thứ 2 - Thứ 6, 8:00 - 17:00",
     overviews:
@@ -72,7 +72,7 @@ export const tutors = [
       "Phát ban",
       "Khó thở",
       "Biếng ăn",
-      "Quấy khóc"
+      "Quấy khóc",
     ],
     schedule: "Thứ 3, Thứ 5, Thứ 7, 9:00 - 15:00",
     overviews:
@@ -100,7 +100,7 @@ export const tutors = [
       "Đau cổ",
       "Đau gót chân",
       "Yếu cơ",
-      "Khó vận động"
+      "Khó vận động",
     ],
     schedule: "Thứ 4 - Chủ nhật, 7:00 - 16:00",
     overviews:
@@ -128,7 +128,7 @@ export const tutors = [
       "Chảy nước mắt",
       "Quáng gà",
       "Nhìn một thành hai",
-      "Mỏi mắt"
+      "Mỏi mắt",
     ],
     schedule: "Thứ 2, Thứ 4, Thứ 6, 8:00 - 12:00",
     overviews:
@@ -156,7 +156,7 @@ export const tutors = [
       "Vô kinh",
       "Buồn nôn khi mang thai",
       "Đau lưng khi mang thai",
-      "Tiền sản giật"
+      "Tiền sản giật",
     ],
     schedule: "Thứ 3 - Thứ 7, 13:00 - 18:00",
     overviews:
@@ -173,7 +173,8 @@ export const tutors = [
     rating: "4.9",
     reviews: 580,
     specialty: "Thần kinh",
-    specializedTreatment: "Đột quỵ, động kinh, rối loạn giấc ngủ, đau đầu mãn tính,...",
+    specializedTreatment:
+      "Đột quỵ, động kinh, rối loạn giấc ngủ, đau đầu mãn tính,...",
     symptoms: [
       "Đau đầu",
       "Chóng mặt",
@@ -184,10 +185,11 @@ export const tutors = [
       "Co giật",
       "Đau nửa đầu",
       "Rối loạn giấc ngủ",
-      "Stress"
+      "Stress",
     ],
     schedule: "Thứ 2 - Thứ 6, 7:30 - 16:30",
-    overviews: "PGS.TS Đặng Minh Tuấn là chuyên gia đầu ngành về Thần kinh với hơn 22 năm kinh nghiệm. Ông đã điều trị thành công nhiều ca bệnh phức tạp và là người tiên phong trong việc áp dụng các phương pháp điều trị tiên tiến trong lĩnh vực thần kinh học.",
+    overviews:
+      "PGS.TS Đặng Minh Tuấn là chuyên gia đầu ngành về Thần kinh với hơn 22 năm kinh nghiệm. Ông đã điều trị thành công nhiều ca bệnh phức tạp và là người tiên phong trong việc áp dụng các phương pháp điều trị tiên tiến trong lĩnh vực thần kinh học.",
     hospital: "Bệnh viện Nhân dân 115",
     room: "A-501",
     address: "527 Sư Vạn Hạnh, Quận 10, TP. Hồ Chí Minh",
@@ -211,10 +213,11 @@ export const tutors = [
       "Mệt mỏi",
       "Suy nhược",
       "Rối loạn chuyển hóa",
-      "Tiểu đường"
+      "Tiểu đường",
     ],
     schedule: "Thứ 3, Thứ 5, Thứ 7, 8:00 - 16:00",
-    overviews: "Bác sĩ Trần Thị Thanh Mai là chuyên gia dinh dưỡng với 15 năm kinh nghiệm. Chị chuyên tư vấn và điều trị các vấn đề về dinh dưỡng, giúp người bệnh cải thiện sức khỏe thông qua chế độ ăn uống khoa học.",
+    overviews:
+      "Bác sĩ Trần Thị Thanh Mai là chuyên gia dinh dưỡng với 15 năm kinh nghiệm. Chị chuyên tư vấn và điều trị các vấn đề về dinh dưỡng, giúp người bệnh cải thiện sức khỏe thông qua chế độ ăn uống khoa học.",
     hospital: "Bệnh viện Dinh dưỡng TP.HCM",
     room: "B-203",
     address: "141 Sư Vạn Hạnh, Quận 10, TP. Hồ Chí Minh",
@@ -238,10 +241,11 @@ export const tutors = [
       "Viêm họng",
       "Viêm tai giữa",
       "Chảy máu mũi",
-      "Đau tai"
+      "Đau tai",
     ],
     schedule: "Thứ 2, Thứ 4, Thứ 6, 7:30 - 17:00",
-    overviews: "TS.BS Nguyễn Đức Thành là chuyên gia Tai Mũi Họng với 17 năm kinh nghiệm. Ông đã thực hiện thành công nhiều ca phẫu thuật phức tạp và được bệnh nhân tin tưởng về chuyên môn và thái độ phục vụ.",
+    overviews:
+      "TS.BS Nguyễn Đức Thành là chuyên gia Tai Mũi Họng với 17 năm kinh nghiệm. Ông đã thực hiện thành công nhiều ca phẫu thuật phức tạp và được bệnh nhân tin tưởng về chuyên môn và thái độ phục vụ.",
     hospital: "Bệnh viện Tai Mũi Họng TP.HCM",
     room: "C-302",
     address: "155 Trần Quốc Thảo, Quận 3, TP. Hồ Chí Minh",
@@ -265,10 +269,11 @@ export const tutors = [
       "Hồi hộp",
       "Rối loạn kinh nguyệt",
       "Đổ mồ hôi nhiều",
-      "Bứt rứt"
+      "Bứt rứt",
     ],
     schedule: "Thứ 2 - Thứ 7, 8:00 - 16:30",
-    overviews: "PGS.TS Lê Hoàng Anh là chuyên gia đầu ngành về Nội tiết với 20 năm kinh nghiệm. Ông chuyên điều trị các bệnh về nội tiết, đặc biệt là đái tháo đường và các rối loạn tuyến giáp, được nhiều bệnh nhân tin tưởng và đánh giá cao.",
+    overviews:
+      "PGS.TS Lê Hoàng Anh là chuyên gia đầu ngành về Nội tiết với 20 năm kinh nghiệm. Ông chuyên điều trị các bệnh về nội tiết, đặc biệt là đái tháo đường và các rối loạn tuyến giáp, được nhiều bệnh nhân tin tưởng và đánh giá cao.",
     hospital: "Bệnh viện Nội tiết Trung ương cơ sở 2",
     room: "D-405",
     address: "56 Ngô Quyền, Quận 5, TP. Hồ Chí Minh",

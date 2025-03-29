@@ -27,7 +27,7 @@ interface Notification {
   message: string;
   time: string;
   isRead: boolean;
-  type: 'appointment' | 'system' | 'update';
+  type: "appointment" | "system" | "update";
 }
 
 const items: ItemProp[] = [
@@ -44,7 +44,7 @@ const mockNotifications: Notification[] = [
     message: "Lịch hẹn với BS. Trần Thị B đã được xác nhận",
     time: "5 phút trước",
     isRead: false,
-    type: "appointment"
+    type: "appointment",
   },
   {
     id: 2,
@@ -52,7 +52,7 @@ const mockNotifications: Notification[] = [
     message: "Bạn có lịch hẹn khám vào ngày mai lúc 9:00",
     time: "1 giờ trước",
     isRead: false,
-    type: "appointment"
+    type: "appointment",
   },
   {
     id: 3,
@@ -60,8 +60,8 @@ const mockNotifications: Notification[] = [
     message: "Hệ thống vừa được cập nhật tính năng mới",
     time: "2 giờ trước",
     isRead: true,
-    type: "system"
-  }
+    type: "system",
+  },
 ];
 
 export default function Header() {
@@ -69,8 +69,9 @@ export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const { data: user, isLoading } = useAccount();
   const navigate = useNavigate();
-  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  const [notifications, setNotifications] =
+    useState<Notification[]>(mockNotifications);
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -79,13 +80,17 @@ export default function Header() {
   };
 
   const handleReadNotification = (id: number) => {
-    setNotifications(notifications.map(notif =>
-      notif.id === id ? { ...notif, isRead: true } : notif
-    ));
+    setNotifications(
+      notifications.map((notif) =>
+        notif.id === id ? { ...notif, isRead: true } : notif,
+      ),
+    );
   };
 
   const handleReadAll = () => {
-    setNotifications(notifications.map(notif => ({ ...notif, isRead: true })));
+    setNotifications(
+      notifications.map((notif) => ({ ...notif, isRead: true })),
+    );
   };
 
   return (
@@ -157,33 +162,74 @@ export default function Header() {
                       <div
                         key={notif.id}
                         className={`p-4 border-b hover:bg-gray-50 cursor-pointer ${
-                          !notif.isRead ? 'bg-blue-50' : ''
+                          !notif.isRead ? "bg-blue-50" : ""
                         }`}
                         onClick={() => handleReadNotification(notif.id)}
                       >
                         <div className="flex items-start gap-3">
-                          <div className={`mt-1 p-2 rounded-full ${
-                            notif.type === 'appointment' ? 'bg-green-100' :
-                            notif.type === 'system' ? 'bg-blue-100' : 'bg-yellow-100'
-                          }`}>
-                            {notif.type === 'appointment' ? (
-                              <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          <div
+                            className={`mt-1 p-2 rounded-full ${
+                              notif.type === "appointment"
+                                ? "bg-green-100"
+                                : notif.type === "system"
+                                  ? "bg-blue-100"
+                                  : "bg-yellow-100"
+                            }`}
+                          >
+                            {notif.type === "appointment" ? (
+                              <svg
+                                className="w-4 h-4 text-green-600"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth="2"
+                                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                />
                               </svg>
-                            ) : notif.type === 'system' ? (
-                              <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            ) : notif.type === "system" ? (
+                              <svg
+                                className="w-4 h-4 text-blue-600"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth="2"
+                                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                />
                               </svg>
                             ) : (
-                              <svg className="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                              <svg
+                                className="w-4 h-4 text-yellow-600"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth="2"
+                                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                                />
                               </svg>
                             )}
                           </div>
                           <div className="flex-1">
-                            <h4 className="text-sm font-medium">{notif.title}</h4>
-                            <p className="text-sm text-gray-600 mt-1">{notif.message}</p>
-                            <span className="text-xs text-gray-400 mt-2 block">{notif.time}</span>
+                            <h4 className="text-sm font-medium">
+                              {notif.title}
+                            </h4>
+                            <p className="text-sm text-gray-600 mt-1">
+                              {notif.message}
+                            </p>
+                            <span className="text-xs text-gray-400 mt-2 block">
+                              {notif.time}
+                            </span>
                           </div>
                           {!notif.isRead && (
                             <div className="w-2 h-2 bg-blue-600 rounded-full mt-2" />
@@ -199,7 +245,7 @@ export default function Header() {
                       variant="ghost"
                       size="sm"
                       className="text-sm text-gray-600 hover:text-gray-900"
-                      onClick={() => navigate('/notifications')}
+                      onClick={() => navigate("/notifications")}
                     >
                       Xem tất cả thông báo
                     </Button>

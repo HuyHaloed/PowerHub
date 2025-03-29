@@ -7,7 +7,7 @@ export default function PublicLayout() {
     <div className="min-h-screen flex flex-col">
       <Header />
       <Outlet />
-      <Footer/>
+      <Footer />
     </div>
   );
 }
