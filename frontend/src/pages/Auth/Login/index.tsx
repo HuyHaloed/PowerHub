@@ -11,22 +11,19 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-// import { Checkbox } from "@/components/ui/checkbox";
 import loginImage from "@/assets/login-image.jpg";
 import { Link, useNavigate } from "react-router-dom";
 import { paths } from "@/utils/path";
 import { login } from "@/action/login";
 import { useState } from "react";
-// import useToast from "@/hooks/useToast";
 import { toast } from "react-toastify";
+import { Eye, EyeOff } from "lucide-react"; // Assuming lucide-react icons are available
 
 const formSchema = z.object({
   email: z.string().refine(
     (value) => {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      // const phoneRegex = /^[0-9]{10,15}$/;
       return emailRegex.test(value);
-      // || phoneRegex.test(value);
     },
     {
       message: "Username must be a valid email or phone number.",
@@ -40,15 +37,12 @@ const formSchema = z.object({
 export default function LoginPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  // 1. Define your form.
+  const [showPassword, setShowPassword] = useState(false); // Added state for password visibility
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    // defaultValues: {
-    //   email: "",
-    // },
   });
 
-  // 2. Define a submit handler.
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       setLoading(true);
@@ -123,12 +117,29 @@ export default function LoginPage() {
                         <span className="text-xl font-light">Mật khẩu</span>
                       </FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="123456"
-                          {...field}
-                          disabled={loading}
-                          className="w-full border-2 border-blue-300 h-[4rem] rounded-4xl"
-                        />
+                        <div className="relative">
+                          <Input
+                            placeholder="123456"
+                            type={showPassword ? "text" : "password"} // Toggle type based on state
+                            {...field}
+                            disabled={loading}
+                            className="w-full border-2 border-blue-300 h-[4rem] rounded-4xl pr-12" // Added padding-right for button
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
+                            onClick={() => setShowPassword(!showPassword)}
+                            disabled={loading}
+                          >
+                            {showPassword ? (
+                              <EyeOff className="h-5 w-5 text-gray-500" />
+                            ) : (
+                              <Eye className="h-5 w-5 text-gray-500" />
+                            )}
+                          </Button>
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -150,13 +161,6 @@ export default function LoginPage() {
                     "Login"
                   )}
                 </Button>
-                {/* <Checkbox id="terms1" />
-                  <label
-                    htmlFor="terms1"
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ml-2"
-                  >
-                    Ghi nhớ tài khoản
-                  </label> */}
                 <Link to={paths.Signup} className="text-center">
                   <span className="text-blue-500">Chưa có tài khoản?</span>
                 </Link>
