@@ -130,8 +130,8 @@ const ProfileCard = () => {
             <div>
               <h3 className="text-lg font-semibold">{doctor.name}</h3>
               <p className="text-gray-600">
-                <strong>Chuyên khoa:</strong> {doctor.specialty}
-              </p>
+              <strong>Chuyên khoa:</strong> {doctor.specialty}
+            </p>
               <p className="text-gray-600">
                 <strong>Kinh nghiệm:</strong> {doctor.experienceYears || "15"} năm
               </p>
@@ -215,7 +215,7 @@ const ProfileCard = () => {
                   }
                 />
               </div>
-            </div>
+        </div>
 
             {/* Thông tin giờ khám và triệu chứng */}
             <div className="md:col-span-1 space-y-6">
@@ -244,7 +244,7 @@ const ProfileCard = () => {
                       ))}
                     </SelectContent>
                   </Select>
-                </div>
+      </div>
 
                 {/* Giờ kết thúc */}
                 <div>
@@ -271,7 +271,7 @@ const ProfileCard = () => {
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
+                </div>
 
               {/* Mô tả triệu chứng */}
               <div>

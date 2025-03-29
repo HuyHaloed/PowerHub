@@ -54,7 +54,9 @@ export function AppSidebar() {
               <AvatarFallback>AD</AvatarFallback>
             </Avatar>
             <div className="space-y-2">
-              <p className="font-bold">Phòng khám Lavender</p>
+              <Link to={paths.Home}>
+                <p className="font-bold">Phòng khám Lavender</p>
+              </Link>
               <div className="flex items-center gap-2 flex-wrap">
                 <Badge
                   variant="default"
