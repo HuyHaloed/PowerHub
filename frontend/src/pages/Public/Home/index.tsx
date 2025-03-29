@@ -53,7 +53,7 @@ export default function HomePage() {
       <div className="bg-gray-50 py-16 mt-20">
         <div className="max-w-7xl mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12">
-            Tại sao chọn <span className="text-primary">Doctor Care</span>
+            Tại sao chọn <span className="text-primary">MEDISEEK</span>
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
             {features.map((feature, index) => (

@@ -83,7 +83,7 @@ const Footer = () => {
         <div className="border-t border-gray-800 mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <p className="text-sm text-gray-400">
-              © 2024 Doctor Care. All rights reserved.
+              © 2025 MEDISEEK. All rights reserved.
             </p>
             <div className="flex space-x-6">
               <Link
@@ -215,7 +215,7 @@ const contactInfo = [
         />
       </svg>
     ),
-    detail: "support@doctorcare.vn",
+    detail: "support@mediseek.vn",
   },
 ];
 
