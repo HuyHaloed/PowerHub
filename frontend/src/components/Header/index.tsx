@@ -281,7 +281,7 @@ export default function Header() {
                       d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
                     />
                   </svg>
-                  Cài đặt
+                  Quản lý hệ thống
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
