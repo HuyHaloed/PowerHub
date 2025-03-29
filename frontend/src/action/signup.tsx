@@ -22,6 +22,9 @@ export async function signup(values: SignupRequest) {
       password: values.password,
       name: values.name,
       phoneNumber: values.phone,
+      dob: "2000-01-01",
+      address: "Hà Nội",
+      gender: "Male"
     });
 
     if (response.data.result) {
