@@ -4,6 +4,7 @@ import { AuthPages } from "./pages/Auth";
 import { PublicPages } from "./pages/Public";
 import { AdminPages } from "./pages/Admin";
 import { ProtectedPages } from "./pages/Protected";
+import path from "path";
 
 export const AuthRoutes = {
   layout: Layouts.AuthLayout,
@@ -48,6 +49,10 @@ export const ProtectedRoutes = {
       path: paths.Booking + "/:id",
       element: ProtectedPages.BookingPage,
     },
+    {
+      path: paths.Clinic,
+      element: ProtectedPages.ClinicPage,
+    }
   ],
 };
 

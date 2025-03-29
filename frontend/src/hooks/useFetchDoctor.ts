@@ -1,17 +1,24 @@
 import { tutors } from "@/data/doctors";
 import { useQuery } from "@tanstack/react-query";
+import authorizedAxiosInstance from "@/lib/axios";
 
 // Function to fetch tutors from the API
-const fetchTutors = async (id: number) => {
-  const response = await fetch(`https://api.example.com/tutor/${id}`); // Replace with your API endpoint
-  if (!response.ok) {
-    throw new Error("Failed to fetch tutors");
+const fetchTutors = async (id: string) => {
+  try {
+    const response = await authorizedAxiosInstance.get<any>("/api/doctors/" + id);
+    return response.data.result;
+  } catch (error) {
+    // Khi có lỗi, trả về fake data
+    const fakeDoctor = tutors.find((tutor) => tutor.id === id);
+    if (!fakeDoctor) {
+      throw new Error("Doctor not found");
+    }
+    return fakeDoctor;
   }
-  return response.json();
 };
 
 // Custom hook to fetch tutors using useQuery
-export const useFetchDoctor = (id: number) => {
+export const useFetchDoctor = (id: string) => {
   return useQuery({
     queryKey: ["tutors", id],
     queryFn: () => fetchTutors(id),

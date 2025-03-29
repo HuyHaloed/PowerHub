@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "react-toastify";
+import path from "path";
 
 interface ItemProp {
   name: string;
@@ -22,7 +23,7 @@ interface ItemProp {
 
 const items: ItemProp[] = [
   { name: "Home", path: paths.Home },
-  { name: "About", path: "/about" },
+  { name: "Clinic", path: paths.Clinic },
   { name: "Services", path: paths.DoctorSearch },
   { name: "Contact us", path: "/contact" },
 ];

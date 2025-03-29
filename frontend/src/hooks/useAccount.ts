@@ -30,7 +30,7 @@ export const useAccount = () => {
   return useQuery({
     queryKey: ["user"],
     queryFn: fetchUser,
-    initialData: defaultUser,
+    // initialData: defaultUser,
     retry: 1,
     staleTime: 5 * 60 * 1000, // Cache trong 5 phút
     refetchOnMount: true, // Tự động fetch lại khi component mount
