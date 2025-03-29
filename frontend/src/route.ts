@@ -52,7 +52,7 @@ export const ProtectedRoutes = {
     {
       path: paths.Clinic,
       element: ProtectedPages.ClinicPage,
-    }
+    },
   ],
 };
 

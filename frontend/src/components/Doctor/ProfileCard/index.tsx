@@ -6,8 +6,14 @@ import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "react-toastify";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { vi } from 'date-fns/locale';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { vi } from "date-fns/locale";
 
 // Hàm chuyển đổi dữ liệu từ API sang định dạng mong muốn
 const transformDoctorData = (apiDoctor: any) => {
@@ -33,11 +39,11 @@ const transformDoctorData = (apiDoctor: any) => {
       availableOnline: false,
       contact: {
         email: "Chưa cập nhật",
-        phoneNumber: "Chưa cập nhật"
-      }
+        phoneNumber: "Chưa cập nhật",
+      },
     };
   }
-  
+
   try {
     return {
       id: apiDoctor?.id || "unknown",
@@ -59,8 +65,8 @@ const transformDoctorData = (apiDoctor: any) => {
       availableOnline: apiDoctor?.availableOnline || false,
       contact: {
         email: apiDoctor?.user?.email || "Chưa cập nhật",
-        phoneNumber: apiDoctor?.user?.phoneNumber || "Chưa cập nhật"
-      }
+        phoneNumber: apiDoctor?.user?.phoneNumber || "Chưa cập nhật",
+      },
     };
   } catch (error) {
     console.error("Error transforming doctor data:", error);
@@ -75,7 +81,7 @@ const ProfileCard = () => {
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [startTime, setStartTime] = useState<string>();
   const [endTime, setEndTime] = useState<string>();
-  
+
   // Transform API data to match fake data structure
   const doctor = useMemo(() => {
     // Nếu có apiDoctor và là data từ API (có user và hospital)
@@ -87,8 +93,20 @@ const ProfileCard = () => {
   }, [apiDoctor]);
 
   const timeSlots = [
-    "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00",
-    "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30"
+    "08:00",
+    "08:30",
+    "09:00",
+    "09:30",
+    "10:00",
+    "10:30",
+    "11:00",
+    "13:30",
+    "14:00",
+    "14:30",
+    "15:00",
+    "15:30",
+    "16:00",
+    "16:30",
   ];
 
   const handleBooking = () => {
@@ -130,16 +148,19 @@ const ProfileCard = () => {
             <div>
               <h3 className="text-lg font-semibold">{doctor.name}</h3>
               <p className="text-gray-600">
-              <strong>Chuyên khoa:</strong> {doctor.specialty}
-            </p>
-              <p className="text-gray-600">
-                <strong>Kinh nghiệm:</strong> {doctor.experienceYears || "15"} năm
+                <strong>Chuyên khoa:</strong> {doctor.specialty}
               </p>
               <p className="text-gray-600">
-                <strong>Phí tư vấn:</strong> {(doctor.consultationFee || 500000).toLocaleString('vi-VN')} VNĐ
+                <strong>Kinh nghiệm:</strong> {doctor.experienceYears || "15"}{" "}
+                năm
               </p>
               <p className="text-gray-600">
-                <strong>Tư vấn online:</strong> {doctor.availableOnline ? "Có" : "Không"}
+                <strong>Phí tư vấn:</strong>{" "}
+                {(doctor.consultationFee || 500000).toLocaleString("vi-VN")} VNĐ
+              </p>
+              <p className="text-gray-600">
+                <strong>Tư vấn online:</strong>{" "}
+                {doctor.availableOnline ? "Có" : "Không"}
               </p>
             </div>
 
@@ -164,10 +185,12 @@ const ProfileCard = () => {
             <div>
               <h2 className="text-lg font-semibold mb-2">Thông tin liên hệ</h2>
               <p className="text-gray-600">
-                <strong>Email:</strong> {doctor.contact?.email || "doctor@hospital.com"}
+                <strong>Email:</strong>{" "}
+                {doctor.contact?.email || "doctor@hospital.com"}
               </p>
               <p className="text-gray-600">
-                <strong>Số điện thoại:</strong> {doctor.contact?.phoneNumber || "0123456789"}
+                <strong>Số điện thoại:</strong>{" "}
+                {doctor.contact?.phoneNumber || "0123456789"}
               </p>
             </div>
           </div>
@@ -180,7 +203,9 @@ const ProfileCard = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Calendar */}
             <div className="md:col-span-1">
-              <label className="block text-sm font-medium mb-2">Ngày khám:</label>
+              <label className="block text-sm font-medium mb-2">
+                Ngày khám:
+              </label>
               <div className="p-4 border rounded-lg w-fit">
                 <Calendar
                   mode="single"
@@ -194,28 +219,28 @@ const ProfileCard = () => {
                     caption: "flex justify-center pt-1 relative items-center",
                     caption_label: "text-sm font-medium",
                     nav: "space-x-1 flex items-center",
-                    nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
+                    nav_button:
+                      "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
                     nav_button_previous: "absolute left-1",
                     nav_button_next: "absolute right-1",
                     table: "w-full border-collapse space-y-1",
                     head_row: "flex w-full",
-                    head_cell: "text-slate-500 w-9 font-normal text-[0.8rem] text-center",
+                    head_cell:
+                      "text-slate-500 w-9 font-normal text-[0.8rem] text-center",
                     row: "flex w-full mt-2",
                     cell: "text-center text-sm relative p-0 hover:bg-slate-100 rounded-md",
                     day: "h-9 w-9 p-0 font-normal hover:bg-slate-100 rounded-md",
                     day_selected: "bg-blue-500 text-white hover:bg-blue-600",
                     day_today: "bg-slate-100 text-slate-900",
                     day_outside: "text-slate-400 opacity-50",
-                    day_disabled: "text-slate-400 opacity-50 cursor-not-allowed",
+                    day_disabled:
+                      "text-slate-400 opacity-50 cursor-not-allowed",
                     day_hidden: "invisible",
                   }}
-                  disabled={(date) =>
-                    date < new Date() ||
-                    date.getDay() === 0
-                  }
+                  disabled={(date) => date < new Date() || date.getDay() === 0}
                 />
               </div>
-        </div>
+            </div>
 
             {/* Thông tin giờ khám và triệu chứng */}
             <div className="md:col-span-1 space-y-6">
@@ -244,7 +269,7 @@ const ProfileCard = () => {
                       ))}
                     </SelectContent>
                   </Select>
-      </div>
+                </div>
 
                 {/* Giờ kết thúc */}
                 <div>
@@ -257,21 +282,25 @@ const ProfileCard = () => {
                     disabled={!startTime}
                   >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder={startTime ? "Chọn giờ kết thúc" : "Vui lòng chọn giờ bắt đầu"} />
+                      <SelectValue
+                        placeholder={
+                          startTime
+                            ? "Chọn giờ kết thúc"
+                            : "Vui lòng chọn giờ bắt đầu"
+                        }
+                      />
                     </SelectTrigger>
                     <SelectContent>
-                      {startTime && getValidEndTimes(startTime).map((time) => (
-                        <SelectItem
-                          key={time}
-                          value={time}
-                        >
-                          {time}
-                        </SelectItem>
-                      ))}
+                      {startTime &&
+                        getValidEndTimes(startTime).map((time) => (
+                          <SelectItem key={time} value={time}>
+                            {time}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>
-                </div>
+              </div>
 
               {/* Mô tả triệu chứng */}
               <div>

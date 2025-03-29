@@ -24,7 +24,7 @@ export async function signup(values: SignupRequest) {
       phoneNumber: values.phone,
       dob: "2000-01-01",
       address: "Hà Nội",
-      gender: "Male"
+      gender: "Male",
     });
 
     if (response.data.result) {

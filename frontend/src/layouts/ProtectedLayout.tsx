@@ -6,7 +6,7 @@ export default function ProtectedLayout() {
     <div>
       <Header />
       <Outlet />
-      <Footer/>
+      <Footer />
     </div>
   );
 }

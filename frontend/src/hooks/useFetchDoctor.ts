@@ -5,7 +5,9 @@ import authorizedAxiosInstance from "@/lib/axios";
 // Function to fetch tutors from the API
 const fetchTutors = async (id: string) => {
   try {
-    const response = await authorizedAxiosInstance.get<any>("/api/doctors/" + id);
+    const response = await authorizedAxiosInstance.get<any>(
+      "/api/doctors/" + id,
+    );
     return response.data.result;
   } catch (error) {
     // Khi có lỗi, trả về fake data

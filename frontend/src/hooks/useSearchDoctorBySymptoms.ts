@@ -17,22 +17,27 @@ interface Doctor {
   avatar: string;
 }
 
-const searchDoctorsBySymptoms = async (symptoms: string[]): Promise<Doctor[]> => {
+const searchDoctorsBySymptoms = async (
+  symptoms: string[],
+): Promise<Doctor[]> => {
   try {
     const response = await authorizedAxiosInstance.post("/doctors/search", {
-      symptoms
+      symptoms,
     });
     return response.data;
   } catch (error) {
     // Nếu API fail, tìm trong fake data
-    return tutors.filter(doctor => 
-      symptoms.some(symptom => 
-        doctor.symptoms.some(docSymptom => 
-          docSymptom.toLowerCase().includes(symptom.toLowerCase())
-        ) ||
-        doctor.specialty.toLowerCase().includes(symptom.toLowerCase()) ||
-        doctor.specializedTreatment.toLowerCase().includes(symptom.toLowerCase())
-      )
+    return tutors.filter((doctor) =>
+      symptoms.some(
+        (symptom) =>
+          doctor.symptoms.some((docSymptom) =>
+            docSymptom.toLowerCase().includes(symptom.toLowerCase()),
+          ) ||
+          doctor.specialty.toLowerCase().includes(symptom.toLowerCase()) ||
+          doctor.specializedTreatment
+            .toLowerCase()
+            .includes(symptom.toLowerCase()),
+      ),
     );
   }
 };
