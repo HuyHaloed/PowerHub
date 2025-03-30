@@ -113,7 +113,11 @@ SSID = "Bonjour"
 PASSWORD = "hellosine"
 
 # Địa chỉ IP của IoT Gateway
+<<<<<<< HEAD
 IOTGATEWAY_IP = "10.0.129.253"  # Thay bằng IP thực tế của IoT Gateway
+=======
+IOTGATEWAY_IP = "10.0.126.9"  # Thay bằng IP thực tế của IoT Gateway
+>>>>>>> origin/cong-vu
 IOTGATEWAY_PORT = 12345          # Cổng của IoT Gateway
 
 # Kết nối WiFi
