@@ -11,10 +11,10 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { paths } from "@/utils/path";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 
-// Menu items.
+// Menu items
 const items = [
   {
     title: "Dashboard",
@@ -31,11 +31,6 @@ const items = [
     url: paths.AdminAppointments,
     icon: Calendar,
   },
-  // {
-  //     title: "Search",
-  //     url: "#",
-  //     icon: Search,
-  // },
   {
     title: "Settings",
     url: paths.AdminSettings,
@@ -44,6 +39,8 @@ const items = [
 ];
 
 export function AppSidebar() {
+  const location = useLocation();
+
   return (
     <Sidebar>
       <SidebarContent>
@@ -71,16 +68,26 @@ export function AppSidebar() {
           <SidebarGroupLabel>Application</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <Link to={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {items.map((item) => {
+                const isActive = location.pathname === item.url;
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <Link
+                        to={item.url}
+                        className={`${
+                          isActive
+                            ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                            : "hover:bg-accent hover:text-accent-foreground"
+                        } flex items-center gap-2 rounded-md px-2 py-1.5 transition-colors`}
+                      >
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

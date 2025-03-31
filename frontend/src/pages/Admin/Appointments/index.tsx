@@ -22,7 +22,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 
 // Mock data - replace with actual data from your API
@@ -127,11 +127,63 @@ const initialAppointments = [
 
 export function AppointmentsPage() {
   const [appointments, setAppointments] = useState(initialAppointments);
+  const [filteredAppointments, setFilteredAppointments] = useState(initialAppointments);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [dateFilter, setDateFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+
+  // Filter appointments based on search term, date, and status
+  useEffect(() => {
+    let filtered = [...appointments];
+
+    // Search filter
+    if (searchTerm) {
+      filtered = filtered.filter(app => 
+        app.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        app.doctorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        app.phone.includes(searchTerm)
+      );
+    }
+
+    // Date filter
+    if (dateFilter) {
+      filtered = filtered.filter(app => app.date === dateFilter);
+    }
+
+    // Status filter
+    if (statusFilter) {
+      filtered = filtered.filter(app => app.status === statusFilter);
+    }
+
+    setFilteredAppointments(filtered);
+  }, [appointments, searchTerm, dateFilter, statusFilter]);
+
+  // Handle search input change
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  // Handle date filter
+  const handleDateFilter = (date) => {
+    setDateFilter(date);
+  };
+
+  // Handle status filter
+  const handleStatusFilter = (status) => {
+    setStatusFilter(status);
+  };
+
+  // Clear all filters
+  const clearFilters = () => {
+    setSearchTerm("");
+    setDateFilter("");
+    setStatusFilter("");
+  };
 
   // Hàm xử lý xác nhận lịch hẹn
-  const handleConfirm = (id: number) => {
+  const handleConfirm = (id) => {
     setAppointments(
       appointments.map((app) =>
         app.id === id ? { ...app, status: "Đã xác nhận" } : app,
@@ -141,7 +193,7 @@ export function AppointmentsPage() {
   };
 
   // Hàm xử lý hủy lịch hẹn
-  const handleCancel = (id: number) => {
+  const handleCancel = (id) => {
     setAppointments(
       appointments.map((app) =>
         app.id === id ? { ...app, status: "Đã hủy" } : app,
@@ -151,7 +203,7 @@ export function AppointmentsPage() {
   };
 
   // Hàm xử lý xem chi tiết
-  const handleViewDetails = (appointment: any) => {
+  const handleViewDetails = (appointment) => {
     setSelectedAppointment(appointment);
     setShowDetails(true);
   };
@@ -166,10 +218,42 @@ export function AppointmentsPage() {
       <div className="flex items-center gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-          <Input placeholder="Tìm kiếm lịch hẹn..." className="pl-10" />
+          <Input 
+            placeholder="Tìm kiếm theo tên, bác sĩ hoặc số điện thoại..." 
+            className="pl-10" 
+            value={searchTerm}
+            onChange={handleSearch}
+          />
         </div>
-        <Button variant="outline">Lọc theo ngày</Button>
-        <Button variant="outline">Lọc theo trạng thái</Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline">Lọc theo ngày</Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem onClick={() => handleDateFilter("")}>Tất cả</DropdownMenuItem>
+            {[...new Set(initialAppointments.map(app => app.date))].map(date => (
+              <DropdownMenuItem key={date} onClick={() => handleDateFilter(date)}>
+                {date}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline">Lọc theo trạng thái</Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem onClick={() => handleStatusFilter("")}>Tất cả</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleStatusFilter("Chờ xác nhận")}>Chờ xác nhận</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleStatusFilter("Đã xác nhận")}>Đã xác nhận</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleStatusFilter("Đã hủy")}>Đã hủy</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        {(searchTerm || dateFilter || statusFilter) && (
+          <Button variant="outline" onClick={clearFilters}>
+            Xóa bộ lọc
+          </Button>
+        )}
       </div>
 
       {/* Appointments Table */}
@@ -188,11 +272,10 @@ export function AppointmentsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {appointments.map((appointment) => (
+          {filteredAppointments.length > 0 ? (
+            filteredAppointments.map((appointment) => (
               <TableRow key={appointment.id}>
-                <TableCell className="font-medium">
-                  {appointment.patientName}
-                </TableCell>
+                <TableCell className="font-medium">{appointment.patientName}</TableCell>
                 <TableCell>{appointment.doctorName}</TableCell>
                 <TableCell>{appointment.date}</TableCell>
                 <TableCell>{appointment.time}</TableCell>
@@ -252,7 +335,14 @@ export function AppointmentsPage() {
                   </div>
                 </TableCell>
               </TableRow>
-            ))}
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={8} className="text-center py-4">
+                Không tìm thấy lịch hẹn phù hợp
+              </TableCell>
+            </TableRow>
+          )}
           </TableBody>
         </Table>
       </div>
@@ -277,20 +367,14 @@ export function AppointmentsPage() {
               <div className="space-y-4">
                 <div>
                   <label className="text-sm text-gray-500">Bệnh nhân</label>
-                  <p className="font-medium">
-                    {selectedAppointment.patientName}
-                  </p>
+                  <p className="font-medium">{selectedAppointment.patientName}</p>
                 </div>
                 <div>
                   <label className="text-sm text-gray-500">Bác sĩ</label>
-                  <p className="font-medium">
-                    {selectedAppointment.doctorName}
-                  </p>
+                  <p className="font-medium">{selectedAppointment.doctorName}</p>
                 </div>
                 <div>
-                  <label className="text-sm text-gray-500">
-                    Thời gian khám
-                  </label>
+                  <label className="text-sm text-gray-500">Thời gian khám</label>
                   <p className="font-medium">
                     {selectedAppointment.date} {selectedAppointment.time}
                   </p>
@@ -383,12 +467,14 @@ export function AppointmentsPage() {
 
       {/* Pagination */}
       <div className="flex items-center justify-between">
-        <div className="text-sm text-gray-500">Hiển thị 1-8 trên 8 kết quả</div>
+        <div className="text-sm text-gray-500">
+          Hiển thị 1-{filteredAppointments.length} trên {filteredAppointments.length} kết quả
+        </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" disabled>
             Trước
           </Button>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" disabled>
             Sau
           </Button>
         </div>

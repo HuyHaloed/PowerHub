@@ -306,7 +306,7 @@ export default function Header() {
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="cursor-pointer flex items-center gap-2"
-                  onClick={() => navigate("/settings")}
+                  onClick={() => navigate("/dashboard")}
                 >
                   <svg
                     className="w-4 h-4"

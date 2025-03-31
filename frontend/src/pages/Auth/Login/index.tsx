@@ -98,7 +98,7 @@ export default function LoginPage() {
                       </FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="bespringmike@lonton.com"
+                          placeholder="springmike@gmai.com"
                           {...field}
                           disabled={loading}
                           className="w-full border-2 border-blue-300 h-[4rem] rounded-4xl"
