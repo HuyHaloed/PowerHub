@@ -75,7 +75,7 @@ export default function ProfilePage() {
           </div>
 
           <div className="mt-8 flex justify-center">
-            <Button
+            {/* <Button
               onClick={handleRefresh}
               className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg flex items-center space-x-2"
             >
@@ -93,7 +93,7 @@ export default function ProfilePage() {
                 />
               </svg>
               <span>Cập nhật thông tin</span>
-            </Button>
+            </Button> */}
           </div>
         </div>
       </div>
