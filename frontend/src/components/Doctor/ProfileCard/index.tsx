@@ -1,6 +1,5 @@
-import styles from "@/styles/doctor/ProfileCard.module.css";
-import { useFetchDoctor } from "@/hooks/useFetchDoctor";
-import { data, useLocation } from "react-router-dom";
+import styles from "@/styles/blog/ProfileCard.module.css";
+import { useFetchBlog } from "@/hooks/useFetchBlog";import { data, useLocation } from "react-router-dom";
 import { useState, useMemo } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
@@ -14,10 +13,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { vi } from "date-fns/locale";
+import { title } from "process";
 
 // Hàm chuyển đổi dữ liệu từ API sang định dạng mong muốn
-const transformDoctorData = (apiDoctor: any) => {
-  if (!apiDoctor || !apiDoctor.user || !apiDoctor.hospital) {
+const transformblogData = (apiBlog: any) => {
+  if (!apiBlog || !apiBlog.user || !apiBlog.hospital) {
     // Trả về dữ liệu mặc định nếu không có data hoặc data không đầy đủ
     return {
       id: "unknown",
@@ -46,51 +46,52 @@ const transformDoctorData = (apiDoctor: any) => {
 
   try {
     return {
-      id: apiDoctor?.id || "unknown",
-      name: apiDoctor?.user?.name || "Chưa cập nhật",
+      id: apiBlog?.id || "unknown",
+      name: apiBlog?.user?.name || "Chưa cập nhật",
       rating: "4.7",
+      title: apiBlog?.title || "Chưa cập nhật",
       reviews: Math.floor(Math.random() * (500 - 200 + 1)) + 200,
-      specialty: apiDoctor?.specialization || "Chưa cập nhật",
-      specializedTreatment: apiDoctor?.bio || "Chưa cập nhật",
+      specialty: apiBlog?.specialization || "Chưa cập nhật",
+      specializedTreatment: apiBlog?.bio || "Chưa cập nhật",
       symptoms: [],
       schedule: "Thứ 2 - Thứ 6, 8:00 - 17:00",
-      overviews: apiDoctor?.bio || "Chưa cập nhật",
-      hospital: apiDoctor?.hospital?.name || "Chưa cập nhật",
+      overviews: apiBlog?.bio || "Chưa cập nhật",
+      hospital: apiBlog?.hospital?.name || "Chưa cập nhật",
       room: `${String.fromCharCode(65 + Math.floor(Math.random() * 6))}-${Math.floor(Math.random() * 900) + 100}`,
-      address: apiDoctor?.hospital?.location || "Chưa cập nhật",
-      isFeatured: apiDoctor?.availableOnline || false,
+      address: apiBlog?.hospital?.location || "Chưa cập nhật",
+      isFeatured: apiBlog?.availableOnline || false,
       avatar: `https://ui.shadcn.com/avatars/0${Math.floor(Math.random() * 5) + 1}.png`,
-      experienceYears: apiDoctor?.experienceYears || 0,
-      consultationFee: apiDoctor?.consultationFee || 0,
-      availableOnline: apiDoctor?.availableOnline || false,
+      experienceYears: apiBlog?.experienceYears || 0,
+      consultationFee: apiBlog?.consultationFee || 0,
+      availableOnline: apiBlog?.availableOnline || false,
       contact: {
-        email: apiDoctor?.user?.email || "Chưa cập nhật",
-        phoneNumber: apiDoctor?.user?.phoneNumber || "Chưa cập nhật",
+        email: apiBlog?.user?.email || "Chưa cập nhật",
+        phoneNumber: apiBlog?.user?.phoneNumber || "Chưa cập nhật",
       },
     };
   } catch (error) {
-    console.error("Error transforming doctor data:", error);
+    console.error("Error transforming blog data:", error);
     return null;
   }
 };
 
 const ProfileCard = () => {
   const location = useLocation();
-  const doctorId = location.pathname.split("/")[2];
-  const { data: apiDoctor, isLoading } = useFetchDoctor(doctorId);
+  const blogId = location.pathname.split("/")[2];
+  const { data: apiBlog, isLoading } = useFetchBlog(blogId);
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [startTime, setStartTime] = useState<string>();
   const [endTime, setEndTime] = useState<string>();
 
   // Transform API data to match fake data structure
-  const doctor = useMemo(() => {
-    // Nếu có apiDoctor và là data từ API (có user và hospital)
-    if (apiDoctor && apiDoctor.user && apiDoctor.hospital) {
-      return transformDoctorData(apiDoctor);
+  const blog = useMemo(() => {
+    // Nếu có apiBlog và là data từ API (có user và hospital)
+    if (apiBlog && apiBlog.user && apiBlog.hospital) {
+      return transformblogData(apiBlog);
     }
     // Nếu là fake data hoặc có lỗi, sử dụng trực tiếp
-    return apiDoctor;
-  }, [apiDoctor]);
+    return apiBlog;
+  }, [apiBlog]);
 
   const timeSlots = [
     "08:00",
@@ -136,7 +137,7 @@ const ProfileCard = () => {
   };
 
   if (isLoading) return <div>Loading...</div>;
-  if (!doctor) return <div>Không tìm thấy thông tin bác sĩ.</div>;
+  if (!blog) return <div>Không tìm thấy thông tin bác sĩ.</div>;
 
   return (
     <div className="container mx-auto p-6">
@@ -146,39 +147,39 @@ const ProfileCard = () => {
           <h2 className="text-xl font-bold mb-4">Thông tin bác sĩ:</h2>
           <div className="space-y-4">
             <div>
-              <h3 className="text-lg font-semibold">{doctor.name}</h3>
+              <h3 className="text-lg font-semibold">{blog.name}</h3>
               <p className="text-gray-600">
-                <strong>Chuyên khoa:</strong> {doctor.specialty}
+                <strong>Chuyên khoa:</strong> {blog.specialty}
               </p>
               <p className="text-gray-600">
-                <strong>Kinh nghiệm:</strong> {doctor.experienceYears || "15"}{" "}
+                <strong>Kinh nghiệm:</strong> {blog.experienceYears || "15"}{" "}
                 năm
               </p>
               <p className="text-gray-600">
                 <strong>Phí tư vấn:</strong>{" "}
-                {(doctor.consultationFee || 500000).toLocaleString("vi-VN")} VNĐ
+                {(blog.consultationFee || 500000).toLocaleString("vi-VN")} VNĐ
               </p>
               <p className="text-gray-600">
                 <strong>Tư vấn online:</strong>{" "}
-                {doctor.availableOnline ? "Có" : "Không"}
+                {blog.availableOnline ? "Có" : "Không"}
               </p>
             </div>
 
             <div>
               <h2 className="text-lg font-semibold mb-2">Giới thiệu</h2>
-              <p className="text-gray-600">{doctor.overviews}</p>
+              <p className="text-gray-600">{blog.overviews}</p>
             </div>
 
             <div>
               <h2 className="text-lg font-semibold mb-2">Phòng khám</h2>
               <p className="text-gray-600">
-                <strong>Bệnh viện:</strong> {doctor.hospital}
+                <strong>Bệnh viện:</strong> {blog.hospital}
               </p>
               <p className="text-gray-600">
-                <strong>Địa chỉ:</strong> {doctor.address}
+                <strong>Địa chỉ:</strong> {blog.address}
               </p>
               <p className="text-gray-600">
-                <strong>Phòng:</strong> {doctor.room}
+                <strong>Phòng:</strong> {blog.room}
               </p>
             </div>
 
@@ -186,11 +187,11 @@ const ProfileCard = () => {
               <h2 className="text-lg font-semibold mb-2">Thông tin liên hệ</h2>
               <p className="text-gray-600">
                 <strong>Email:</strong>{" "}
-                {doctor.contact?.email || "doctor@hospital.com"}
+                {blog.contact?.email || "blog@hospital.com"}
               </p>
               <p className="text-gray-600">
                 <strong>Số điện thoại:</strong>{" "}
-                {doctor.contact?.phoneNumber || "0123456789"}
+                {blog.contact?.phoneNumber || "0123456789"}
               </p>
             </div>
           </div>
