@@ -4,7 +4,7 @@ import { AuthPages } from "./pages/Auth";
 import { PublicPages } from "./pages/Public";
 import { AdminPages } from "./pages/Admin";
 import { ProtectedPages } from "./pages/Protected";
-import path from "path";
+
 
 export const AuthRoutes = {
   layout: Layouts.AuthLayout,

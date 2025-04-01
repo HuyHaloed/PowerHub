@@ -4,15 +4,15 @@ const Footer = () => {
   return (
     <footer className="bg-gray-900 text-gray-300">
       <div className="max-w-7xl mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Logo & Intro */}
           <div className="space-y-4">
-            <h3 className="text-2xl font-bold text-white">MEDISEEK</h3>
+            <h3 className="text-2xl font-bold text-white">POWER HUB</h3>
             <p className="text-sm text-gray-400">
-              Nền tảng đặt lịch khám bệnh trực tuyến hàng đầu Việt Nam, kết nối
-              bệnh nhân với đội ngũ bác sĩ chuyên môn cao.
+              Nền tảng quản lý điện năng là một hệ thống hiện đại, giúp theo dõi, 
+              phân tích và tối ưu hóa mức tiêu thụ điện của các thiết bị trong thời gian thực. 
             </p>
-            <div className="flex space-x-4">
+            <div className="flex space-x-4 ">
               {socialLinks.map((social, index) => (
                 <a
                   key={index}
@@ -47,7 +47,7 @@ const Footer = () => {
           </div>
 
           {/* Specialties */}
-          <div>
+          {/* <div>
             <h4 className="text-lg font-semibold text-white mb-4">
               Chuyên khoa
             </h4>
@@ -63,11 +63,11 @@ const Footer = () => {
                 </li>
               ))}
             </ul>
-          </div>
+          </div> */}
 
           {/* Contact Info */}
-          <div>
-            <h4 className="text-lg font-semibold text-white mb-4">Liên hệ</h4>
+          <div className="space-y-4">
+            <h4 className="text-lg font-semibold text-white mb-4 ">Liên hệ</h4>
             <ul className="space-y-3">
               {contactInfo.map((info, index) => (
                 <li key={index} className="flex items-start space-x-3">
@@ -83,7 +83,7 @@ const Footer = () => {
         <div className="border-t border-gray-800 mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <p className="text-sm text-gray-400">
-              © 2025 MEDISEEK. All rights reserved.
+              © 2025 POWERHUB. All rights reserved.
             </p>
             <div className="flex space-x-6">
               <Link
@@ -142,19 +142,18 @@ const socialLinks = [
 
 const quickLinks = [
   { href: "/", label: "Trang chủ" },
-  { href: "/about", label: "Giới thiệu" },
-  { href: "/search", label: "Tìm bác sĩ" },
-  { href: "/news", label: "Tin tức" },
+  { href: "/about", label: "Blogs" },
+  { href: "/search", label: "Hỏi đáp" },
   { href: "/contact", label: "Liên hệ" },
 ];
 
-const specialties = [
-  { value: "tim-mach", label: "Tim mạch" },
-  { value: "than-kinh", label: "Thần kinh" },
-  { value: "da-lieu", label: "Da liễu" },
-  { value: "nhi-khoa", label: "Nhi khoa" },
-  { value: "san-phu-khoa", label: "Sản phụ khoa" },
-];
+// const specialties = [
+//   { value: "tim-mach", label: "Tim mạch" },
+//   { value: "than-kinh", label: "Thần kinh" },
+//   { value: "da-lieu", label: "Da liễu" },
+//   { value: "nhi-khoa", label: "Nhi khoa" },
+//   { value: "san-phu-khoa", label: "Sản phụ khoa" },
+// ];
 
 const contactInfo = [
   {

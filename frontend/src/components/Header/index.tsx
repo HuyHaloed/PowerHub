@@ -1,5 +1,5 @@
 import { useState } from "react";
-import logo from "@/assets/imgs/logo.png";
+import logo from "@/assets/logo.png";
 import { Button } from "../ui/button";
 import { useLocation, Link, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -31,10 +31,10 @@ interface Notification {
 }
 
 const items: ItemProp[] = [
-  { name: "Home", path: paths.Home },
-  { name: "Clinic", path: paths.Clinic },
-  { name: "Services", path: paths.DoctorSearch },
-  { name: "Contact us", path: "/contact" },
+  { name: "Trang chủ", path: paths.Home },
+  { name: "Blog", path: paths.Clinic },
+  { name: "Hỏi đáp", path: paths.DoctorSearch },
+  { name: "Liên hệ với chúng tôi", path: "/contact" },
 ];
 
 const mockNotifications: Notification[] = [
@@ -94,9 +94,9 @@ export default function Header() {
   };
 
   return (
-    <div className="p-4 border-b-3 border-primary flex flex-wrap items-center justify-between relative">
+    <div className="p-1 border-primary flex flex-wrap items-center justify-between relative bg-[#F1F0E8] ">
       <Link to={paths.Home}>
-        <img src={logo} alt="logo" className="md:max-w-[300px] max-w-[150px]" />
+        <img src={logo} alt="logo" className="md:max-w-[75px] max-w-[75px] ml-10 " />
       </Link>
 
       {/* Nút mở nav */}
