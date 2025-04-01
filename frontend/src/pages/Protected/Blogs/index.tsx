@@ -5,21 +5,28 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 
+import BlogImage1 from "@/assets/imgs/BlogsImage/Blogimage1.jpg";
+import BlogImage2 from "@/assets/imgs/BlogsImage/Blogimage2.jpg";
+import BlogImage3 from "@/assets/imgs/BlogsImage/Blogimage3.jpg";
+import BlogImage4 from "@/assets/imgs/BlogsImage/Blogimage4.jpg";
+import BlogImage5 from "@/assets/imgs/BlogsImage/Blogimage5.jpg";
+import BlogImage6 from "@/assets/imgs/BlogsImage/Blogimage6.jpg";
+import BlogImage7 from "@/assets/imgs/BlogsImage/Blogimage7.jpg";
 const blogPosts = [
   {
     id: 1,
     title: "Ứng Dụng S-Well Được Chọn Là Ứng Dụng Ngủ Chính Xác Nhất",
-    category: "Đánh Giá Ứng Dụng",
-    date: "24/5/35",
-    image: "/api/placeholder/800/600",
-    excerpt: "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Qui consectetur, laborum voluptates dicta aspernatur consequatur non, dolor blanditiis nesciunt voluptas optio nihil quia? Voluptatibus quis alias illo sed, corporis magnam!",
+    category: "",
+    date: "",
+    image: "",
+    excerpt: "",
   },
   {
     id: 2,
     title: "Power Hub trở thành ứng dụng được tải nhiều nhất trên Google Play",
     category: "Đánh Giá Ứng Dụng",
     date: "24/5/35",
-    image: "/api/placeholder/800/600",
+    image: BlogImage1,
     excerpt: "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Qui consectetur, laborum voluptates dicta aspernatur consequatur non, dolor blanditiis nesciunt voluptas optio nihil quia? Voluptatibus quis alias illo sed, corporis magnam!",
   },
   {
@@ -27,7 +34,7 @@ const blogPosts = [
     title: "Top 2035 Ứng Dụng AR Tốt Nhất Cho iPad",
     category: "Thiết Bị Công Nghệ",
     date: "24/5/35",
-    image: "/api/placeholder/800/600",
+    image: BlogImage2,
     excerpt: "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Qui consectetur, laborum voluptates dicta aspernatur consequatur non, dolor blanditiis nesciunt voluptas optio nihil quia? Voluptatibus quis alias illo sed, corporis magnam!",
   },
   {
@@ -35,7 +42,7 @@ const blogPosts = [
     title: "Dwell Công Bố Dịch Vụ Streaming Mới",
     category: "Sáng Tạo",
     date: "24/5/35",
-    image: "/api/placeholder/800/600",
+    image: BlogImage3,
     excerpt: "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Qui consectetur, laborum voluptates dicta aspernatur consequatur non, dolor blanditiis nesciunt voluptas optio nihil quia? Voluptatibus quis alias illo sed, corporis magnam!",
   },
   {
@@ -43,7 +50,7 @@ const blogPosts = [
     title: "Verfix Ra Mắt Phiên Bản Mới Của Bot",
     category: "Sáng Tạo",
     date: "20/6/35",
-    image: "/api/placeholder/800/600",
+    image: BlogImage4,
     excerpt: "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Qui consectetur, laborum voluptates dicta aspernatur consequatur non, dolor blanditiis nesciunt voluptas optio nihil quia? Voluptatibus quis alias illo sed, corporis magnam!",
   },
   {
@@ -51,7 +58,7 @@ const blogPosts = [
     title: "Điện Thoại Bawwwii So Với Yungi",
     category: "Thiết Bị Công Nghệ",
     date: "18/6/35",
-    image: "/api/placeholder/800/600",
+    image: BlogImage5,
     excerpt: "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Qui consectetur, laborum voluptates dicta aspernatur consequatur non, dolor blanditiis nesciunt voluptas optio nihil quia? Voluptatibus quis alias illo sed, corporis magnam!",
   },
   {
@@ -59,7 +66,7 @@ const blogPosts = [
     title: "Vì Sao Ứng Dụng Samsu Dẫn Đầu Trong Cải Tiến Thị Trường",
     category: "Ứng Dụng",
     date: "16/6/35",
-    image: "/api/placeholder/800/600",
+    image: BlogImage6,
     excerpt: "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Qui consectetur, laborum voluptates dicta aspernatur consequatur non, dolor blanditiis nesciunt voluptas optio nihil quia? Voluptatibus quis alias illo sed, corporis magnam!",
   },
   {
@@ -67,11 +74,10 @@ const blogPosts = [
     title: "TV OLED Mới Được Ra Mắt",
     category: "Thiết Bị Công Nghệ",
     date: "14/6/35",
-    image: "/api/placeholder/800/600",
+    image: BlogImage7,
     excerpt: "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Qui consectetur, laborum voluptates dicta aspernatur consequatur non, dolor blanditiis nesciunt voluptas optio nihil quia? Voluptatibus quis alias illo sed, corporis magnam!",
   },
 ];
-
 
 export function BlogsPage() {
   const navigate = useNavigate();
