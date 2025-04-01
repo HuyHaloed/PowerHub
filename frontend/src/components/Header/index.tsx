@@ -95,8 +95,9 @@ export default function Header() {
 
   return (
     <div className="p-1 border-primary flex flex-wrap items-center justify-between relative bg-[#F1F0E8] ">
-      <Link to={paths.Home}>
+      <Link to={paths.Home} className="flex items-center">
         <img src={logo} alt="logo" className="md:max-w-[75px] max-w-[75px] ml-10 " />
+        <span className="ml-2 text-xl font-bold">POWER HUB</span>
       </Link>
 
       {/* Nút mở nav */}
