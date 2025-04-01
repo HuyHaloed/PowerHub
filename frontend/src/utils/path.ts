@@ -10,6 +10,8 @@ export const paths = {
   DoctorSearch: "/search",
   Booking: "/booking",
   Clinic: "/clinic",
+  
+  
 
   // Admin pages
   AdminDashboard: "/dashboard",

@@ -1,9 +1,17 @@
-import banner from "@/assets/imgs/banner.png";
+import banner1 from "@/assets/imgs/banner1.png";
+import banner2 from "@/assets/imgs/banner2.jpg";
+import banner3 from "@/assets/imgs/banner3.png";
 import sub from "@/assets/imgs/sub.png";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useAccount } from "@/hooks/useAccount";
-import Footer from "@/components/Footer";
+import ImageCarousel from "@/components/Carousel"; // Import component Carousel
+
+const carouselImages = [
+  banner1, // Hình ảnh hiện tại
+  banner2, // Thay thế với đường dẫn thực tế
+  banner3, // Thay thế với đường dẫn thực tế
+];
 
 export default function HomePage() {
   const { data: account } = useAccount();
@@ -12,25 +20,26 @@ export default function HomePage() {
     <div className="min-h-screen">
       {/* Hero Section */}
       <div className="grid lg:grid-cols-2 gap-4 items-center lg:mx-7 sm:mx-5 mx-3 flex-1 mt-3">
-        <div className="space-y-5">
+        <div className="space-y-8 rounded-lg p-14 mt-[40px] mb-[10px]">
           <div className="flex flex-col w-fit">
             <h1 className="text-4xl font-bold">
-              Find a <span className="text-primary">Doctor &</span>
+              NỀN TẢNG QUẢN LÝ <span className="text-primary">ĐIỆN NĂNG</span>
             </h1>
-            <img src={sub} alt="placeholder" className="self-end" />
-            <h2 className="text-3xl font-bold">
-              Book and <span className="text-primary">Appointment</span>
-            </h2>
+            <img src={sub} alt="placeholder" className="self-end w-60 h-8" />
+            <h5 className="text-2xl font-bold">
+              TỐI ƯU CHI PHÍ <span className="text-primary">& HIỆU QUẢ VƯỢT TRỘI</span>
+            </h5>
           </div>
           <p className="italic text-secondary max-w-xl">
-            Easily search for qualified doctors based on specialty, location,
-            availability, and patient reviews. View detailed doctor profiles,
-            including credentials, experience, and consultation fees.
+            Nền tảng quản lý điện năng là một hệ thống hiện đại, giúp theo dõi, 
+            phân tích và tối ưu hóa mức tiêu thụ điện của các thiết bị trong thời gian thực. 
+            Hệ thống này cung cấp dữ liệu chính xác để người dùng dễ dàng kiểm soát và điều chỉnh mức 
+            sử dụng điện một cách hợp lý.
           </p>
           <div className="mt-5 flex items-center gap-5">
             <Link to="/search">
               <Button variant="secondary" size="lg">
-                Tìm kiếm ngay
+                Dashboard của tôi
               </Button>
             </Link>
             <Link to="/about">
@@ -41,19 +50,17 @@ export default function HomePage() {
           </div>
         </div>
         <div>
-          <img
-            src={banner}
-            alt="placeholder"
-            className="w-full h-full object-cover"
-          />
+            <div className="w-full h-full object-cover ml-30 rounded-3xl">
+              <ImageCarousel images={carouselImages} className=" w-110 h-110 " />
+            </div>
         </div>
       </div>
 
       {/* Features Section */}
-      <div className="bg-gray-50 py-16 mt-20">
+      <div className="bg-gray-50 py-16 ">
         <div className="max-w-7xl mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12">
-            Tại sao chọn <span className="text-primary">MEDISEEK</span>
+            Tại sao chọn <span className="text-primary">POWER HUB</span>
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
             {features.map((feature, index) => (
@@ -89,30 +96,28 @@ export default function HomePage() {
       </div>
 
       {/* CTA Section */}
-      <div className="bg-primary py-16">
+      <div className="bg-[#F1F0E8] py-16">
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold text-white mb-6">
-            Bắt đầu tìm kiếm bác sĩ ngay hôm nay
+          <h2 className="text-3xl font-bold text-dark mb-6">
+            Bắt đầu kết nối với chúng tôi
           </h2>
-          <p className="text-blue-100 mb-8 max-w-2xl mx-auto">
-            Đặt lịch khám với các bác sĩ hàng đầu, được đánh giá cao và tin
-            tưởng bởi hàng nghìn bệnh nhân
+          <p className="text-dark-100 mb-8 max-w-2xl mx-auto">
+            Nếu bạn đang cần một phương pháp thông minh cho ngôi nhà của bạn
           </p>
           <Link to="/search">
             <Button variant="secondary" size="lg" className="font-semibold">
-              Tìm kiếm bác sĩ
+              Dashboard của tôi
             </Button>
           </Link>
         </div>
       </div>
 
-      {/* Specialties Section */}
       <div className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12">
-            Chuyên khoa phổ biến
+            BLOG XU HƯỚNG
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {specialties.map((specialty, index) => (
               <div
                 key={index}
@@ -121,9 +126,9 @@ export default function HomePage() {
                 <div className="w-16 h-16 mx-auto mb-4 bg-primary/10 rounded-full flex items-center justify-center">
                   {specialty.icon}
                 </div>
-                <h3 className="font-semibold">{specialty.name}</h3>
+                <h6 className="font-semibold">{specialty.name}</h6>
                 <p className="text-sm text-gray-600 mt-1">
-                  {specialty.count} bác sĩ
+                  {specialty.description}
                 </p>
               </div>
             ))}
@@ -133,7 +138,6 @@ export default function HomePage() {
     </div>
   );
 }
-
 // Data for features section
 const features = [
   {
@@ -152,8 +156,8 @@ const features = [
         />
       </svg>
     ),
-    title: "Bác sĩ chất lượng",
-    description: "Đội ngũ bác sĩ giàu kinh nghiệm, được đánh giá cao",
+    title: "Giám sát và kiểm soát hiệu quả",
+    description: "Power Hub cung cấp các công cụ giám sát năng lượng theo thời gian thực, giúp người dùng dễ dàng theo dõi mức tiêu thụ điện năng và điều chỉnh để tối ưu hóa việc sử dụng điện trong các thiết bị",
   },
   {
     icon: (
@@ -171,8 +175,8 @@ const features = [
         />
       </svg>
     ),
-    title: "Đặt lịch dễ dàng",
-    description: "Đặt lịch khám nhanh chóng, theo dõi lịch hẹn thuận tiện",
+    title: "Tiết kiệm chi phí năng lượng",
+    description: "Hệ thống giúp phân tích và tối ưu hóa mức tiêu thụ điện, giúp giảm thiểu lãng phí năng lượng và tiết kiệm chi phí trong dài hạn.",
   },
   {
     icon: (
@@ -190,101 +194,64 @@ const features = [
         />
       </svg>
     ),
-    title: "Nhiều địa điểm",
-    description: "Mạng lưới bệnh viện và phòng khám rộng khắp",
+    title: "Công nghệ tiên tiến và đáng tin cậy",
+    description: "Power Hub áp dụng các công nghệ hiện đại, sử dụng dữ liệu chính xác và có khả năng dự đoán xu hướng tiêu thụ điện, giúp người dùng đưa ra quyết định sử dụng năng lượng hợp lý và hiệu quả.",
   },
 ];
 
 // Data for stats section
 const stats = [
-  { value: "1,000+", label: "Bác sĩ" },
-  { value: "50+", label: "Chuyên khoa" },
-  { value: "100,000+", label: "Bệnh nhân" },
-  { value: "4.8", label: "Đánh giá trung bình" },
+  { value: "4.8/5", label: "Đánh giá hiệu quả" },
+  { value: "1,000+", label: "Số thiết bị kết nối" },
+  { value: "500+", label: "Số lượng khách hàng sử dụng" },
+  { value: "50,000+", label: "Số thông báo được gửi đi" },
 ];
 
 // Data for specialties section
+// Data for specialties section (blog)
 const specialties = [
   {
     icon: (
-      <svg
-        className="w-6 h-6 text-primary"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-        />
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="size-6">
+        <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 18.75 7.5-7.5 7.5 7.5" />
+        <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 7.5-7.5 7.5 7.5" />
       </svg>
+
     ),
-    name: "Tim mạch",
-    count: 48,
+    name: "Giải Pháp Giám Sát Tiêu Thụ Điện Đột Phá",
+    description: "Khám phá những phương pháp mới nhất giúp theo dõi và quản lý năng lượng hiệu quả",
   },
   {
     icon: (
-      <svg
-        className="w-6 h-6 text-primary"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-        />
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-        />
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="size-6">
+        <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 18.75 7.5-7.5 7.5 7.5" />
+        <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 7.5-7.5 7.5 7.5" />
       </svg>
+
     ),
-    name: "Mắt",
-    count: 36,
+    name: "Lập Lịch Tự Động Hóa: Tiết Kiệm Năng Lượng Mỗi Ngày",
+    description: "Tự động hóa việc sử dụng điện năng giúp tối ưu hóa tiêu thụ và tiết kiệm chi phí",
   },
   {
     icon: (
-      <svg
-        className="w-6 h-6 text-primary"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-        />
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="size-6">
+        <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 18.75 7.5-7.5 7.5 7.5" />
+        <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 7.5-7.5 7.5 7.5" />
       </svg>
+
     ),
-    name: "Da liễu",
-    count: 42,
+    name: "Bí Quyết Tiết Kiệm Năng Lượng Hiệu Quả với Power Hub",
+    description: "Những mẹo đơn giản nhưng hiệu quả giúp giảm đáng kể chi phí điện hàng tháng",
   },
   {
     icon: (
-      <svg
-        className="w-6 h-6 text-primary"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-        />
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="size-6">
+        <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 18.75 7.5-7.5 7.5 7.5" />
+        <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 7.5-7.5 7.5 7.5" />
       </svg>
+
     ),
-    name: "Nhi khoa",
-    count: 38,
+    name: "Thông Báo Tiết Kiệm Điện: Cảnh Báo Kịp Thời, Tiết Kiệm Tối Đa",
+    description: "Hệ thống cảnh báo thông minh giúp phát hiện bất thường và ngăn chặn lãng phí",
   },
 ];
