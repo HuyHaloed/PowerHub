@@ -63,24 +63,24 @@ export default function LoginPage() {
 
   return (
     <div className="grid lg:grid-cols-2 my-5 items-center lg:mx-7 sm:mx-5 mx-3 flex-1 mt-3">
-      <div id="login__left" className="h-scree flex flex-col items-center">
+      <div id="login__left" className="h-scree flex flex-col items-center h-full mt-15">
         <div
           className="left text-4xl font-bold"
           style={{
             fontFamily: "'Lato', 'Roboto', sans-serif",
           }}
         >
-          <h2 className="block">Trường đại học Bách Khoa - ĐHQG HCM</h2>
-          <h3>Online HealthCare</h3>
         </div>
         <img
           src={loginImage}
           alt="Login"
           className="w-3/5 object-cover aspect-square block mt-6"
         />
+        <h5>HÃY CHO TÔI BIẾT VẤN ĐỀ CỦA BẠN</h5>
+
       </div>
-      <div id="login__right" className="flex justify-center items-center">
-        <div className="left mt-20 w-full max-w-md">
+      <div id="login__right" className="flex justify-center items-center h-full ">
+        <div className="left w-full max-w-md">
           <h1 className="text-4xl text-center">Login</h1>
           <div className="mt-5">
             <Form {...form}>

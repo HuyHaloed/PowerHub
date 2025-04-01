@@ -104,15 +104,14 @@ export default function SignupPage() {
 
   return (
     <div className="grid lg:grid-cols-2 my-5 items-center lg:mx-7 sm:mx-5 mx-3 flex-1 mt-3">
-      <div id="login__left" className="h-scree flex flex-col items-center">
+      <div id="login__left" className="h-scree flex flex-col items-center h-full mt-35">
         <div
           className="left text-4xl font-bold"
           style={{
             fontFamily: "'Lato', 'Roboto', sans-serif",
           }}
         >
-          <h2 className="block">Trường đại học Bách Khoa - ĐHQG HCM</h2>
-          <h3>Online HealthCare</h3>
+          <h5>HÃY CHO TÔI BIẾT VẤN ĐỀ CỦA BẠN</h5>
         </div>
         <img
           src={loginImage}
