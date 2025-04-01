@@ -50,8 +50,8 @@ export const ProtectedRoutes = {
       element: ProtectedPages.BookingPage,
     },
     {
-      path: paths.Clinic,
-      element: ProtectedPages.ClinicPage,
+      path: paths.Blogs,
+      element: ProtectedPages.BlogsPage,
     },
   ],
 };

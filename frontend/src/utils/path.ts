@@ -9,7 +9,7 @@ export const paths = {
   Profile: "/profile",
   DoctorSearch: "/search",
   Booking: "/booking",
-  Clinic: "/clinic",
+  Blogs: "/blogs",
   
   
 
