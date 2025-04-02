@@ -1,8 +1,0 @@
-serial
-paho-mqtt
-pymongo
-network
-paho-mqtt aioodbc
-pandas 
-scikit-learn 
-pyodbc
