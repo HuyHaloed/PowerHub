@@ -1,32 +1,56 @@
 import { blogs } from "@/data/blogs";
+import { Blog } from "@/types/blog.types";
 import { useQuery } from "@tanstack/react-query";
 import authorizedAxiosInstance from "@/lib/axios";
 
-// Function to fetch tutors from the API
-const fetchBlogs = async (id: string) => {
+// Function to fetch blogs from the API
+const fetchBlog = async (id: string): Promise<Blog> => {
   try {
-    const response = await authorizedAxiosInstance.get<any>(
-      "/api/blog/" + id,
+    // Try to fetch from API first
+    const response = await authorizedAxiosInstance.get<{ result: Blog }>(
+      `/api/blog/${id}`,
     );
     return response.data.result;
   } catch (error) {
-    // Khi có lỗi, trả về fake data
-    const fakeDoctor = blogs.find((blog) => blog.id === id);
-    if (!fakeDoctor) {
-      throw new Error("blogs not found");
+    // If API fails, fall back to local data
+    const localBlog = blogs.find((blog) => blog.id.toString() === id);
+    if (!localBlog) {
+      throw new Error("Blog not found");
     }
-    return fakeDoctor;
+    return localBlog;
   }
 };
 
-// Custom hook to fetch tutors using useQuery
+// Custom hook to fetch a blog using useQuery
 export const useFetchBlog = (id: string) => {
   return useQuery({
-    queryKey: ["blogs", id],
-    queryFn: () => fetchBlogs(id),
-    // Use initialData as fallback if the query fails or while loading
-    initialData: blogs.find((blog) => blog.id === id),
-    // Optionally, you can configure retry behavior
-    retry: 1, // Retry once before falling back
+    queryKey: ["blog", id],
+    queryFn: () => fetchBlog(id),
+    initialData: blogs.find((blog) => blog.id.toString() === id),
+    retry: 1, // Only retry once before falling back to local data
+  });
+};
+
+// Function to fetch all blogs
+const fetchAllBlogs = async (): Promise<Blog[]> => {
+  try {
+    // Try to fetch from API first
+    const response = await authorizedAxiosInstance.get<{ result: Blog[] }>(
+      "/api/blogs",
+    );
+    return response.data.result;
+  } catch (error) {
+    // If API fails, fall back to local data
+    return blogs;
+  }
+};
+
+// Custom hook to fetch all blogs using useQuery
+export const useFetchAllBlogs = () => {
+  return useQuery({
+    queryKey: ["blogs"],
+    queryFn: fetchAllBlogs,
+    initialData: blogs,
+    retry: 1,
   });
 };

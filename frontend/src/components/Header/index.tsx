@@ -32,7 +32,7 @@ interface Notification {
 
 const items: ItemProp[] = [
   { name: "Trang chủ", path: paths.Home },
-  { name: "Blog", path: paths.Blogs },
+  { name: "Blogs", path: paths.Blogs },
   { name: "Hỏi đáp", path: paths.DoctorSearch },
   { name: "Liên hệ với chúng tôi", path: "/contact" },
 ];

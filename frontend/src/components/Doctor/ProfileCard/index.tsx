@@ -1,5 +1,5 @@
 import styles from "@/styles/blog/ProfileCard.module.css";
-import { useFetchBlog } from "@/hooks/useFetchBlog";import { data, useLocation } from "react-router-dom";
+import { useFetchBlog } from "@/hooks/useFetchDoctor";import { data, useLocation } from "react-router-dom";
 import { useState, useMemo } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
