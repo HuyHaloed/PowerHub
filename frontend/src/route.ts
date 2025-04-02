@@ -53,6 +53,10 @@ export const ProtectedRoutes = {
       path: paths.Blogs,
       element: ProtectedPages.BlogsPage,
     },
+    {
+      path: paths.Blog,
+      element: ProtectedPages.BlogDetailPage,
+    },
   ],
 };
 
