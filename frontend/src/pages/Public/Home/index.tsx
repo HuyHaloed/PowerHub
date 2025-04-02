@@ -37,12 +37,12 @@ export default function HomePage() {
             sử dụng điện một cách hợp lý.
           </p>
           <div className="mt-5 flex items-center gap-5">
-            <Link to="/search">
+            <Link to="/dashboardIOT">
               <Button variant="secondary" size="lg">
                 Dashboard của tôi
               </Button>
             </Link>
-            <Link to="/about">
+            <Link to="/contact">
               <Button variant="link" className="text-secondary">
                 Thông tin chi tiết
               </Button>

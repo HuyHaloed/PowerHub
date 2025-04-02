@@ -57,6 +57,25 @@ export const ProtectedRoutes = {
       path: paths.Blog,
       element: ProtectedPages.BlogDetailPage,
     },
+    {
+      path: paths.Dashboard,
+      element: ProtectedPages.DashboardPage, 
+      children: [
+        {
+          path: `${paths.Dashboard}/analytics`,
+          element: ProtectedPages.AnalyticsView,
+        },
+        {
+          path: `${paths.Dashboard}/devices`,
+          element: ProtectedPages.DevicesView,
+        },
+        {
+          path: `${paths.Dashboard}/settings`,
+          element: ProtectedPages.SettingsView,
+        }
+      ],
+    },
+
   ],
 };
 

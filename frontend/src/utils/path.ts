@@ -11,6 +11,7 @@ export const paths = {
   Booking: "/booking",
   Blogs: "/blogs",
   Blog: "/blog/:id",
+  Dashboard: "/dashboardIOT",
   
 
   // Admin pages
