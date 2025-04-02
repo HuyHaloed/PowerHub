@@ -68,8 +68,8 @@ export function ContactPage() {
                 </div>
                 <div className="ml-4">
                   <h3 className="text-lg font-medium text-gray-800">Email</h3>
-                  <p className="text-gray-600">support@healthcare.com</p>
-                  <p className="text-gray-600">info@healthcare.com</p>
+                  <p className="text-gray-600">support@powerhub.com</p>
+                  <p className="text-gray-600">info@powerhub.com</p>
                 </div>
               </div>
 

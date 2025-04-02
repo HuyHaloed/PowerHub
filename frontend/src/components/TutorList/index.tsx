@@ -2,7 +2,7 @@ import { useState } from "react";
 import TutorCard from "../TutorCard";
 import { Button } from "../ui/button";
 import useFetchDoctors from "@/hooks/useFetchDoctors";
-import type { Doctor } from "@/types/doctor";
+import type { Doctor } from "@/types/doctor.types";
 
 interface TutorListProps {
   doctors: Doctor[];
