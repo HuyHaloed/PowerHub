@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { AlignRight, X, Bell } from "lucide-react";
 import { paths } from "@/utils/path";
 import { useAccount } from "@/hooks/useAccount";
+import { motion } from "framer-motion";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,7 +34,7 @@ interface Notification {
 const items: ItemProp[] = [
   { name: "Trang chủ", path: paths.Home },
   { name: "Blogs", path: paths.Blogs },
-  { name: "Hỏi đáp", path: paths.DoctorSearch },
+  { name: "Câu hỏi thường gặp", path: paths.FAQs },
   { name: "Liên hệ với chúng tôi", path: "/contact" },
 ];
 
@@ -95,10 +96,27 @@ export default function Header() {
 
   return (
     <div className="p-1 border-primary flex flex-wrap items-center justify-between relative bg-[#F1F0E8] ">
-      <Link to={paths.Home} className="flex items-center">
-        <img src={logo} alt="logo" className="md:max-w-[75px] max-w-[75px] ml-10 " />
-        <span className="ml-2 text-xl font-bold">POWER HUB</span>
+      <motion.div 
+      className=" border-primary flex items-center justify-between bg-[#F1F0E8]  relative"
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+    >
+      <Link to="/" className="flex items-center group">
+        <motion.img 
+          src={logo} 
+          alt="logo" 
+          className="md:max-w-[75px] max-w-[100px] ml-10 group-hover:scale-110 transition-transform duration-300"
+          whileHover={{ scale: 1.1 }}
+        />
+        <motion.span 
+          className="ml-2 text-xl font-bold text-gray-800 group-hover:text-primary transition-colors duration-300"
+          whileHover={{ color: "#3B82F6" }}
+        >
+          POWER HUB
+        </motion.span>
       </Link>
+    </motion.div>
 
       {/* Nút mở nav */}
       <AlignRight
@@ -355,7 +373,27 @@ export default function Header() {
           </>
         ) : (
           <Link to="/sign-in" className="text-xl">
-            <Button>Đăng nhập</Button>
+            <Button 
+              className="bg-[var(--primary-ground)] hover:bg-[var(--primary-ground)]/90 text-white transition-all duration-300 transform hover:scale-105 hover:shadow-lg flex items-center gap-2 px-6 py-2 rounded-full" 
+            >
+              <svg 
+                className="w-5 h-5 transition-transform duration-300 group-hover:rotate-12" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth="2" 
+                  d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" 
+                />
+              </svg>
+              <span className="relative">
+                Đăng nhập
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span>
+              </span>
+            </Button>
           </Link>
         )}
       </div>

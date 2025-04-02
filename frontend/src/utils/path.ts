@@ -7,7 +7,7 @@ export const paths = {
 
   // Protected pages
   Profile: "/profile",
-  DoctorSearch: "/search",
+  FAQs: "/faqs",
   Booking: "/booking",
   Blogs: "/blogs",
   Blog: "/blog/:id",

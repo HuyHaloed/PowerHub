@@ -42,8 +42,8 @@ export const ProtectedRoutes = {
       element: ProtectedPages.ProfilePage,
     },
     {
-      path: paths.DoctorSearch,
-      element: ProtectedPages.DoctorSearchPage,
+      path: paths.FAQs,
+      element: ProtectedPages.FAQSPage,
     },
     {
       path: paths.Booking + "/:id",
