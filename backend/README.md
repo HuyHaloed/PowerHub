@@ -1,4 +1,6 @@
-/MyIoTPlatformSolution.sln
+
+```
+MyIoTPlatformSolution.sln
 /src
 |
 |--- MyIoTPlatform.Domain/                 # Lớp lõi, không phụ thuộc lớp khác
@@ -95,3 +97,4 @@
 |--- MyIoTPlatform.Application.Tests/
 |--- MyIoTPlatform.Infrastructure.Tests/
 |--- MyIoTPlatform.API.Tests/
+```
