@@ -4,7 +4,7 @@ import { AuthPages } from "./pages/Auth";
 import { PublicPages } from "./pages/Public";
 import { AdminPages } from "./pages/Admin";
 import { ProtectedPages } from "./pages/Protected";
-
+import { CustomerPages } from "./pages/Customer";
 
 export const AuthRoutes = {
   layout: Layouts.AuthLayout,
@@ -57,24 +57,7 @@ export const ProtectedRoutes = {
       path: paths.Blog,
       element: ProtectedPages.BlogDetailPage,
     },
-    {
-      path: paths.Dashboard,
-      element: ProtectedPages.DashboardPage, 
-      children: [
-        {
-          path: `${paths.Dashboard}/analytics`,
-          element: ProtectedPages.AnalyticsView,
-        },
-        {
-          path: `${paths.Dashboard}/devices`,
-          element: ProtectedPages.DevicesView,
-        },
-        {
-          path: `${paths.Dashboard}/settings`,
-          element: ProtectedPages.SettingsView,
-        }
-      ],
-    },
+    
 
 
   ],
@@ -98,6 +81,30 @@ export const AdminRoutes = {
     {
       path: paths.AdminSettings,
       element: AdminPages.SettingsPage,
+    },
+  ],
+};
+
+export const CustomerRoutes = {
+  layout: Layouts.CustomerLayout,
+  routes: [
+    {
+      path: paths.Dashboard,
+      element: CustomerPages.DashboardPage, 
+      children: [
+        {
+          path: `${paths.Dashboard}/analytics`,
+          element: CustomerPages.AnalyticsView,
+        },
+        {
+          path: `${paths.Dashboard}/devices`,
+          element: CustomerPages.DevicesView,
+        },
+        {
+          path: `${paths.Dashboard}/settings`,
+          element: CustomerPages.SettingsView,
+        }
+      ],
     },
   ],
 };
