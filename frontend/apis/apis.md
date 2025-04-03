@@ -1,5 +1,5 @@
 # Power Hub Dashboard APIs 
-<!-- Nhấn Ctrl + Shift + V để xem đẹp hơn -->
+<!-- Nhấn Ctrl + Shift + V để xem đẹp hơn OK hơn-->
 
 Tài liệu này mô tả các API cần thiết để vận hành hệ thống dashboard giám sát năng lượng Power Hub.
 
