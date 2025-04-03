@@ -9,9 +9,10 @@ import DeviceStatusCard from '@/components/Dashboard/DeviceStatusCard';
 import EnergyDistributionChart from '@/components/Dashboard/EnergyDistributionChart';
 import UserInfoCard from '@/components/Dashboard/UserInfoCard';
 import { Bell } from 'lucide-react';
-
+import DevicesView from '@/pages/Protected/Dashboard/DevicesView';
+import AnalyticsView from '@/pages/Protected/Dashboard/AnalyticsView';
+import SettingsView from '@/pages/Protected/Dashboard/SettingsView';
 // Custom Alert Component
-console.log("CustomAlert component is being used.");
 const CustomAlert = ({ 
   title, 
   message, 
@@ -47,7 +48,6 @@ export default function Dashboard() {
   const { data: dashboardData, isLoading, error } = useDashboardData();
   const activeDevices = useActiveDevices();
   const quickStats = useQuickStats();
-  console.log("dashboardData:", dashboardData);
   // Check screen size for responsive layout
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   
@@ -194,33 +194,5 @@ export default function Dashboard() {
         </div>
       </div>
     </>
-  );
-}
-
-// Placeholder views for other tabs
-function DevicesView() {
-  return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Quản lý thiết bị</h1>
-      <p>Nội dung quản lý thiết bị sẽ được hiển thị tại đây.</p>
-    </div>
-  );
-}
-
-function AnalyticsView() {
-  return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Phân tích</h1>
-      <p>Nội dung phân tích sẽ được hiển thị tại đây.</p>
-    </div>
-  );
-}
-
-function SettingsView() {
-  return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Cài đặt</h1>
-      <p>Nội dung cài đặt sẽ được hiển thị tại đây.</p>
-    </div>
   );
 }
