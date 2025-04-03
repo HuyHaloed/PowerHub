@@ -5,12 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import DeviceStatusCard from '@/components/Dashboard/DeviceStatusCard';
 import { Plus, Search, Filter, Sliders } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Device } from '@/types/dashboard.types';
 
 export default function DevicesView() {
   const allDevices = useDevices();
-  const { toggleDevice, loading } = useDeviceControl();
+  const { toggleDevice } = useDeviceControl();
   const [searchTerm, setSearchTerm] = useState("");
   const [activeFilter, setActiveFilter] = useState<"all" | "on" | "off">("all");
   const [locationFilter, setLocationFilter] = useState<string | null>(null);
@@ -99,12 +99,12 @@ export default function DevicesView() {
           </div>
           
           <div>
-            <Select value={locationFilter || ""} onValueChange={(value) => setLocationFilter(value || null)}>
+            <Select value={locationFilter ?? "all"} onValueChange={(value) => setLocationFilter(value === "all" ? null : value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Vị trí" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tất cả vị trí</SelectItem>
+                <SelectItem value="all">Tất cả vị trí</SelectItem>
                 {locations.map((location) => (
                   <SelectItem key={location} value={location}>{location}</SelectItem>
                 ))}
@@ -113,12 +113,12 @@ export default function DevicesView() {
           </div>
           
           <div>
-            <Select value={typeFilter || ""} onValueChange={(value) => setTypeFilter(value || null)}>
+            <Select value={typeFilter ?? "all"} onValueChange={(value) => setTypeFilter(value === "all" ? null : value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Loại thiết bị" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tất cả loại</SelectItem>
+                <SelectItem value="all">Tất cả loại</SelectItem>
                 {deviceTypes.map((type) => (
                   <SelectItem key={type} value={type}>{type}</SelectItem>
                 ))}

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import  {Link} from "react-router-dom";
 import {
   LayoutDashboard,
   Zap,
@@ -146,10 +147,12 @@ export default function DashboardSidebar({
                 </span>
               )}
             </Button>
-            <Button variant="ghost" className="w-full justify-start">
-              <HelpCircle size={18} className="mr-2" />
-              Trợ giúp
-            </Button>
+            <Link to="/contact" className="w-full">
+              <Button variant="ghost" className="w-full justify-start">
+                <HelpCircle size={18} className="mr-2" />
+                Trợ giúp
+              </Button>
+            </Link>
           </div>
         </div>
         
