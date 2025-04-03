@@ -7,6 +7,7 @@ import {
   AdminRoutes,
   ProtectedRoutes,
   PublicRoutes,
+  CustomerRoutes,
 } from "./route";
 
 interface _Routes {
@@ -35,6 +36,11 @@ export default function App() {
       <Route element={<AuthRoutes.layout />}>
         {AuthRoutes.routes.map((item: _Routes) => (
           <Route key={item.path} path={item.path} element={<item.element />} />
+        ))}
+      </Route>
+      <Route element={<CustomerRoutes.layout />}>
+        {CustomerRoutes.routes.map((item: _Routes) => (
+            <Route key={item.path} path={item.path} element={<item.element />} />
         ))}
       </Route>
       <Route element={<ProtectedRoutes.layout />}>

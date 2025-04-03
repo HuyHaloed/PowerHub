@@ -5,6 +5,8 @@ import { Separator } from "@/components/ui/separator";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import  {Link} from "react-router-dom";
+import logo from "@/assets/logo.png";
+import { motion } from "framer-motion";
 import {
   LayoutDashboard,
   Zap,
@@ -101,14 +103,19 @@ export default function DashboardSidebar({
       
       {/* Sidebar */}
       <div id="dashboard-sidebar" className={sidebarClass}>
-        <div className="p-4 border-b flex items-center">
-          <div className="bg-blue-500 text-white p-2 rounded mr-2">
-            <Zap size={18} />
+        <div className="p-4 border-b flex items-center ">
+          <div className="bg-white text-white p-2 rounded mr-2">
+          <motion.img 
+            src={logo} 
+            alt="logo" 
+            className="md:max-w-[75px] max-w-[100px] ml-10 group-hover:scale-110 transition-transform duration-300"
+            whileHover={{ scale: 1.1 }}
+          />
           </div>
           <h1 className="text-lg font-bold">Power Hub</h1>
         </div>
         
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex-1 overflow-y-auto p-4 ">
           <div className="space-y-1">
             {navigationItems.map((item) => (
               <Button

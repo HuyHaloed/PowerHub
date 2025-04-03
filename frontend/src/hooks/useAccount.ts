@@ -1,39 +1,44 @@
-import { useQuery } from "@tanstack/react-query";
-import authorizedAxiosInstance from "@/lib/axios";
+import { useState, useEffect } from 'react';
 
-// Định nghĩa kiểu dữ liệu cho user
 interface User {
-  id: string;
-  email: string;
+  id: number;
   name: string;
+  email: string;
   avatar?: string;
-  phone_number?: string;
+  subscription?: {
+    plan: string;
+    validUntil: Date;
+  };
 }
 
-// Function để lấy thông tin user từ API
-const fetchUser = async () => {
-  const response = await authorizedAxiosInstance.get<any>("/auth/account");
-  return response.data.data;
-};
+export function useAccount() {
+  const [data, setData] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-// Dữ liệu mặc định khi chưa load được
-const defaultUser: User = {
-  id: "1",
-  email: "koikoidth12@gmail.com",
-  name: "Anonymous",
-  avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix", // Avatar mặc định
-  phone_number: "0123456789",
-};
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    
+    if (token) {
+      try {
+        // For mock account
+        const userData = JSON.parse(atob(token));
+        setData({
+          ...userData,
+          subscription: {
+            plan: "Premium",
+            validUntil: new Date('2025-12-31')
+          }
+        });
+      } catch (error) {
+        // If token is from real API
+        // You might want to add actual token decoding logic here
+        console.error("Invalid token");
+        localStorage.removeItem("token");
+      }
+    }
+    
+    setIsLoading(false);
+  }, []);
 
-// Hook để quản lý thông tin user
-export const useAccount = () => {
-  return useQuery({
-    queryKey: ["user"],
-    queryFn: fetchUser,
-    // initialData: defaultUser,
-    retry: 1,
-    staleTime: 5 * 60 * 1000, // Cache trong 5 phút
-    refetchOnMount: true, // Tự động fetch lại khi component mount
-    refetchOnWindowFocus: true, // Fetch lại khi focus vào window
-  });
-};
+  return { data, isLoading };
+}

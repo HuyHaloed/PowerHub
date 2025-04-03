@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Helmet } from 'react-helmet-async';
+import React, { useEffect } from 'react';
+import { useOutletContext } from "react-router-dom";
 import { useDashboardData, useActiveDevices, useQuickStats } from '@/hooks/useDashboardData';
-import DashboardHeader from '@/components/Dashboard/DashboardHeader';
 import DashboardSidebar from '@/components/Dashboard/DashboardSidebar';
 import QuickStatCard from '@/components/Dashboard/QuickStatCard';
 import EnergyConsumptionChart from '@/components/Dashboard/EnergyConsumptionChart';
@@ -9,10 +8,11 @@ import DeviceStatusCard from '@/components/Dashboard/DeviceStatusCard';
 import EnergyDistributionChart from '@/components/Dashboard/EnergyDistributionChart';
 import UserInfoCard from '@/components/Dashboard/UserInfoCard';
 import { Bell } from 'lucide-react';
-import DevicesView from '@/pages/Protected/Dashboard/DevicesView';
-import AnalyticsView from '@/pages/Protected/Dashboard/AnalyticsView';
-import SettingsView from '@/pages/Protected/Dashboard/SettingsView';
-// Custom Alert Component
+import DevicesView from '@/pages/Customer/Dashboard/DevicesView';
+import AnalyticsView from '@/pages/Customer/Dashboard/AnalyticsView';
+import SettingsView from '@/pages/Customer/Dashboard/SettingsView';
+
+// Custom Alert Component remains the same
 const CustomAlert = ({ 
   title, 
   message, 
@@ -42,32 +42,21 @@ const CustomAlert = ({
   );
 };
 
+// Define the type for context
+type LayoutContextType = {
+  isMobile: boolean;
+  isSidebarOpen: boolean;
+  setSidebarOpen: (isOpen: boolean) => void;
+};
+
 export default function Dashboard() {
-  const [activeTab, setActiveTab] = useState("dashboard");
-  const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const [activeTab, setActiveTab] = React.useState("dashboard");
   const { data: dashboardData, isLoading, error } = useDashboardData();
   const activeDevices = useActiveDevices();
   const quickStats = useQuickStats();
-  // Check screen size for responsive layout
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth >= 768) {
-        setSidebarOpen(false);
-      }
-    };
-    
-    window.addEventListener('resize', handleResize);
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
-  
-  const toggleSidebar = () => {
-    setSidebarOpen(!isSidebarOpen);
-  };
+  // Get layout context from parent
+  const { isMobile, isSidebarOpen, setSidebarOpen } = useOutletContext<LayoutContextType>();
   
   // Content based on active tab
   const renderContent = () => {
@@ -104,10 +93,8 @@ export default function Dashboard() {
     const unreadAlerts = dashboardData.alerts.filter(alert => !alert.read);
     
     return (
-        
       <div className="p-6">
         {/* Quick Stats */}
-        
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {quickStats.map((stat) => (
             <QuickStatCard key={stat.id} stat={stat} />
@@ -168,31 +155,17 @@ export default function Dashboard() {
   
   return (
     <>
-      {/* <Helmet>
-        <title>Power Hub | Dashboard</title>
-      </Helmet> */}
+      {/* Sidebar */}
+      <DashboardSidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        isMobile={isMobile}
+        isOpen={isSidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+      />
       
-      <div className="flex min-h-screen bg-gray-50">
-        {/* Sidebar */}
-        <DashboardSidebar
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          isMobile={isMobile}
-          isOpen={isSidebarOpen}
-          onClose={() => setSidebarOpen(false)}
-        />
-        
-        {/* Main Content */}
-        <div className={`flex-1 ${!isMobile ? "ml-64" : ""}`}>
-          <DashboardHeader 
-            toggleSidebar={toggleSidebar}
-            isSidebarOpen={isSidebarOpen}
-          />
-          <main>
-            {renderContent()}
-          </main>
-        </div>
-      </div>
+      {/* Main Content */}
+      {renderContent()}
     </>
   );
 }
