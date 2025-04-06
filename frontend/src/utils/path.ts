@@ -15,8 +15,11 @@ export const paths = {
   
 
   // Admin pages
-  AdminDashboard: "/dashboard",
-  AdminDoctors: "/doctors",
-  AdminAppointments: "/appointments",
-  AdminSettings: "/settings",
+  AdminDashboard: "/Admindashboard",
+  AdminBlogs: "/Adminblogs",
+  AdminUsers: "/Adminusers",
+  AdminDevices: "/Admindevices",
+  AdminCustomersFeed: "/Admincustomersfeed",
+  AdminIOTStatus: "/Adminiotstatus",
+  AdminSettings: "/Adminsettings",
 };

@@ -13,6 +13,7 @@ import {
 import { paths } from "@/utils/path";
 import { Link, useLocation } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
+import { title } from "process";
 
 // Menu items
 const items = [
@@ -22,20 +23,47 @@ const items = [
     icon: Home,
   },
   {
-    title: "Doctors",
-    url: paths.AdminDoctors,
+    title: "Blogs Management",
+    url: paths.AdminBlogs,
     icon: Inbox,
   },
   {
-    title: "Appointments",
-    url: paths.AdminAppointments,
+    title: "Users Management",
+    url: paths.AdminUsers,
+    icon: Search,
+  },
+  {
+    title: "Devices Management",
+    url: paths.AdminDevices,
+    icon: Search,
+  },
+  {
+    title: "Customers Feedback",
+    url: paths.AdminCustomersFeed,
+    icon: Search,
+  },
+  {
+    title: "IOT Status",
+    url: paths.AdminIOTStatus,
     icon: Calendar,
   },
   {
-    title: "Settings",
+    title: "System Settings",
     url: paths.AdminSettings,
-    icon: Settings,
-  },
+    icon: Calendar,
+  }
+
+  // {
+  // {
+  //   title: "Appointments",
+  //   url: paths.AdminAppointments,
+  //   icon: Calendar,
+  // },
+  // {
+  //   title: "Settings",
+  //   url: paths.AdminSettings,
+  //   icon: Settings,
+  // },
 ];
 
 export function AppSidebar() {

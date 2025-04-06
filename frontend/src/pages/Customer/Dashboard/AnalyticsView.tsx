@@ -9,7 +9,7 @@ import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { CalendarIcon, Download, TrendingUp, TrendingDown, Zap } from "lucide-react";
 import { ResponsiveContainer, LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell } from 'recharts';
-import { useEnergyData, useEnergyDistribution } from '@/hooks/useDashboardData';
+import { useEnergyData, useEnergyDistribution } from '@/hooks/useDashboardIOTData';
 
 export default function AnalyticsView() {
   // States for date range selection

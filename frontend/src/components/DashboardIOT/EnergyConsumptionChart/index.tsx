@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useEnergyData } from "@/hooks/useDashboardData";
+import { useEnergyData } from "@/hooks/useDashboardIOTData";
 
 type TimeRange = 'day' | 'week' | 'month' | 'year';
 

@@ -1,110 +1,125 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CalendarDays, Users, Clock, Activity } from "lucide-react";
+import React from 'react';
+import { 
+  useAdminUsers, 
+  useIOTDevices, 
+  useCustomerFeedbacks, 
+  useBlogPosts, 
+  useIOTStatistics 
+} from '@/hooks/useAdminDashboard';
+import IOTStatCard from '@/components/AdminDashboard/IOTStatCard';
+import UserTable from '@/components/AdminDashboard/UserTable';
+import DeviceTable from '@/components/AdminDashboard/DeviceTable';
+import CustomerFeedbackList from '@/components/AdminDashboard/CustomerFeedbackList';
+import BlogManagementTable from '@/components/AdminDashboard/BlogManagementTable';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  Activity, 
+  Users, 
+  Zap, 
+  MessageCircle, 
+  FileText 
+} from 'lucide-react';
 
-export default function DashboardPage() {
+export default function AdminDashboard() {
+  // Fetch data using custom hooks
+  const { users, loading: usersLoading, updateUserStatus } = useAdminUsers();
+  const { devices, loading: devicesLoading, updateDeviceStatus } = useIOTDevices();
+  const { 
+    feedbacks, 
+    loading: feedbacksLoading, 
+    updateFeedbackStatus 
+  } = useCustomerFeedbacks();
+  const { 
+    blogPosts, 
+    loading: blogPostsLoading, 
+    updateBlogPostStatus 
+  } = useBlogPosts();
+  const { 
+    statistics, 
+    loading: statisticsLoading 
+  } = useIOTStatistics();
+
+  // Render loading state
+  if (statisticsLoading) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <span>Loading dashboard...</span>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <div className="text-sm text-gray-500">
-          {new Date().toLocaleDateString("vi-VN", {
-            weekday: "long",
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          })}
-        </div>
-      </div>
+      {/* IOT Statistics Card */}
+      <IOTStatCard statistics={statistics} />
 
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Tổng số bệnh nhân
-            </CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">1,234</div>
-            <p className="text-xs text-muted-foreground">
-              +12% so với tháng trước
-            </p>
-          </CardContent>
-        </Card>
+      {/* Tabs for different management sections */}
+      <Tabs defaultValue="overview">
+        <TabsList className="grid w-full grid-cols-5 mb-4">
+          <TabsTrigger value="overview" className="flex items-center">
+            <Activity className="mr-2 h-4 w-4" /> Overview
+          </TabsTrigger>
+          <TabsTrigger value="users" className="flex items-center">
+            <Users className="mr-2 h-4 w-4" /> Users
+          </TabsTrigger>
+          <TabsTrigger value="devices" className="flex items-center">
+            <Zap className="mr-2 h-4 w-4" /> Devices
+          </TabsTrigger>
+          <TabsTrigger value="feedback" className="flex items-center">
+            <MessageCircle className="mr-2 h-4 w-4" /> Feedback
+          </TabsTrigger>
+          <TabsTrigger value="blogs" className="flex items-center">
+            <FileText className="mr-2 h-4 w-4" /> Blogs
+          </TabsTrigger>
+        </TabsList>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Lịch hẹn hôm nay
-            </CardTitle>
-            <CalendarDays className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">23</div>
-            <p className="text-xs text-muted-foreground">5 lịch hẹn đang chờ</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Thời gian trung bình
-            </CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">45 phút</div>
-            <p className="text-xs text-muted-foreground">Cho mỗi cuộc hẹn</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Tỷ lệ hoàn thành
-            </CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">98%</div>
-            <p className="text-xs text-muted-foreground">
-              Lịch hẹn đã hoàn thành
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Recent Appointments */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Lịch hẹn gần đây</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {[1, 2, 3].map((appointment) => (
-              <div
-                key={appointment}
-                className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                <div className="flex items-center space-x-4">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Users className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Nguyễn Văn A</p>
-                    <p className="text-sm text-gray-500">Khám tổng quát</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="font-medium">09:00 AM</p>
-                  <p className="text-sm text-green-600">Đã xác nhận</p>
-                </div>
-              </div>
-            ))}
+        {/* Overview Tab */}
+        <TabsContent value="overview">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Compact versions of tables or summary cards */}
+            <UserTable 
+              users={users.slice(0, 5)} 
+              onUpdateUserStatus={updateUserStatus} 
+            />
+            <DeviceTable 
+              devices={devices.slice(0, 5)} 
+              onUpdateDeviceStatus={updateDeviceStatus} 
+            />
           </div>
-        </CardContent>
-      </Card>
+        </TabsContent>
+
+        {/* Users Tab */}
+        <TabsContent value="users">
+          <UserTable 
+            users={users} 
+            onUpdateUserStatus={updateUserStatus} 
+          />
+        </TabsContent>
+
+        {/* Devices Tab */}
+        <TabsContent value="devices">
+          <DeviceTable 
+            devices={devices} 
+            onUpdateDeviceStatus={updateDeviceStatus} 
+          />
+        </TabsContent>
+
+        {/* Feedback Tab */}
+        <TabsContent value="feedback">
+          <CustomerFeedbackList 
+            feedbacks={feedbacks} 
+            onUpdateFeedbackStatus={updateFeedbackStatus} 
+          />
+        </TabsContent>
+
+        {/* Blogs Tab */}
+        <TabsContent value="blogs">
+          <BlogManagementTable 
+            blogPosts={blogPosts} 
+            onUpdateBlogPostStatus={updateBlogPostStatus} 
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
