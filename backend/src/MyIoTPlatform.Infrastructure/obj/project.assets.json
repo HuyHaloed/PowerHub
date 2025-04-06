@@ -1213,6 +1213,19 @@
           }
         }
       },
+      "Newtonsoft.Json/13.0.3": {
+        "type": "package",
+        "compile": {
+          "lib/net6.0/Newtonsoft.Json.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0/Newtonsoft.Json.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "System.ClientModel/1.0.0": {
         "type": "package",
         "dependencies": {
@@ -1839,7 +1852,8 @@
           "FluentValidation": "11.11.0",
           "FluentValidation.DependencyInjectionExtensions": "11.11.0",
           "MediatR": "12.5.0",
-          "MyIoTPlatform.Domain": "1.0.0"
+          "MyIoTPlatform.Domain": "1.0.0",
+          "Newtonsoft.Json": "13.0.3"
         },
         "compile": {
           "bin/placeholder/MyIoTPlatform.Application.dll": {}
@@ -1851,6 +1865,13 @@
       "MyIoTPlatform.Domain/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v9.0",
+        "dependencies": {
+          "Ardalis.GuardClauses": "8.1.0",
+          "FluentValidation": "11.11.0",
+          "MediatR": "12.5.0",
+          "Microsoft.EntityFrameworkCore": "6.0.0",
+          "Newtonsoft.Json": "13.0.3"
+        },
         "compile": {
           "bin/placeholder/MyIoTPlatform.Domain.dll": {}
         },
@@ -4089,6 +4110,36 @@
         "nuget.png"
       ]
     },
+    "Newtonsoft.Json/13.0.3": {
+      "sha512": "HrC5BXdl00IP9zeV+0Z848QWPAoCr9P3bDEZguI+gkLcBKAOxix/tLEAAHC+UvDNPv4a2d18lOReHMOagPa+zQ==",
+      "type": "package",
+      "path": "newtonsoft.json/13.0.3",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE.md",
+        "README.md",
+        "lib/net20/Newtonsoft.Json.dll",
+        "lib/net20/Newtonsoft.Json.xml",
+        "lib/net35/Newtonsoft.Json.dll",
+        "lib/net35/Newtonsoft.Json.xml",
+        "lib/net40/Newtonsoft.Json.dll",
+        "lib/net40/Newtonsoft.Json.xml",
+        "lib/net45/Newtonsoft.Json.dll",
+        "lib/net45/Newtonsoft.Json.xml",
+        "lib/net6.0/Newtonsoft.Json.dll",
+        "lib/net6.0/Newtonsoft.Json.xml",
+        "lib/netstandard1.0/Newtonsoft.Json.dll",
+        "lib/netstandard1.0/Newtonsoft.Json.xml",
+        "lib/netstandard1.3/Newtonsoft.Json.dll",
+        "lib/netstandard1.3/Newtonsoft.Json.xml",
+        "lib/netstandard2.0/Newtonsoft.Json.dll",
+        "lib/netstandard2.0/Newtonsoft.Json.xml",
+        "newtonsoft.json.13.0.3.nupkg.sha512",
+        "newtonsoft.json.nuspec",
+        "packageIcon.png"
+      ]
+    },
     "System.ClientModel/1.0.0": {
       "sha512": "I3CVkvxeqFYjIVEP59DnjbeoGNfo/+SZrCLpRz2v/g0gpCHaEMPtWSY0s9k/7jR1rAsLNg2z2u1JRB76tPjnIw==",
       "type": "package",
@@ -5305,11 +5356,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Infrastructure\\MyIoTPlatform.Infrastructure.csproj",
+      "projectUniqueName": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend copy\\src\\MyIoTPlatform.Infrastructure\\MyIoTPlatform.Infrastructure.csproj",
       "projectName": "MyIoTPlatform.Infrastructure",
-      "projectPath": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Infrastructure\\MyIoTPlatform.Infrastructure.csproj",
+      "projectPath": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend copy\\src\\MyIoTPlatform.Infrastructure\\MyIoTPlatform.Infrastructure.csproj",
       "packagesPath": "C:\\Users\\BonBon\\.nuget\\packages\\",
-      "outputPath": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Infrastructure\\obj\\",
+      "outputPath": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend copy\\src\\MyIoTPlatform.Infrastructure\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "D:\\Program Files\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -5330,8 +5381,8 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "projectReferences": {
-            "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Application\\MyIoTPlatform.Application.csproj": {
-              "projectPath": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Application\\MyIoTPlatform.Application.csproj"
+            "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend copy\\src\\MyIoTPlatform.Application\\MyIoTPlatform.Application.csproj": {
+              "projectPath": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend copy\\src\\MyIoTPlatform.Application\\MyIoTPlatform.Application.csproj"
             }
           }
         }
@@ -5402,5 +5453,16 @@
         "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.100/PortableRuntimeIdentifierGraph.json"
       }
     }
-  }
+  },
+  "logs": [
+    {
+      "code": "NU1102",
+      "level": "Error",
+      "message": "Unable to find package Ardalis.GuardClauses with version (>= 8.1.0)\r\n  - Found 41 version(s) in nuget.org [ Nearest version: 5.0.0 ]\r\n  - Found 0 version(s) in Microsoft Visual Studio Offline Packages",
+      "libraryId": "Ardalis.GuardClauses",
+      "targetGraphs": [
+        "net9.0"
+      ]
+    }
+  ]
 }
