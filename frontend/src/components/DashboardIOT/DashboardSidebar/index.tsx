@@ -17,7 +17,7 @@ import {
   HelpCircle,
   Bell
 } from "lucide-react";
-import { useUnreadAlerts } from "@/hooks/useDashboardData";
+import { useUnreadAlerts } from "@/hooks/useDashboardIOTData";
 
 interface DashboardSidebarProps {
   activeTab: string;
@@ -103,7 +103,7 @@ export default function DashboardSidebar({
       
       {/* Sidebar */}
       <div id="dashboard-sidebar" className={sidebarClass}>
-        <div className="p-4 border-b flex items-center ">
+        <div className="p-2 border-b flex items-center ">
           <div className="bg-white text-white p-2 rounded mr-2">
           <motion.img 
             src={logo} 

@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { useDashboardData } from '@/hooks/useDashboardData';
+import { useDashboardData } from '@/hooks/useDashboardIOTData';
 import { Loader2, User, Key, Bell, CreditCard, Clock, Sliders, Shield, AlertTriangle } from 'lucide-react';
 
 export default function SettingsView() {

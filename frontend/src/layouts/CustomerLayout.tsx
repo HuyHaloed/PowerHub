@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet } from "react-router-dom";
-import DashboardHeader from '@/components/Dashboard/DashboardHeader';
-import DashboardFooter from '@/components/Dashboard/DashboardFooter';
+import DashboardHeader from '@/components/DashboardIOT/DashboardHeader';
+import DashboardFooter from '@/components/DashboardIOT/DashboardFooter';
 
 export default function DashboardLayout() {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);

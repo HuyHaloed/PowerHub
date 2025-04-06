@@ -1,7 +1,7 @@
 import React from 'react';
 import { Switch } from "@/components/ui/switch";
 import { Device } from "@/types/dashboard.types";
-import { deviceIcons } from "@/data/dashboard";
+import { deviceIcons } from "@/data/dashboardIOT";
 
 interface DeviceStatusCardProps {
   device: Device;

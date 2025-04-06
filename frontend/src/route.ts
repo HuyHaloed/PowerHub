@@ -5,6 +5,7 @@ import { PublicPages } from "./pages/Public";
 import { AdminPages } from "./pages/Admin";
 import { ProtectedPages } from "./pages/Protected";
 import { CustomerPages } from "./pages/Customer";
+import path from "path";
 
 export const AuthRoutes = {
   layout: Layouts.AuthLayout,
@@ -71,17 +72,29 @@ export const AdminRoutes = {
       element: AdminPages.DashboardPage,
     },
     {
-      path: paths.AdminDoctors,
-      element: AdminPages.DoctorsPage,
+      path: paths.AdminBlogs,
+      element: AdminPages.BlogsPage,
     },
     {
-      path: paths.AdminAppointments,
-      element: AdminPages.AppointmentsPage,
+      path: paths.AdminUsers,
+      element: AdminPages.UsersPage,
+    },
+    {
+      path: paths.AdminDevices,
+      element: AdminPages.DevicesPage,
+    },
+    {
+      path: paths.AdminCustomersFeed,
+      element: AdminPages.FeedbackPage,
+    },
+    {
+      path: paths.AdminIOTStatus,
+      element: AdminPages.IOTStatusPage,
     },
     {
       path: paths.AdminSettings,
       element: AdminPages.SettingsPage,
-    },
+    }
   ],
 };
 

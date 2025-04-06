@@ -3,7 +3,7 @@ import { Bell, Search, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAccount } from "@/hooks/useAccount";
-import { useUnreadAlerts } from "@/hooks/useDashboardData";
+import { useUnreadAlerts } from "@/hooks/useDashboardIOTData";
 
 interface DashboardHeaderProps {
   toggleSidebar: () => void;

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { useDevices, useDeviceControl } from '@/hooks/useDashboardData';
+import { useDevices, useDeviceControl } from '@/hooks/useDashboardIOTData';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import DeviceStatusCard from '@/components/Dashboard/DeviceStatusCard';
+import DeviceStatusCard from '@/components/DashboardIOT/DeviceStatusCard';
 import { Plus, Search, Filter, Sliders } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Device } from '@/types/dashboard.types';

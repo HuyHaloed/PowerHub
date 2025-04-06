@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { dashboardData } from '@/data/dashboard';
+import { dashboardData } from '@/data/dashboardIOT';
 import { DashboardData } from '@/types/dashboard.types';
 import authorizedAxiosInstance from '@/lib/axios';
 import { useAccount } from '@/hooks/useAccount';

@@ -104,7 +104,7 @@ export default function HomePage() {
           <p className="text-dark-100 mb-8 max-w-2xl mx-auto">
             Nếu bạn đang cần một phương pháp thông minh cho ngôi nhà của bạn
           </p>
-          <Link to="/search">
+          <Link to="/dashboardIOT">
             <Button variant="secondary" size="lg" className="font-semibold">
               Dashboard của tôi
             </Button>

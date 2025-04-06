@@ -1,7 +1,7 @@
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { useEnergyDistribution } from "@/hooks/useDashboardData";
+import { useEnergyDistribution } from "@/hooks/useDashboardIOTData";
 
 export default function EnergyDistributionChart() {
   const data = useEnergyDistribution();
