@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MyIoTPlatform.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fb9fba3a31a9dd6ea80265b1ebc7ac3e260fef5d")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b3895e2dd6090f3ee7fef890a4df609f13ba7ed0")]
 [assembly: System.Reflection.AssemblyProductAttribute("MyIoTPlatform.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MyIoTPlatform.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

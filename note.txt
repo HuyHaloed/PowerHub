@@ -1,0 +1,62 @@
+/src
+|
+|--- MyIoTPlatform.Application/
+|    |
+|    |--- Features/  <-- Thư mục gốc cho các chức năng
+|    |    |
+|    |    |--- Devices/  <-- Thư mục cho chức năng quản lý Devices
+|    |    |    |
+|    |    |    |--- Commands/  <-- Thư mục chứa các Command và Handler của chúng
+|    |    |    |    |--- AddDeviceCommand.cs         <-- Định nghĩa Command thêm device
+|    |    |    |    |--- AddDeviceCommandHandler.cs  <-- **HANDLER xử lý AddDeviceCommand**
+|    |    |    |    |
+|    |    |    |    |--- ControlDeviceCommand.cs     <-- Định nghĩa Command điều khiển device
+|    |    |    |    |--- ControlDeviceCommandHandler.cs <-- **HANDLER xử lý ControlDeviceCommand**
+|    |    |    |    |
+|    |    |    |    |--- DeleteDeviceCommand.cs      <-- Định nghĩa Command xóa device
+|    |    |    |    |--- DeleteDeviceCommandHandler.cs <-- **HANDLER xử lý DeleteDeviceCommand**
+|    |    |    |    |
+|    |    |    |    |--- UpdateDeviceCommand.cs      <-- (Nếu có)
+|    |    |    |    |--- UpdateDeviceCommandHandler.cs <-- (Nếu có)
+|    |    |    |
+|    |    |    |--- Queries/   <-- Thư mục chứa các Query và Handler của chúng
+|    |    |    |    |--- GetAllDevicesQuery.cs         <-- Định nghĩa Query lấy danh sách
+|    |    |    |    |--- GetAllDevicesQueryHandler.cs  <-- **HANDLER xử lý GetAllDevicesQuery**
+|    |    |    |    |
+|    |    |    |    |--- GetDeviceDetailsQuery.cs      <-- Định nghĩa Query lấy chi tiết
+|    |    |    |    |--- GetDeviceDetailsQueryHandler.cs <-- **HANDLER xử lý GetDeviceDetailsQuery**
+|    |    |    |
+|    |    |    |--- DTOs/      <-- Thư mục chứa các Data Transfer Objects cho Devices
+|    |    |    |    |--- DeviceSummaryDto.cs
+|    |    |    |    |--- DeviceDetailsDto.cs
+|    |    |    |    |--- AddDeviceRequestDto.cs  <-- DTO này có thể ở API layer nếu chỉ dùng cho request
+|    |    |    |    |--- ControlDeviceRequestDto.cs <-- Tương tự
+|    |    |    |    |--- ControlDeviceResponseDto.cs
+|    |    |    |
+|    |    |    |--- Validators/ <-- Thư mục chứa các Validator cho Command/Query của Devices
+|    |    |    |    |--- AddDeviceCommandValidator.cs
+|    |    |    |    |--- ControlDeviceCommandValidator.cs
+|    |    |
+|    |    |--- Telemetry/  <-- Thư mục cho chức năng xử lý Telemetry (tương tự Devices)
+|    |    |    |--- Commands/
+|    |    |    |    |--- IngestTelemetryCommand.cs
+|    |    |    |    |--- IngestTelemetryCommandHandler.cs <-- **HANDLER ở đây**
+|    |    |    |--- Queries/
+|    |    |    |--- DTOs/
+|    |    |
+|    |    |--- Authentication/ <-- Thư mục cho chức năng Authentication (tương tự)
+|    |    |    |--- Commands/
+|    |    |    |    |--- LoginCommand.cs
+|    |    |    |    |--- LoginCommandHandler.cs <-- **HANDLER ở đây**
+|    |    |    |--- DTOs/
+|    |    |    |--- Validators/
+|    |    |
+|    |    |--- (Các feature khác như Dashboard, Analytics...)
+|    |
+|    |--- Common/      <-- Các thành phần dùng chung (Behaviours, Mappings...)
+|    |--- Interfaces/  <-- Các Interface dùng chung (Persistence, Communication...)
+|    |--- MyIoTPlatform.Application.csproj
+|
+|--- MyIoTPlatform.Domain/
+|--- MyIoTPlatform.Infrastructure/
+|--- MyIoTPlatform.API/

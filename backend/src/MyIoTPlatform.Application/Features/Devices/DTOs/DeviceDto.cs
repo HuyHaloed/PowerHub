@@ -13,6 +13,10 @@ namespace MyIoTPlatform.Application.Features.Devices.DTOs
         public bool Enabled { get; set; }
         public DateTime CreatedTime { get; set; }
         public DateTime? UpdatedTime { get; set; }
-
+        public string Status { get; set; } = string.Empty;
+        public DateTime? LastActivityAt { get; set; }
+        public string? LastTelemetry { get; set; }
+        public string? LastTelemetryValue { get; set; }
+        public string? Location { get; set; }
     }
 }

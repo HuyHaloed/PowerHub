@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "kuff51DU9T8=",
+  "dgSpecHash": "GPXUZ/mXuyU=",
   "success": false,
-  "projectFilePath": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend copy\\src\\MyIoTPlatform.API\\MyIoTPlatform.API.csproj",
+  "projectFilePath": "D:\\Bon Bon\\project 1\\git\\Thingsboard-iot-by-.NET\\backend\\src\\MyIoTPlatform.API\\MyIoTPlatform.API.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\BonBon\\.nuget\\packages\\automapper\\14.0.0\\automapper.14.0.0.nupkg.sha512",
     "C:\\Users\\BonBon\\.nuget\\packages\\azure.core\\1.38.0\\azure.core.1.38.0.nupkg.sha512",
@@ -31,6 +31,8 @@
     "C:\\Users\\BonBon\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\9.0.3\\microsoft.extensions.dependencyinjection.abstractions.9.0.3.nupkg.sha512",
     "C:\\Users\\BonBon\\.nuget\\packages\\microsoft.extensions.diagnostics\\9.0.3\\microsoft.extensions.diagnostics.9.0.3.nupkg.sha512",
     "C:\\Users\\BonBon\\.nuget\\packages\\microsoft.extensions.diagnostics.abstractions\\9.0.3\\microsoft.extensions.diagnostics.abstractions.9.0.3.nupkg.sha512",
+    "C:\\Users\\BonBon\\.nuget\\packages\\microsoft.extensions.fileproviders.abstractions\\8.0.0\\microsoft.extensions.fileproviders.abstractions.8.0.0.nupkg.sha512",
+    "C:\\Users\\BonBon\\.nuget\\packages\\microsoft.extensions.hosting.abstractions\\8.0.0\\microsoft.extensions.hosting.abstractions.8.0.0.nupkg.sha512",
     "C:\\Users\\BonBon\\.nuget\\packages\\microsoft.extensions.http\\9.0.3\\microsoft.extensions.http.9.0.3.nupkg.sha512",
     "C:\\Users\\BonBon\\.nuget\\packages\\microsoft.extensions.logging\\9.0.3\\microsoft.extensions.logging.9.0.3.nupkg.sha512",
     "C:\\Users\\BonBon\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\9.0.3\\microsoft.extensions.logging.abstractions.9.0.3.nupkg.sha512",
@@ -50,7 +52,7 @@
     "C:\\Users\\BonBon\\.nuget\\packages\\microsoft.openapi\\1.6.23\\microsoft.openapi.1.6.23.nupkg.sha512",
     "C:\\Users\\BonBon\\.nuget\\packages\\microsoft.sqlserver.server\\1.0.0\\microsoft.sqlserver.server.1.0.0.nupkg.sha512",
     "C:\\Users\\BonBon\\.nuget\\packages\\microsoft.win32.systemevents\\6.0.0\\microsoft.win32.systemevents.6.0.0.nupkg.sha512",
-    "C:\\Users\\BonBon\\.nuget\\packages\\mqttnet\\5.0.1.1416\\mqttnet.5.0.1.1416.nupkg.sha512",
+    "C:\\Users\\BonBon\\.nuget\\packages\\mqttnet\\4.3.7.1207\\mqttnet.4.3.7.1207.nupkg.sha512",
     "C:\\Users\\BonBon\\.nuget\\packages\\mqttnet.extensions.managedclient\\4.3.7.1207\\mqttnet.extensions.managedclient.4.3.7.1207.nupkg.sha512",
     "C:\\Users\\BonBon\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512",
     "C:\\Users\\BonBon\\.nuget\\packages\\swashbuckle.aspnetcore\\8.1.0\\swashbuckle.aspnetcore.8.1.0.nupkg.sha512",

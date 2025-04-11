@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "MC/W5fpFQws=",
+  "dgSpecHash": "B3jhHNs99Ss=",
   "success": false,
-  "projectFilePath": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend copy\\src\\MyIoTPlatform.Domain\\MyIoTPlatform.Domain.csproj",
+  "projectFilePath": "D:\\Bon Bon\\project 1\\git\\Thingsboard-iot-by-.NET\\backend\\src\\MyIoTPlatform.Domain\\MyIoTPlatform.Domain.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\BonBon\\.nuget\\packages\\fluentvalidation\\11.11.0\\fluentvalidation.11.11.0.nupkg.sha512",
     "C:\\Users\\BonBon\\.nuget\\packages\\mediatr\\12.5.0\\mediatr.12.5.0.nupkg.sha512",

@@ -1,28 +1,30 @@
 using MediatR;
 using MyIoTPlatform.Domain.Interfaces.Repositories;
-using System.Threading;
-using System.Threading.Tasks;
+using MyIoTPlatform.Application.Interfaces.Persistence; // IUnitOfWork
 
-using MyIoTPlatform.Application.Features.Devices.Commands;
-
-public class DeleteDeviceCommandHandler : IRequestHandler<DeleteDeviceCommand>
+namespace MyIoTPlatform.Application.Features.Devices.Commands;
+public class DeleteDeviceCommandHandler : IRequestHandler<DeleteDeviceCommand, bool>
 {
     private readonly IDeviceRepository _deviceRepository;
+     private readonly IUnitOfWork _unitOfWork;
 
-    public DeleteDeviceCommandHandler(IDeviceRepository deviceRepository)
+    public DeleteDeviceCommandHandler(IDeviceRepository deviceRepository, IUnitOfWork unitOfWork)
     {
         _deviceRepository = deviceRepository;
+        _unitOfWork = unitOfWork;
     }
 
-    public async Task Handle(DeleteDeviceCommand request, CancellationToken cancellationToken)
+    public async Task<bool> Handle(DeleteDeviceCommand request, CancellationToken cancellationToken)
     {
-        var existingDevice = await _deviceRepository.GetByIdAsync(request.Id, cancellationToken);
-
-        if (existingDevice != null)
+        var device = await _deviceRepository.GetByIdAsync(request.Id, cancellationToken);
+        if (device == null)
         {
-            await _deviceRepository.DeleteAsync(request.Id, cancellationToken);
-            // Có thể cần gọi SaveChangesAsync nếu dùng UnitOfWork pattern
+            return false; // Không tìm thấy để xóa
         }
-        // Nếu không tìm thấy, bạn có thể chọn không làm gì hoặc ném một exception (ví dụ: DeviceNotFoundException)
+
+        await _deviceRepository.DeleteAsync(request.Id, cancellationToken); // Repo chỉ remove khỏi context
+        await _unitOfWork.SaveChangesAsync(cancellationToken); // Lưu thay đổi vào DB
+
+        return true;
     }
-}   
+}
