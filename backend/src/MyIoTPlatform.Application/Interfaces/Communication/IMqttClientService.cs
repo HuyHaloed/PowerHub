@@ -6,5 +6,4 @@ public interface IMqttClientService
 {
     Task PublishAsync(string topic, string payload);
     Task SubscribeAsync(string topic);
-    //..
 }

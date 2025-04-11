@@ -12,5 +12,21 @@ public class Device
     public DateTime CreatedAt { get; set; }
     public DateTime? LastActivityAt { get; set; }
     public DateTime? UpdateAt {get; set;}
-    // Thêm các thuộc tính khác nếu cần
+    public ICollection<TelemetryData> Telemetries { get; set; } = new List<TelemetryData>();
+    
+    public Device()
+    {
+        CreatedAt = DateTime.UtcNow;
+        Status = "Inactive";
+    }
+    public Device(string label, string name, string type, string description, bool enabled, string status)
+    {
+        Label = label;
+        Name = name;
+        Type = type;
+        Description = description;
+        Enabled = enabled;
+        Status = status;
+        CreatedAt = DateTime.UtcNow;
+    }
 }

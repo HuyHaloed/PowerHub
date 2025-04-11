@@ -2,6 +2,19 @@
   "version": 3,
   "targets": {
     "net9.0": {
+      "Ardalis.GuardClauses/5.0.0": {
+        "type": "package",
+        "compile": {
+          "lib/net8.0/Ardalis.GuardClauses.dll": {
+            "related": ".pdb;.xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/Ardalis.GuardClauses.dll": {
+            "related": ".pdb;.xml"
+          }
+        }
+      },
       "AutoMapper/14.0.0": {
         "type": "package",
         "dependencies": {
@@ -859,6 +872,48 @@
           "buildTransitive/net8.0/_._": {}
         }
       },
+      "Microsoft.Extensions.FileProviders.Abstractions/8.0.0": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Extensions.Primitives": "8.0.0"
+        },
+        "compile": {
+          "lib/net8.0/Microsoft.Extensions.FileProviders.Abstractions.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.Extensions.FileProviders.Abstractions.dll": {
+            "related": ".xml"
+          }
+        },
+        "build": {
+          "buildTransitive/net6.0/_._": {}
+        }
+      },
+      "Microsoft.Extensions.Hosting.Abstractions/8.0.0": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Extensions.Configuration.Abstractions": "8.0.0",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.0",
+          "Microsoft.Extensions.Diagnostics.Abstractions": "8.0.0",
+          "Microsoft.Extensions.FileProviders.Abstractions": "8.0.0",
+          "Microsoft.Extensions.Logging.Abstractions": "8.0.0"
+        },
+        "compile": {
+          "lib/net8.0/Microsoft.Extensions.Hosting.Abstractions.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.Extensions.Hosting.Abstractions.dll": {
+            "related": ".xml"
+          }
+        },
+        "build": {
+          "buildTransitive/net6.0/_._": {}
+        }
+      },
       "Microsoft.Extensions.Http/9.0.3": {
         "type": "package",
         "dependencies": {
@@ -1184,15 +1239,15 @@
           "buildTransitive/Mono.TextTemplating.targets": {}
         }
       },
-      "MQTTnet/5.0.1.1416": {
+      "MQTTnet/4.3.7.1207": {
         "type": "package",
         "compile": {
-          "lib/net8.0/MQTTnet.dll": {
+          "lib/net7.0/MQTTnet.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/net8.0/MQTTnet.dll": {
+          "lib/net7.0/MQTTnet.dll": {
             "related": ".xml"
           }
         }
@@ -1882,6 +1937,29 @@
     }
   },
   "libraries": {
+    "Ardalis.GuardClauses/5.0.0": {
+      "sha512": "jVPRvLw0xIUFto2cMrKgRYADWIHbEEfzZHGiU/swwNgl1zo28Q1zfSa3VUC3C0s9DyhFDPSaF4dEDQRyTZUcyQ==",
+      "type": "package",
+      "path": "ardalis.guardclauses/5.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "README.md",
+        "ardalis.guardclauses.5.0.0.nupkg.sha512",
+        "ardalis.guardclauses.nuspec",
+        "icon.png",
+        "lib/net8.0/Ardalis.GuardClauses.dll",
+        "lib/net8.0/Ardalis.GuardClauses.pdb",
+        "lib/net8.0/Ardalis.GuardClauses.xml",
+        "lib/netstandard2.0/Ardalis.GuardClauses.dll",
+        "lib/netstandard2.0/Ardalis.GuardClauses.pdb",
+        "lib/netstandard2.0/Ardalis.GuardClauses.xml",
+        "lib/netstandard2.1/Ardalis.GuardClauses.dll",
+        "lib/netstandard2.1/Ardalis.GuardClauses.pdb",
+        "lib/netstandard2.1/Ardalis.GuardClauses.xml"
+      ]
+    },
     "AutoMapper/14.0.0": {
       "sha512": "OC+1neAPM4oCCqQj3g2GJ2shziNNhOkxmNB9cVS8jtx4JbgmRzLcUOxB9Tsz6cVPHugdkHgCaCrTjjSI0Z5sCQ==",
       "type": "package",
@@ -3562,6 +3640,66 @@
         "useSharedDesignerContext.txt"
       ]
     },
+    "Microsoft.Extensions.FileProviders.Abstractions/8.0.0": {
+      "sha512": "ZbaMlhJlpisjuWbvXr4LdAst/1XxH3vZ6A0BsgTphZ2L4PGuxRLz7Jr/S7mkAAnOn78Vu0fKhEgNF5JO3zfjqQ==",
+      "type": "package",
+      "path": "microsoft.extensions.fileproviders.abstractions/8.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Icon.png",
+        "LICENSE.TXT",
+        "PACKAGE.md",
+        "THIRD-PARTY-NOTICES.TXT",
+        "buildTransitive/net461/Microsoft.Extensions.FileProviders.Abstractions.targets",
+        "buildTransitive/net462/_._",
+        "buildTransitive/net6.0/_._",
+        "buildTransitive/netcoreapp2.0/Microsoft.Extensions.FileProviders.Abstractions.targets",
+        "lib/net462/Microsoft.Extensions.FileProviders.Abstractions.dll",
+        "lib/net462/Microsoft.Extensions.FileProviders.Abstractions.xml",
+        "lib/net6.0/Microsoft.Extensions.FileProviders.Abstractions.dll",
+        "lib/net6.0/Microsoft.Extensions.FileProviders.Abstractions.xml",
+        "lib/net8.0/Microsoft.Extensions.FileProviders.Abstractions.dll",
+        "lib/net8.0/Microsoft.Extensions.FileProviders.Abstractions.xml",
+        "lib/netstandard2.0/Microsoft.Extensions.FileProviders.Abstractions.dll",
+        "lib/netstandard2.0/Microsoft.Extensions.FileProviders.Abstractions.xml",
+        "microsoft.extensions.fileproviders.abstractions.8.0.0.nupkg.sha512",
+        "microsoft.extensions.fileproviders.abstractions.nuspec",
+        "useSharedDesignerContext.txt"
+      ]
+    },
+    "Microsoft.Extensions.Hosting.Abstractions/8.0.0": {
+      "sha512": "AG7HWwVRdCHlaA++1oKDxLsXIBxmDpMPb3VoyOoAghEWnkUvEAdYQUwnV4jJbAaa/nMYNiEh5ByoLauZBEiovg==",
+      "type": "package",
+      "path": "microsoft.extensions.hosting.abstractions/8.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Icon.png",
+        "LICENSE.TXT",
+        "PACKAGE.md",
+        "THIRD-PARTY-NOTICES.TXT",
+        "buildTransitive/net461/Microsoft.Extensions.Hosting.Abstractions.targets",
+        "buildTransitive/net462/_._",
+        "buildTransitive/net6.0/_._",
+        "buildTransitive/netcoreapp2.0/Microsoft.Extensions.Hosting.Abstractions.targets",
+        "lib/net462/Microsoft.Extensions.Hosting.Abstractions.dll",
+        "lib/net462/Microsoft.Extensions.Hosting.Abstractions.xml",
+        "lib/net6.0/Microsoft.Extensions.Hosting.Abstractions.dll",
+        "lib/net6.0/Microsoft.Extensions.Hosting.Abstractions.xml",
+        "lib/net7.0/Microsoft.Extensions.Hosting.Abstractions.dll",
+        "lib/net7.0/Microsoft.Extensions.Hosting.Abstractions.xml",
+        "lib/net8.0/Microsoft.Extensions.Hosting.Abstractions.dll",
+        "lib/net8.0/Microsoft.Extensions.Hosting.Abstractions.xml",
+        "lib/netstandard2.0/Microsoft.Extensions.Hosting.Abstractions.dll",
+        "lib/netstandard2.0/Microsoft.Extensions.Hosting.Abstractions.xml",
+        "lib/netstandard2.1/Microsoft.Extensions.Hosting.Abstractions.dll",
+        "lib/netstandard2.1/Microsoft.Extensions.Hosting.Abstractions.xml",
+        "microsoft.extensions.hosting.abstractions.8.0.0.nupkg.sha512",
+        "microsoft.extensions.hosting.abstractions.nuspec",
+        "useSharedDesignerContext.txt"
+      ]
+    },
     "Microsoft.Extensions.Http/9.0.3": {
       "sha512": "rwChgI3lPqvUzsCN3egSW/6v4kP9/RQ2QrkZUwyAiHiwEoIB6QbYkATNvUsgjV6nfrekocyciCzy53ZFRuSaHA==",
       "type": "package",
@@ -4061,16 +4199,37 @@
         "readme.md"
       ]
     },
-    "MQTTnet/5.0.1.1416": {
-      "sha512": "ONYieEMaHiIei5dAtHXywnfJGhmrd5Av5sNJSQERp6AtZdPk3xxjCR6Cv0C5RUr/XbLeHO4/HQ0Rc2bQ5NF5Mw==",
+    "MQTTnet/4.3.7.1207": {
+      "sha512": "ah7aHXoedWp5m5a4zy2u4phOEVj0QFYzOb5tFKQeV8RRBrxp+1QREF4ymZuG8D+hzB2dhtrrG81WxTFv0PzOeQ==",
       "type": "package",
-      "path": "mqttnet/5.0.1.1416",
+      "path": "mqttnet/4.3.7.1207",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
-        "lib/net8.0/MQTTnet.dll",
-        "lib/net8.0/MQTTnet.xml",
-        "mqttnet.5.0.1.1416.nupkg.sha512",
+        "lib/net452/MQTTnet.dll",
+        "lib/net452/MQTTnet.xml",
+        "lib/net461/MQTTnet.dll",
+        "lib/net461/MQTTnet.xml",
+        "lib/net48/MQTTnet.dll",
+        "lib/net48/MQTTnet.xml",
+        "lib/net5.0/MQTTnet.dll",
+        "lib/net5.0/MQTTnet.xml",
+        "lib/net6.0/MQTTnet.dll",
+        "lib/net6.0/MQTTnet.xml",
+        "lib/net7.0/MQTTnet.dll",
+        "lib/net7.0/MQTTnet.xml",
+        "lib/netcoreapp3.1/MQTTnet.dll",
+        "lib/netcoreapp3.1/MQTTnet.xml",
+        "lib/netstandard1.3/MQTTnet.dll",
+        "lib/netstandard1.3/MQTTnet.xml",
+        "lib/netstandard2.0/MQTTnet.dll",
+        "lib/netstandard2.0/MQTTnet.xml",
+        "lib/netstandard2.1/MQTTnet.dll",
+        "lib/netstandard2.1/MQTTnet.xml",
+        "lib/uap10.0.10240/MQTTnet.dll",
+        "lib/uap10.0.10240/MQTTnet.pri",
+        "lib/uap10.0.10240/MQTTnet.xml",
+        "mqttnet.4.3.7.1207.nupkg.sha512",
         "mqttnet.nuspec",
         "nuget.png"
       ]
@@ -5339,12 +5498,12 @@
   },
   "projectFileDependencyGroups": {
     "net9.0": [
-      "MQTTnet >= 5.0.1.1416",
+      "Ardalis.GuardClauses >= 5.0.0",
       "MQTTnet.Extensions.ManagedClient >= 4.3.7.1207",
       "Microsoft.EntityFrameworkCore >= 9.0.3",
       "Microsoft.EntityFrameworkCore.SqlServer >= 9.0.3",
       "Microsoft.EntityFrameworkCore.Tools >= 9.0.3",
-      "Microsoft.Extensions.Configuration.Abstractions >= 9.0.3",
+      "Microsoft.Extensions.Hosting.Abstractions >= 8.0.0",
       "Microsoft.Extensions.Http >= 9.0.3",
       "MyIoTPlatform.Application >= 1.0.0"
     ]
@@ -5356,11 +5515,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend copy\\src\\MyIoTPlatform.Infrastructure\\MyIoTPlatform.Infrastructure.csproj",
+      "projectUniqueName": "D:\\Bon Bon\\project 1\\git\\Thingsboard-iot-by-.NET\\backend\\src\\MyIoTPlatform.Infrastructure\\MyIoTPlatform.Infrastructure.csproj",
       "projectName": "MyIoTPlatform.Infrastructure",
-      "projectPath": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend copy\\src\\MyIoTPlatform.Infrastructure\\MyIoTPlatform.Infrastructure.csproj",
+      "projectPath": "D:\\Bon Bon\\project 1\\git\\Thingsboard-iot-by-.NET\\backend\\src\\MyIoTPlatform.Infrastructure\\MyIoTPlatform.Infrastructure.csproj",
       "packagesPath": "C:\\Users\\BonBon\\.nuget\\packages\\",
-      "outputPath": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend copy\\src\\MyIoTPlatform.Infrastructure\\obj\\",
+      "outputPath": "D:\\Bon Bon\\project 1\\git\\Thingsboard-iot-by-.NET\\backend\\src\\MyIoTPlatform.Infrastructure\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "D:\\Program Files\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -5381,8 +5540,8 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "projectReferences": {
-            "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend copy\\src\\MyIoTPlatform.Application\\MyIoTPlatform.Application.csproj": {
-              "projectPath": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend copy\\src\\MyIoTPlatform.Application\\MyIoTPlatform.Application.csproj"
+            "D:\\Bon Bon\\project 1\\git\\Thingsboard-iot-by-.NET\\backend\\src\\MyIoTPlatform.Application\\MyIoTPlatform.Application.csproj": {
+              "projectPath": "D:\\Bon Bon\\project 1\\git\\Thingsboard-iot-by-.NET\\backend\\src\\MyIoTPlatform.Application\\MyIoTPlatform.Application.csproj"
             }
           }
         }
@@ -5403,9 +5562,9 @@
       "net9.0": {
         "targetAlias": "net9.0",
         "dependencies": {
-          "MQTTnet": {
+          "Ardalis.GuardClauses": {
             "target": "Package",
-            "version": "[5.0.1.1416, )"
+            "version": "[5.0.0, )"
           },
           "MQTTnet.Extensions.ManagedClient": {
             "target": "Package",
@@ -5425,9 +5584,9 @@
             "target": "Package",
             "version": "[9.0.3, )"
           },
-          "Microsoft.Extensions.Configuration.Abstractions": {
+          "Microsoft.Extensions.Hosting.Abstractions": {
             "target": "Package",
-            "version": "[9.0.3, )"
+            "version": "[8.0.0, )"
           },
           "Microsoft.Extensions.Http": {
             "target": "Package",
@@ -5456,9 +5615,9 @@
   },
   "logs": [
     {
-      "code": "NU1102",
+      "code": "NU1605",
       "level": "Error",
-      "message": "Unable to find package Ardalis.GuardClauses with version (>= 8.1.0)\r\n  - Found 41 version(s) in nuget.org [ Nearest version: 5.0.0 ]\r\n  - Found 0 version(s) in Microsoft Visual Studio Offline Packages",
+      "message": "Warning As Error: Detected package downgrade: Ardalis.GuardClauses from 8.1.0 to 5.0.0. Reference the package directly from the project to select a different version. \r\n MyIoTPlatform.Infrastructure -> MyIoTPlatform.Application -> MyIoTPlatform.Domain -> Ardalis.GuardClauses (>= 8.1.0) \r\n MyIoTPlatform.Infrastructure -> Ardalis.GuardClauses (>= 5.0.0)",
       "libraryId": "Ardalis.GuardClauses",
       "targetGraphs": [
         "net9.0"
