@@ -10,5 +10,6 @@ namespace MyIoTPlatform.Domain.Interfaces.Services
         Task EvaluateRulesAsync(TelemetryData telemetryData, CancellationToken cancellationToken = default);
         Task AddRuleAsync(Rule rule, CancellationToken cancellationToken = default);
         Task UpdateRuleAsync(Rule rule, CancellationToken cancellationToken = default);
+        Task DeleteRuleAsync(Guid ruleId, CancellationToken cancellationToken = default);
     }
 }

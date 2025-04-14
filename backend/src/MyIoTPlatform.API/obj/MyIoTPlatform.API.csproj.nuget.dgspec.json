@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Bon Bon\\project 1\\git\\Thingsboard-iot-by-.NET\\backend\\src\\MyIoTPlatform.API\\MyIoTPlatform.API.csproj": {}
+    "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.API\\MyIoTPlatform.API.csproj": {}
   },
   "projects": {
-    "D:\\Bon Bon\\project 1\\git\\Thingsboard-iot-by-.NET\\backend\\src\\MyIoTPlatform.API\\MyIoTPlatform.API.csproj": {
+    "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.API\\MyIoTPlatform.API.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Bon Bon\\project 1\\git\\Thingsboard-iot-by-.NET\\backend\\src\\MyIoTPlatform.API\\MyIoTPlatform.API.csproj",
+        "projectUniqueName": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.API\\MyIoTPlatform.API.csproj",
         "projectName": "MyIoTPlatform.API",
-        "projectPath": "D:\\Bon Bon\\project 1\\git\\Thingsboard-iot-by-.NET\\backend\\src\\MyIoTPlatform.API\\MyIoTPlatform.API.csproj",
+        "projectPath": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.API\\MyIoTPlatform.API.csproj",
         "packagesPath": "C:\\Users\\BonBon\\.nuget\\packages\\",
-        "outputPath": "D:\\Bon Bon\\project 1\\git\\Thingsboard-iot-by-.NET\\backend\\src\\MyIoTPlatform.API\\obj\\",
+        "outputPath": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.API\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "D:\\Program Files\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -32,11 +32,11 @@
           "net9.0": {
             "targetAlias": "net9.0",
             "projectReferences": {
-              "D:\\Bon Bon\\project 1\\git\\Thingsboard-iot-by-.NET\\backend\\src\\MyIoTPlatform.Application\\MyIoTPlatform.Application.csproj": {
-                "projectPath": "D:\\Bon Bon\\project 1\\git\\Thingsboard-iot-by-.NET\\backend\\src\\MyIoTPlatform.Application\\MyIoTPlatform.Application.csproj"
+              "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Application\\MyIoTPlatform.Application.csproj": {
+                "projectPath": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Application\\MyIoTPlatform.Application.csproj"
               },
-              "D:\\Bon Bon\\project 1\\git\\Thingsboard-iot-by-.NET\\backend\\src\\MyIoTPlatform.Infrastructure\\MyIoTPlatform.Infrastructure.csproj": {
-                "projectPath": "D:\\Bon Bon\\project 1\\git\\Thingsboard-iot-by-.NET\\backend\\src\\MyIoTPlatform.Infrastructure\\MyIoTPlatform.Infrastructure.csproj"
+              "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Infrastructure\\MyIoTPlatform.Infrastructure.csproj": {
+                "projectPath": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Infrastructure\\MyIoTPlatform.Infrastructure.csproj"
               }
             }
           }
@@ -57,9 +57,17 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "dependencies": {
+            "Ardalis.GuardClauses": {
+              "target": "Package",
+              "version": "[5.0.0, )"
+            },
             "FluentValidation.AspNetCore": {
               "target": "Package",
               "version": "[11.3.0, )"
+            },
+            "MediatR": {
+              "target": "Package",
+              "version": "[11.1.0, )"
             },
             "MediatR.Extensions.Microsoft.DependencyInjection": {
               "target": "Package",
@@ -68,6 +76,10 @@
             "Microsoft.AspNetCore.OpenApi": {
               "target": "Package",
               "version": "[9.0.0, )"
+            },
+            "Microsoft.Extensions.Caching.Memory": {
+              "target": "Package",
+              "version": "[9.0.3, )"
             },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
@@ -97,14 +109,14 @@
         }
       }
     },
-    "D:\\Bon Bon\\project 1\\git\\Thingsboard-iot-by-.NET\\backend\\src\\MyIoTPlatform.Application\\MyIoTPlatform.Application.csproj": {
+    "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Application\\MyIoTPlatform.Application.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Bon Bon\\project 1\\git\\Thingsboard-iot-by-.NET\\backend\\src\\MyIoTPlatform.Application\\MyIoTPlatform.Application.csproj",
+        "projectUniqueName": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Application\\MyIoTPlatform.Application.csproj",
         "projectName": "MyIoTPlatform.Application",
-        "projectPath": "D:\\Bon Bon\\project 1\\git\\Thingsboard-iot-by-.NET\\backend\\src\\MyIoTPlatform.Application\\MyIoTPlatform.Application.csproj",
+        "projectPath": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Application\\MyIoTPlatform.Application.csproj",
         "packagesPath": "C:\\Users\\BonBon\\.nuget\\packages\\",
-        "outputPath": "D:\\Bon Bon\\project 1\\git\\Thingsboard-iot-by-.NET\\backend\\src\\MyIoTPlatform.Application\\obj\\",
+        "outputPath": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Application\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "D:\\Program Files\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -125,8 +137,8 @@
           "net9.0": {
             "targetAlias": "net9.0",
             "projectReferences": {
-              "D:\\Bon Bon\\project 1\\git\\Thingsboard-iot-by-.NET\\backend\\src\\MyIoTPlatform.Domain\\MyIoTPlatform.Domain.csproj": {
-                "projectPath": "D:\\Bon Bon\\project 1\\git\\Thingsboard-iot-by-.NET\\backend\\src\\MyIoTPlatform.Domain\\MyIoTPlatform.Domain.csproj"
+              "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Domain\\MyIoTPlatform.Domain.csproj": {
+                "projectPath": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Domain\\MyIoTPlatform.Domain.csproj"
               }
             }
           }
@@ -161,7 +173,15 @@
             },
             "MediatR": {
               "target": "Package",
-              "version": "[12.5.0, )"
+              "version": "[11.1.0, )"
+            },
+            "MediatR.Extensions.Microsoft.DependencyInjection": {
+              "target": "Package",
+              "version": "[11.1.0, )"
+            },
+            "Microsoft.Extensions.Caching.Memory": {
+              "target": "Package",
+              "version": "[9.0.3, )"
             },
             "Newtonsoft.Json": {
               "target": "Package",
@@ -188,14 +208,14 @@
         }
       }
     },
-    "D:\\Bon Bon\\project 1\\git\\Thingsboard-iot-by-.NET\\backend\\src\\MyIoTPlatform.Domain\\MyIoTPlatform.Domain.csproj": {
+    "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Domain\\MyIoTPlatform.Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Bon Bon\\project 1\\git\\Thingsboard-iot-by-.NET\\backend\\src\\MyIoTPlatform.Domain\\MyIoTPlatform.Domain.csproj",
+        "projectUniqueName": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Domain\\MyIoTPlatform.Domain.csproj",
         "projectName": "MyIoTPlatform.Domain",
-        "projectPath": "D:\\Bon Bon\\project 1\\git\\Thingsboard-iot-by-.NET\\backend\\src\\MyIoTPlatform.Domain\\MyIoTPlatform.Domain.csproj",
+        "projectPath": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Domain\\MyIoTPlatform.Domain.csproj",
         "packagesPath": "C:\\Users\\BonBon\\.nuget\\packages\\",
-        "outputPath": "D:\\Bon Bon\\project 1\\git\\Thingsboard-iot-by-.NET\\backend\\src\\MyIoTPlatform.Domain\\obj\\",
+        "outputPath": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Domain\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "D:\\Program Files\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -236,7 +256,7 @@
           "dependencies": {
             "Ardalis.GuardClauses": {
               "target": "Package",
-              "version": "[8.1.0, )"
+              "version": "[5.0.0, )"
             },
             "FluentValidation": {
               "target": "Package",
@@ -244,11 +264,15 @@
             },
             "MediatR": {
               "target": "Package",
-              "version": "[12.5.0, )"
+              "version": "[11.1.0, )"
             },
             "Microsoft.EntityFrameworkCore": {
               "target": "Package",
               "version": "[6.0.0, )"
+            },
+            "Microsoft.Extensions.Caching.Memory": {
+              "target": "Package",
+              "version": "[9.0.3, )"
             },
             "Newtonsoft.Json": {
               "target": "Package",
@@ -275,14 +299,14 @@
         }
       }
     },
-    "D:\\Bon Bon\\project 1\\git\\Thingsboard-iot-by-.NET\\backend\\src\\MyIoTPlatform.Infrastructure\\MyIoTPlatform.Infrastructure.csproj": {
+    "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Infrastructure\\MyIoTPlatform.Infrastructure.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Bon Bon\\project 1\\git\\Thingsboard-iot-by-.NET\\backend\\src\\MyIoTPlatform.Infrastructure\\MyIoTPlatform.Infrastructure.csproj",
+        "projectUniqueName": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Infrastructure\\MyIoTPlatform.Infrastructure.csproj",
         "projectName": "MyIoTPlatform.Infrastructure",
-        "projectPath": "D:\\Bon Bon\\project 1\\git\\Thingsboard-iot-by-.NET\\backend\\src\\MyIoTPlatform.Infrastructure\\MyIoTPlatform.Infrastructure.csproj",
+        "projectPath": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Infrastructure\\MyIoTPlatform.Infrastructure.csproj",
         "packagesPath": "C:\\Users\\BonBon\\.nuget\\packages\\",
-        "outputPath": "D:\\Bon Bon\\project 1\\git\\Thingsboard-iot-by-.NET\\backend\\src\\MyIoTPlatform.Infrastructure\\obj\\",
+        "outputPath": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Infrastructure\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "D:\\Program Files\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -303,8 +327,8 @@
           "net9.0": {
             "targetAlias": "net9.0",
             "projectReferences": {
-              "D:\\Bon Bon\\project 1\\git\\Thingsboard-iot-by-.NET\\backend\\src\\MyIoTPlatform.Application\\MyIoTPlatform.Application.csproj": {
-                "projectPath": "D:\\Bon Bon\\project 1\\git\\Thingsboard-iot-by-.NET\\backend\\src\\MyIoTPlatform.Application\\MyIoTPlatform.Application.csproj"
+              "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Application\\MyIoTPlatform.Application.csproj": {
+                "projectPath": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Application\\MyIoTPlatform.Application.csproj"
               }
             }
           }

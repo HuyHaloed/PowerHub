@@ -2,6 +2,7 @@ using MediatR;
 using System.Threading;
 using System.Threading.Tasks;
 using MyIoTPlatform.Application.Interfaces; // Assuming you'll need an interface for ML service
+using MyIoTPlatform.Domain.Interfaces.Services;
 
 namespace MyIoTPlatform.Application.Features.MachineLearning.Queries
 {

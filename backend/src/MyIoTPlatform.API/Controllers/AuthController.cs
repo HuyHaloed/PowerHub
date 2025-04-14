@@ -3,12 +3,20 @@ using System.Threading.Tasks;
 
 namespace MyIoTPlatform.API.Controllers
 {
+    /// <summary>
+    /// Handles user authentication and authorization.
+    /// </summary>
     [ApiController]
     [Route("api/auth")]
     public class AuthController : ControllerBase
     {
+        /// <summary>
+        /// Logs in to the system and returns a JWT token.
+        /// </summary>
+        /// <param name="request">The login request containing email and password.</param>
+        /// <returns>A JWT token and user information.</returns>
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginRequest request)
+        public IActionResult Login([FromBody] LoginRequest request)
         {
             // TODO: Implement login logic (authentication, token generation)
             // For now, return a placeholder response
@@ -29,6 +37,10 @@ namespace MyIoTPlatform.API.Controllers
             });
         }
 
+        /// <summary>
+        /// Logs out of the system.
+        /// </summary>
+        /// <returns>Status 200 OK.</returns>
         [HttpPost("logout")]
         public IActionResult Logout()
         {
@@ -36,8 +48,12 @@ namespace MyIoTPlatform.API.Controllers
             return Ok();
         }
 
+        /// <summary>
+        /// Retrieves the current user's information.
+        /// </summary>
+        /// <returns>The current user's details, including preferences and subscription.</returns>
         [HttpGet("me")]
-        public async Task<IActionResult> GetCurrentUser()
+        public IActionResult GetCurrentUser()
         {
             // TODO: Implement logic to retrieve current user's information
             // For now, return a placeholder response
@@ -64,7 +80,7 @@ namespace MyIoTPlatform.API.Controllers
     // Define a simple LoginRequest model
     public class LoginRequest
     {
-        public string Email { get; set; }
-        public string Password { get; set; }
+        public required string Email { get; set; }
+        public required string Password { get; set; }
     }
 }

@@ -6,6 +6,6 @@ namespace MyIoTPlatform.Application.Features.Telemetry.Queries
 {
     public class GetAllTelemetryQuery : IRequest<List<TelemetryDto>>
     {
-        public string DeviceId { get; set; }
+        public required string DeviceId { get; set; }
     }
 }

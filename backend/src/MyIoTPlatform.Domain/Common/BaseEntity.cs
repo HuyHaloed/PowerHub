@@ -4,7 +4,7 @@ namespace MyIoTPlatform.Domain.Common
 {
     public abstract class BaseEntity<TKey>
     {
-        public TKey Id { get; set; }
+        public required TKey Id { get; set; } // Added 'required' modifier to ensure initialization
         public string? CreatedBy { get; set; }
         public DateTimeOffset CreatedOn { get; set; } = DateTimeOffset.UtcNow;
         public string? LastModifiedBy { get; set; }

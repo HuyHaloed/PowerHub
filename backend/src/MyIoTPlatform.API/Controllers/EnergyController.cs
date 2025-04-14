@@ -4,10 +4,20 @@ using System.Threading.Tasks;
 
 namespace MyIoTPlatform.API.Controllers
 {
+    /// <summary>
+    /// Handles operations related to energy data.
+    /// </summary>
     [ApiController]
     [Route("api/energy")]
     public class EnergyController : ControllerBase
     {
+        /// <summary>
+        /// Retrieves energy consumption data based on the specified time range and dates.
+        /// </summary>
+        /// <param name="timeRange">The time range for the data (e.g., day, week, month).</param>
+        /// <param name="startDate">The start date for the data (optional).</param>
+        /// <param name="endDate">The end date for the data (optional).</param>
+        /// <returns>Energy consumption data for the specified period.</returns>
         [HttpGet("consumption")]
         public async Task<IActionResult> GetEnergyConsumption(string timeRange, string startDate = null, string endDate = null)
         {
@@ -20,6 +30,10 @@ namespace MyIoTPlatform.API.Controllers
             });
         }
 
+        /// <summary>
+        /// Retrieves energy distribution data.
+        /// </summary>
+        /// <returns>Energy distribution data by device.</returns>
         [HttpGet("distribution")]
         public async Task<IActionResult> GetEnergyDistribution()
         {
@@ -32,6 +46,12 @@ namespace MyIoTPlatform.API.Controllers
             });
         }
 
+        /// <summary>
+        /// Retrieves energy predictions for the specified time range and number of periods.
+        /// </summary>
+        /// <param name="timeRange">The time range for the predictions (e.g., hour, day).</param>
+        /// <param name="periods">The number of periods to predict.</param>
+        /// <returns>Energy predictions for the specified periods.</returns>
         [HttpGet("predictions")]
         public async Task<IActionResult> GetEnergyPredictions(string timeRange, int periods)
         {
@@ -44,6 +64,13 @@ namespace MyIoTPlatform.API.Controllers
             });
         }
 
+        /// <summary>
+        /// Compares energy usage with the previous period for the specified time range and dates.
+        /// </summary>
+        /// <param name="timeRange">The time range for the comparison (e.g., day, week).</param>
+        /// <param name="startDate">The start date for the current period.</param>
+        /// <param name="endDate">The end date for the current period.</param>
+        /// <returns>Comparison of energy usage between the current and previous periods.</returns>
         [HttpGet("compare")]
         public async Task<IActionResult> CompareEnergyUsage(string timeRange, string startDate, string endDate)
         {

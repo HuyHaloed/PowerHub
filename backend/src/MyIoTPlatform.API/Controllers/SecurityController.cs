@@ -2,10 +2,17 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace MyIoTPlatform.API.Controllers
 {
+    /// <summary>
+    /// Handles security-related operations such as 2FA and session management.
+    /// </summary>
     [ApiController]
     [Route("api/security")]
     public class SecurityController : ControllerBase
     {
+        /// <summary>
+        /// Enables two-factor authentication (2FA) for the user.
+        /// </summary>
+        /// <returns>A QR code URL and secret key for setting up 2FA.</returns>
         [HttpPost("2fa/enable")]
         public IActionResult EnableTwoFactorAuthentication()
         {
@@ -17,6 +24,11 @@ namespace MyIoTPlatform.API.Controllers
             });
         }
 
+        /// <summary>
+        /// Verifies the 2FA code provided by the user.
+        /// </summary>
+        /// <param name="request">The request containing the 2FA code.</param>
+        /// <returns>Status 200 OK if the code is valid.</returns>
         [HttpPost("2fa/verify")]
         public IActionResult VerifyTwoFactorAuthentication([FromBody] Verify2FARequest request)
         {
@@ -24,6 +36,11 @@ namespace MyIoTPlatform.API.Controllers
             return Ok();
         }
 
+        /// <summary>
+        /// Disables two-factor authentication (2FA) for the user.
+        /// </summary>
+        /// <param name="request">The request containing the user's password for verification.</param>
+        /// <returns>Status 200 OK if 2FA is successfully disabled.</returns>
         [HttpPost("2fa/disable")]
         public IActionResult DisableTwoFactorAuthentication([FromBody] Disable2FARequest request)
         {
@@ -31,6 +48,10 @@ namespace MyIoTPlatform.API.Controllers
             return Ok();
         }
 
+        /// <summary>
+        /// Retrieves a list of active sessions for the user.
+        /// </summary>
+        /// <returns>A list of active sessions with details such as device, browser, and IP address.</returns>
         [HttpGet("sessions")]
         public IActionResult GetActiveSessions()
         {
@@ -47,6 +68,11 @@ namespace MyIoTPlatform.API.Controllers
             });
         }
 
+        /// <summary>
+        /// Revokes a specific session by its ID.
+        /// </summary>
+        /// <param name="id">The ID of the session to revoke.</param>
+        /// <returns>Status 200 OK if the session is successfully revoked.</returns>
         [HttpDelete("sessions/{id}")]
         public IActionResult RevokeSession(string id)
         {
@@ -54,6 +80,10 @@ namespace MyIoTPlatform.API.Controllers
             return Ok();
         }
 
+        /// <summary>
+        /// Exports the user's personal data.
+        /// </summary>
+        /// <returns>A file containing the user's personal data.</returns>
         [HttpPost("data-export")]
         public IActionResult ExportPersonalData()
         {
@@ -62,14 +92,25 @@ namespace MyIoTPlatform.API.Controllers
         }
     }
 
-    // Define simple request models
+    /// <summary>
+    /// Request model for verifying 2FA.
+    /// </summary>
     public class Verify2FARequest
     {
+        /// <summary>
+        /// The 2FA code provided by the user.
+        /// </summary>
         public string Code { get; set; }
     }
 
+    /// <summary>
+    /// Request model for disabling 2FA.
+    /// </summary>
     public class Disable2FARequest
     {
+        /// <summary>
+        /// The user's password for verification.
+        /// </summary>
         public string Password { get; set; }
     }
 }

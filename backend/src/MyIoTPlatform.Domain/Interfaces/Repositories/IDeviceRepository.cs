@@ -13,6 +13,7 @@ public interface IDeviceRepository
     Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default);
     Task<IEnumerable<Device>> GetByTypeAsync(string type, CancellationToken cancellationToken = default);
     Task<IEnumerable<Device>> GetByStatusAsync(string status, CancellationToken cancellationToken = default);
+    Task<Device?> GetByAccessTokenAsync(string accessToken, CancellationToken cancellationToken = default);
     Task<IEnumerable<Device>> GetFilteredAsync(
         Expression<Func<Device, bool>>? filter = null, // Điều kiện lọc (LINQ expression)
         // Func<IQueryable<Device>, IOrderedQueryable<Device>>? orderBy = null, // Sắp xếp

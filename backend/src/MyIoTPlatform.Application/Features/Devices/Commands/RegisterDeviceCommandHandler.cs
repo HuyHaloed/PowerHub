@@ -4,33 +4,37 @@ using MyIoTPlatform.Domain.Entities;
 using MyIoTPlatform.Domain.Interfaces.Repositories;
 using MyIoTPlatform.Application.Features.Devices.DTOs;
 using MyIoTPlatform.Application.Features.Devices.Commands;
+using MyIoTPlatform.Application.Interfaces.Persistence;
+using System.Threading;
+using System.Threading.Tasks;
 
-public class RegisterDeviceCommandHandler : IRequestHandler<RegisterDeviceCommand, DeviceDto>
+namespace MyIoTPlatform.Application.Features.Devices.Commands
 {
-    private readonly IDeviceRepository _deviceRepository;
-    private readonly IMapper _mapper; // Inject AutoMapper
-
-    public RegisterDeviceCommandHandler(IDeviceRepository deviceRepository, IMapper mapper)
+    public class RegisterDeviceCommandHandler : IRequestHandler<RegisterDeviceCommand, DeviceDto>
     {
-        _deviceRepository = deviceRepository;
-        _mapper = mapper;
-    }
+        private readonly IDeviceRepository _deviceRepository;
+        private readonly IMapper _mapper; // Inject AutoMapper
 
-    public async Task<DeviceDto> Handle(RegisterDeviceCommand request, CancellationToken cancellationToken)
-    {
-        var device = new Device
+        public RegisterDeviceCommandHandler(IDeviceRepository deviceRepository, IMapper mapper)
         {
-            Id = Guid.NewGuid(), // Hoặc bạn có thể muốn Id được tạo bởi DB
-            Name = request.Name,
-            Type = request.Type,
-            Status = "Registered", // Trạng thái ban đầu
-            CreatedAt = DateTime.UtcNow
-        };
+            _deviceRepository = deviceRepository;
+            _mapper = mapper;
+        }
 
-        await _deviceRepository.AddAsync(device, cancellationToken);
+        public async Task<DeviceDto> Handle(RegisterDeviceCommand request, CancellationToken cancellationToken)
+        {
+            var device = new Device
+            {
+                Id = Guid.NewGuid(), // Use Guid directly instead of converting to string
+                Name = request.DeviceName,
+                Type = request.DeviceType,
+                Description = request.Description,
+                PropertiesJson = "{}" // Ensure PropertiesJson is set
+            };
 
-        // Có thể cần gọi SaveChangesAsync nếu dùng UnitOfWork pattern
+            await _deviceRepository.AddAsync(device, cancellationToken);
 
-        return _mapper.Map<DeviceDto>(device); // Map sang DTO để trả về
+            return _mapper.Map<DeviceDto>(device); // Map sang DTO để trả về
+        }
     }
 }

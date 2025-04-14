@@ -4,14 +4,9 @@ namespace MyIoTPlatform.Application.Features.Telemetry.DTOs
 {
     public class TelemetryDto
     {
-        public Guid Id {get; set;}
         public Guid DeviceId { get; set; }
+        public required string Key { get; set; } // Added required modifier
+        public required string Value { get; set; } // Added required modifier
         public DateTime Timestamp { get; set; }
-        public string Key { get; set; } = string.Empty;
-        public string Value { get; set; } = string.Empty;
-        // public decimal? DoubleValue { get; set; }
-        // public long? LongValue { get; set; }
-        // public string? StringValue { get; set; }
-        // public bool? BooleanValue { get; set; }
     }
 }

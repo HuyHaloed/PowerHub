@@ -4,12 +4,23 @@ using System.Threading.Tasks;
 
 namespace MyIoTPlatform.API.Controllers
 {
+    /// <summary>
+    /// Manages device-related operations.
+    /// </summary>
     [ApiController]
     [Route("api/devices")]
     public class DevicesController : ControllerBase
     {
+        /// <summary>
+        /// Retrieves a list of all devices.
+        /// </summary>
+        /// <param name="status">Filter by device status (e.g., "on", "off").</param>
+        /// <param name="location">Filter by device location.</param>
+        /// <param name="type">Filter by device type.</param>
+        /// <param name="search">Search by device name or other attributes.</param>
+        /// <returns>A list of devices matching the filters.</returns>
         [HttpGet]
-        public async Task<IActionResult> GetAllDevices(string status = null, string location = null, string type = null, string search = null)
+        public IActionResult GetAllDevices(string? status = null, string? location = null, string? type = null, string? search = null)
         {
             // TODO: Implement logic to retrieve all devices based on query parameters
             // For now, return a placeholder response
@@ -20,8 +31,12 @@ namespace MyIoTPlatform.API.Controllers
             });
         }
 
+        /// <summary>
+        /// Retrieves a list of active devices.
+        /// </summary>
+        /// <returns>A list of active devices.</returns>
         [HttpGet("active")]
-        public async Task<IActionResult> GetActiveDevices()
+        public IActionResult GetActiveDevices()
         {
             // TODO: Implement logic to retrieve active devices
             // For now, return a placeholder response
@@ -31,8 +46,13 @@ namespace MyIoTPlatform.API.Controllers
             });
         }
 
+        /// <summary>
+        /// Retrieves detailed information about a specific device.
+        /// </summary>
+        /// <param name="id">The ID of the device.</param>
+        /// <returns>Details of the specified device.</returns>
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetDeviceDetails(int id)
+        public IActionResult GetDeviceDetails(int id)
         {
             // TODO: Implement logic to retrieve device details
             // For now, return a placeholder response
@@ -60,6 +80,12 @@ namespace MyIoTPlatform.API.Controllers
             });
         }
 
+        /// <summary>
+        /// Controls the status of a specific device.
+        /// </summary>
+        /// <param name="id">The ID of the device.</param>
+        /// <param name="request">The request containing the new status.</param>
+        /// <returns>The updated status of the device.</returns>
         [HttpPut("{id}/control")]
         public IActionResult ControlDevice(int id, [FromBody] ControlDeviceRequest request)
         {
@@ -73,6 +99,11 @@ namespace MyIoTPlatform.API.Controllers
             });
         }
 
+        /// <summary>
+        /// Adds a new device.
+        /// </summary>
+        /// <param name="request">The request containing the device details.</param>
+        /// <returns>The details of the newly added device.</returns>
         [HttpPost]
         public IActionResult AddNewDevice([FromBody] AddDeviceRequest request)
         {
@@ -88,6 +119,12 @@ namespace MyIoTPlatform.API.Controllers
             });
         }
 
+        /// <summary>
+        /// Updates the information of a specific device.
+        /// </summary>
+        /// <param name="id">The ID of the device.</param>
+        /// <param name="request">The request containing the updated device details.</param>
+        /// <returns>A message indicating the update status.</returns>
         [HttpPut("{id}")]
         public IActionResult UpdateDevice(int id, [FromBody] UpdateDeviceRequest request)
         {
@@ -100,6 +137,11 @@ namespace MyIoTPlatform.API.Controllers
             });
         }
 
+        /// <summary>
+        /// Deletes a specific device.
+        /// </summary>
+        /// <param name="id">The ID of the device.</param>
+        /// <returns>A message indicating the deletion status.</returns>
         [HttpDelete("{id}")]
         public IActionResult DeleteDevice(int id)
         {
@@ -111,30 +153,30 @@ namespace MyIoTPlatform.API.Controllers
     // Define simple request models
     public class ControlDeviceRequest
     {
-        public string Status { get; set; }
+        public string Status { get; set; } = string.Empty;
     }
 
     public class AddDeviceRequest
     {
-        public string Name { get; set; }
-        public string Type { get; set; }
-        public string Location { get; set; }
-        public Properties Properties { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Type { get; set; } = string.Empty;
+        public string Location { get; set; } = string.Empty;
+        public Properties? Properties { get; set; }
     }
 
     public class UpdateDeviceRequest
     {
-        public string Name { get; set; }
-        public string Type { get; set; }
-        public string Location { get; set; }
-        public Properties Properties { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Type { get; set; } = string.Empty;
+        public string Location { get; set; } = string.Empty;
+        public Properties? Properties { get; set; }
     }
 
     public class Properties
     {
-        public string Brand { get; set; }
-        public string Model { get; set; }
-        public string SerialNumber { get; set; }
+        public string Brand { get; set; } = string.Empty;
+        public string Model { get; set; } = string.Empty;
+        public string SerialNumber { get; set; } = string.Empty;
         public int PowerRating { get; set; }
     }
 }

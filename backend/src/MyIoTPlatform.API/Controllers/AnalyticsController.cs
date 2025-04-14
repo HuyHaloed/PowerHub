@@ -4,15 +4,27 @@ using System.Threading.Tasks;
 
 namespace MyIoTPlatform.API.Controllers
 {
+    /// <summary>
+    /// Handles analytics-related operations.
+    /// </summary>
     [ApiController]
     [Route("api/analytics")]
     public class AnalyticsController : ControllerBase
     {
+        /// <summary>
+        /// Retrieves overall analytics data.
+        /// </summary>
+        /// <param name="startDate">The start date for the analytics data.</param>
+        /// <param name="endDate">The end date for the analytics data.</param>
+        /// <param name="timeRange">The time range for the analytics data (e.g., day, week, month).</param>
+        /// <returns>Overall analytics data including consumption and cost estimates.</returns>
         [HttpGet]
         public async Task<IActionResult> GetAnalyticsData(string startDate, string endDate, string timeRange)
         {
+            // Simulate asynchronous operation
+            await Task.Delay(1);
+
             // TODO: Implement logic to retrieve overall analytics data
-            // For now, return a placeholder response
             return Ok(new
             {
                 totalConsumption = 10000,
@@ -30,11 +42,21 @@ namespace MyIoTPlatform.API.Controllers
             });
         }
 
+        /// <summary>
+        /// Retrieves analytics data for a specific device or all devices.
+        /// </summary>
+        /// <param name="deviceId">The ID of the device (optional).</param>
+        /// <param name="startDate">The start date for the analytics data.</param>
+        /// <param name="endDate">The end date for the analytics data.</param>
+        /// <param name="timeRange">The time range for the analytics data (e.g., day, week, month).</param>
+        /// <returns>Analytics data for the specified device or all devices.</returns>
         [HttpGet("devices")]
         public async Task<IActionResult> GetDeviceAnalytics(int? deviceId, string startDate, string endDate, string timeRange)
         {
+            // Simulate asynchronous operation
+            await Task.Delay(1);
+
             // TODO: Implement logic to retrieve analytics data per device
-            // For now, return a placeholder response
             return Ok(new List<object>
             {
                 new
@@ -54,6 +76,14 @@ namespace MyIoTPlatform.API.Controllers
             });
         }
 
+        /// <summary>
+        /// Exports analytics data in the specified format.
+        /// </summary>
+        /// <param name="format">The format of the exported data (e.g., csv, pdf, excel).</param>
+        /// <param name="startDate">The start date for the analytics data.</param>
+        /// <param name="endDate">The end date for the analytics data.</param>
+        /// <param name="type">The type of data to export (e.g., consumption, devices, distribution).</param>
+        /// <returns>A file containing the exported analytics data.</returns>
         [HttpGet("export")]
         public IActionResult ExportData(string format, string startDate, string endDate, string type)
         {

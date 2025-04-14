@@ -3,10 +3,17 @@ using System.Collections.Generic;
 
 namespace MyIoTPlatform.API.Controllers
 {
+    /// <summary>
+    /// Handles operations related to user subscriptions.
+    /// </summary>
     [ApiController]
     [Route("api/subscription")]
     public class SubscriptionController : ControllerBase
     {
+        /// <summary>
+        /// Retrieves the details of the user's current subscription.
+        /// </summary>
+        /// <returns>Subscription details including plan, validity, features, and payment history.</returns>
         [HttpGet]
         public IActionResult GetSubscriptionDetails()
         {
@@ -31,6 +38,11 @@ namespace MyIoTPlatform.API.Controllers
             });
         }
 
+        /// <summary>
+        /// Upgrades the user's subscription to a new plan.
+        /// </summary>
+        /// <param name="request">The request containing the new plan and payment method details.</param>
+        /// <returns>A success message if the subscription is upgraded successfully.</returns>
         [HttpPost("upgrade")]
         public IActionResult UpgradeSubscription([FromBody] UpgradeSubscriptionRequest request)
         {
@@ -38,6 +50,11 @@ namespace MyIoTPlatform.API.Controllers
             return Ok(new { message = "Subscription upgraded successfully." });
         }
 
+        /// <summary>
+        /// Adds a new payment method for the user.
+        /// </summary>
+        /// <param name="request">The request containing payment method details.</param>
+        /// <returns>A success message if the payment method is added successfully.</returns>
         [HttpPost("payment-methods")]
         public IActionResult AddPaymentMethod([FromBody] AddPaymentMethodRequest request)
         {
@@ -45,6 +62,10 @@ namespace MyIoTPlatform.API.Controllers
             return Ok(new { message = "Payment method added successfully." });
         }
 
+        /// <summary>
+        /// Retrieves the user's payment history.
+        /// </summary>
+        /// <returns>A list of payment transactions.</returns>
         [HttpGet("payments")]
         public IActionResult GetPaymentHistory()
         {
@@ -56,19 +77,50 @@ namespace MyIoTPlatform.API.Controllers
         }
     }
 
-    // Define simple request models
+    /// <summary>
+    /// Request model for upgrading a subscription.
+    /// </summary>
     public class UpgradeSubscriptionRequest
     {
+        /// <summary>
+        /// The new subscription plan to upgrade to.
+        /// </summary>
         public string Plan { get; set; }
+
+        /// <summary>
+        /// The ID of the payment method to use for the upgrade.
+        /// </summary>
         public string PaymentMethodId { get; set; }
     }
 
+    /// <summary>
+    /// Request model for adding a new payment method.
+    /// </summary>
     public class AddPaymentMethodRequest
     {
+        /// <summary>
+        /// The type of payment method (e.g., Credit Card, PayPal).
+        /// </summary>
         public string Type { get; set; }
+
+        /// <summary>
+        /// The card number for the payment method.
+        /// </summary>
         public string CardNumber { get; set; }
+
+        /// <summary>
+        /// The expiry date of the card.
+        /// </summary>
         public string ExpiryDate { get; set; }
+
+        /// <summary>
+        /// The CVC code of the card.
+        /// </summary>
         public string Cvc { get; set; }
+
+        /// <summary>
+        /// The name of the cardholder.
+        /// </summary>
         public string CardholderName { get; set; }
     }
 }
