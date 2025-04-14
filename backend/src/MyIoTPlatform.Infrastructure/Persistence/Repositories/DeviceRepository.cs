@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore; // Cần cho ToListAsync, FindAsync...
 using MyIoTPlatform.Application.Interfaces.Persistence; // IApplicationDbContext
 using MyIoTPlatform.Domain.Entities;
 using MyIoTPlatform.Domain.Interfaces.Repositories; // IDeviceRepository
+using System.Linq.Expressions;
 
 namespace MyIoTPlatform.Infrastructure.Persistence.Repositories;
 
@@ -50,6 +51,33 @@ public class DeviceRepository : IDeviceRepository
             // KHÔNG gọi SaveChangesAsync ở đây
         }
         // Có thể throw lỗi nếu không tìm thấy hoặc chỉ return
+    }
+
+    public async Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken)
+    {
+        return await _context.Devices.AnyAsync(d => d.Id == id, cancellationToken);
+    }
+
+    public async Task<IEnumerable<Device>> GetByTypeAsync(string type, CancellationToken cancellationToken)
+    {
+        return await _context.Devices.Where(d => d.Type == type).ToListAsync(cancellationToken);
+    }
+
+    public async Task<IEnumerable<Device>> GetByStatusAsync(string status, CancellationToken cancellationToken)
+    {
+        return await _context.Devices.Where(d => d.Status == status).ToListAsync(cancellationToken);
+    }
+
+    public async Task<Device?> GetByAccessTokenAsync(string accessToken, CancellationToken cancellationToken)
+    {
+        return await _context.Devices.FirstOrDefaultAsync(d => d.AccessToken == accessToken, cancellationToken);
+    }
+
+    public async Task<IEnumerable<Device>> GetFilteredAsync(Expression<Func<Device, bool>>? filter, CancellationToken cancellationToken)
+    {
+        return filter == null
+            ? await _context.Devices.ToListAsync(cancellationToken)
+            : await _context.Devices.Where(filter).ToListAsync(cancellationToken);
     }
 }
 // Lưu ý: SaveChangesAsync thường được gọi ở cuối Command Handler trong lớp Application

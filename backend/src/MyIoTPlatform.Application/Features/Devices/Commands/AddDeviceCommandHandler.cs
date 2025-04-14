@@ -1,4 +1,4 @@
-    using AutoMapper;
+using AutoMapper;
 using MediatR;
 using MyIoTPlatform.Domain.Interfaces.Repositories;
 using MyIoTPlatform.Application.Features.Devices.DTOs;
@@ -31,7 +31,7 @@ public class AddDeviceCommandHandler : IRequestHandler<AddDeviceCommand, DeviceS
             Location = request.Location,
             Status = "off", // Trạng thái ban đầu
             CreatedAt = DateTime.UtcNow,
-            PropertiesJson = request.Properties != null ? JsonSerializer.Serialize(request.Properties) : null
+            PropertiesJson = request.Properties != null ? JsonSerializer.Serialize(request.Properties) : "{}" // Ensure non-null value
         };
 
         await _deviceRepository.AddAsync(device, cancellationToken);

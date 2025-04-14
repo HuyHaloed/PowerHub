@@ -12,4 +12,6 @@ public interface IDeviceManagmentService
     Task DeleteDeviceAsync(Guid id, CancellationToken cancellationToken = default);
     Task<Device> GetDeviceByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<IEnumerable<Device>> GetAllDevicesAsync(CancellationToken cancellationToken = default);
+    Task<Device> EnableDeviceAsync(Guid id, bool enable, CancellationToken cancellationToken = default);
+    Task<Device> ConfigureDeviceAsync(Guid id, string configuration, CancellationToken cancellationToken = default);
 }

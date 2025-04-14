@@ -4,10 +4,17 @@ using System.Threading.Tasks;
 
 namespace MyIoTPlatform.API.Controllers
 {
+    /// <summary>
+    /// Handles operations related to the dashboard.
+    /// </summary>
     [ApiController]
     [Route("api/dashboard")]
     public class DashboardController : ControllerBase
     {
+        /// <summary>
+        /// Retrieves the overview data for the dashboard.
+        /// </summary>
+        /// <returns>Dashboard data including user info, stats, and alerts.</returns>
         [HttpGet]
         public async Task<IActionResult> GetDashboardData()
         {
@@ -46,6 +53,10 @@ namespace MyIoTPlatform.API.Controllers
             });
         }
 
+        /// <summary>
+        /// Retrieves quick statistics for the dashboard.
+        /// </summary>
+        /// <returns>Quick stats including total and active devices.</returns>
         [HttpGet("quick-stats")]
         public async Task<IActionResult> GetQuickStats()
         {
@@ -58,6 +69,10 @@ namespace MyIoTPlatform.API.Controllers
             });
         }
 
+        /// <summary>
+        /// Retrieves unread alerts for the dashboard.
+        /// </summary>
+        /// <returns>List of unread alerts.</returns>
         [HttpGet("alerts/unread")]
         public async Task<IActionResult> GetUnreadAlerts()
         {
@@ -70,6 +85,11 @@ namespace MyIoTPlatform.API.Controllers
             });
         }
 
+        /// <summary>
+        /// Marks an alert as read.
+        /// </summary>
+        /// <param name="id">The ID of the alert to mark as read.</param>
+        /// <returns>Status 200 OK.</returns>
         [HttpPut("alerts/{id}/read")]
         public IActionResult MarkAlertAsRead(int id)
         {

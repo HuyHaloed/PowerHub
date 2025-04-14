@@ -4,6 +4,7 @@ using MyIoTPlatform.Application.Interfaces.Persistence; // IApplicationDbContext
 using MyIoTPlatform.Application.Interfaces.Communication; // IRealtimeNotifier
 using MyIoTPlatform.Domain.Entities;
 using System.Text.Json; // Hoặc Newtonsoft.Json
+using MyIoTPlatform.Application.Features.Telemetry.DTOs;
 
 namespace MyIoTPlatform.Application.Features.Telemetry.Commands;
 
@@ -58,8 +59,13 @@ public class IngestTelemetryCommandHandler : IRequestHandler<IngestTelemetryComm
             // 3. Gửi thông báo Real-time (SignalR)
             // TODO: Map 'telemetry' sang TelemetryDto nếu cần
             // Ví dụ: giả sử TelemetryDto có các trường tương ứng
-            var telemetryDto = new TelemetryDto { /* ... map từ telemetry ... */ };
-            await _realtimeNotifier.NotifyTelemetryUpdateAsync(request.DeviceId, telemetryDto, cancellationToken);
+            var telemetryDto = new TelemetryDto
+            {
+                Key = "exampleKey", // Set required Key property
+                Value = "exampleValue", // Set required Value property
+                Timestamp = DateTime.UtcNow // Set required Timestamp property
+            };
+            await _realtimeNotifier.NotifyTelemetryUpdateAsync(request.DeviceId, telemetryDto.Key, telemetryDto.Value, telemetryDto.Timestamp); // Pass timestamp argument
 
 
             // 4. (Tùy chọn) Trigger xử lý ML

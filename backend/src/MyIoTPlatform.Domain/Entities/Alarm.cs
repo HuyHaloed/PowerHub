@@ -2,6 +2,7 @@ namespace MyIoTPlatform.Domain.Entities;
 
 public class Alarm
 {
+    public Guid AlarmId { get; set; } // Unique identifier for the alarm
     public Guid DeviceId {get; set;}
     public string Type {get; set;} = string.Empty;
     public string Severity {get; set;} = "Info";    // Mức độ nghiêm trọng của cảnh báo (ví dụ: Info, Warning, Critical)

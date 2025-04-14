@@ -27,7 +27,7 @@ namespace MyIoTPlatform.Application.Features.MachineLearning.Queries
             }
             else
             {
-                return null; // Hoặc một instance PredictionResultDto khác tùy theo logic của bạn
+                return new PredictionResultDto { Result = "DefaultResult" }; // Added null check and default value
             }
         }
     }

@@ -2,6 +2,19 @@
   "version": 3,
   "targets": {
     "net9.0": {
+      "Ardalis.GuardClauses/5.0.0": {
+        "type": "package",
+        "compile": {
+          "lib/net8.0/Ardalis.GuardClauses.dll": {
+            "related": ".pdb;.xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/Ardalis.GuardClauses.dll": {
+            "related": ".pdb;.xml"
+          }
+        }
+      },
       "AutoMapper/14.0.0": {
         "type": "package",
         "dependencies": {
@@ -109,6 +122,35 @@
         },
         "runtime": {
           "lib/netstandard2.1/FluentValidation.DependencyInjectionExtensions.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "MediatR/11.1.0": {
+        "type": "package",
+        "dependencies": {
+          "MediatR.Contracts": "1.0.1"
+        },
+        "compile": {
+          "lib/netstandard2.1/MediatR.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.1/MediatR.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "MediatR.Contracts/1.0.1": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.0/MediatR.Contracts.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.0/MediatR.Contracts.dll": {
             "related": ".xml"
           }
         }
@@ -1395,7 +1437,9 @@
           "AutoMapper": "14.0.0",
           "FluentValidation": "11.11.0",
           "FluentValidation.DependencyInjectionExtensions": "11.11.0",
-          "MediatR": "12.5.0",
+          "MediatR": "11.1.0",
+          "MediatR.Extensions.Microsoft.DependencyInjection": "11.1.0",
+          "Microsoft.Extensions.Caching.Memory": "9.0.3",
           "MyIoTPlatform.Domain": "1.0.0",
           "Newtonsoft.Json": "13.0.3"
         },
@@ -1410,10 +1454,11 @@
         "type": "project",
         "framework": ".NETCoreApp,Version=v9.0",
         "dependencies": {
-          "Ardalis.GuardClauses": "8.1.0",
+          "Ardalis.GuardClauses": "5.0.0",
           "FluentValidation": "11.11.0",
-          "MediatR": "12.5.0",
+          "MediatR": "11.1.0",
           "Microsoft.EntityFrameworkCore": "6.0.0",
+          "Microsoft.Extensions.Caching.Memory": "9.0.3",
           "Newtonsoft.Json": "13.0.3"
         },
         "compile": {
@@ -1445,6 +1490,29 @@
     }
   },
   "libraries": {
+    "Ardalis.GuardClauses/5.0.0": {
+      "sha512": "jVPRvLw0xIUFto2cMrKgRYADWIHbEEfzZHGiU/swwNgl1zo28Q1zfSa3VUC3C0s9DyhFDPSaF4dEDQRyTZUcyQ==",
+      "type": "package",
+      "path": "ardalis.guardclauses/5.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "README.md",
+        "ardalis.guardclauses.5.0.0.nupkg.sha512",
+        "ardalis.guardclauses.nuspec",
+        "icon.png",
+        "lib/net8.0/Ardalis.GuardClauses.dll",
+        "lib/net8.0/Ardalis.GuardClauses.pdb",
+        "lib/net8.0/Ardalis.GuardClauses.xml",
+        "lib/netstandard2.0/Ardalis.GuardClauses.dll",
+        "lib/netstandard2.0/Ardalis.GuardClauses.pdb",
+        "lib/netstandard2.0/Ardalis.GuardClauses.xml",
+        "lib/netstandard2.1/Ardalis.GuardClauses.dll",
+        "lib/netstandard2.1/Ardalis.GuardClauses.pdb",
+        "lib/netstandard2.1/Ardalis.GuardClauses.xml"
+      ]
+    },
     "AutoMapper/14.0.0": {
       "sha512": "OC+1neAPM4oCCqQj3g2GJ2shziNNhOkxmNB9cVS8jtx4JbgmRzLcUOxB9Tsz6cVPHugdkHgCaCrTjjSI0Z5sCQ==",
       "type": "package",
@@ -1557,6 +1625,36 @@
         "lib/netstandard2.0/FluentValidation.DependencyInjectionExtensions.xml",
         "lib/netstandard2.1/FluentValidation.DependencyInjectionExtensions.dll",
         "lib/netstandard2.1/FluentValidation.DependencyInjectionExtensions.xml"
+      ]
+    },
+    "MediatR/11.1.0": {
+      "sha512": "YIbtrLOyeCuIv8vIuHL/mMdls5xmgS36pIOJDxKZuu55nxA2MI2Z+E/Uk0z+F/LE11AGmpjplOM0NZ91m5LQBA==",
+      "type": "package",
+      "path": "mediatr/11.1.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "gradient_128x128.png",
+        "lib/netstandard2.1/MediatR.dll",
+        "lib/netstandard2.1/MediatR.xml",
+        "mediatr.11.1.0.nupkg.sha512",
+        "mediatr.nuspec"
+      ]
+    },
+    "MediatR.Contracts/1.0.1": {
+      "sha512": "NsRvOxthhkYml4DcBMyJsmym8C4MchioH7wxKVPEg7plFj9Euh/i4IcmZ3Gvgx6+K8obeuhPeJdoBl56wnuo3A==",
+      "type": "package",
+      "path": "mediatr.contracts/1.0.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "gradient_128x128.png",
+        "lib/net461/MediatR.Contracts.dll",
+        "lib/net461/MediatR.Contracts.xml",
+        "lib/netstandard2.0/MediatR.Contracts.dll",
+        "lib/netstandard2.0/MediatR.Contracts.xml",
+        "mediatr.contracts.1.0.1.nupkg.sha512",
+        "mediatr.contracts.nuspec"
       ]
     },
     "MediatR.Extensions.Microsoft.DependencyInjection/11.1.0": {
@@ -3975,9 +4073,12 @@
   },
   "projectFileDependencyGroups": {
     "net9.0": [
+      "Ardalis.GuardClauses >= 5.0.0",
       "FluentValidation.AspNetCore >= 11.3.0",
+      "MediatR >= 11.1.0",
       "MediatR.Extensions.Microsoft.DependencyInjection >= 11.1.0",
       "Microsoft.AspNetCore.OpenApi >= 9.0.0",
+      "Microsoft.Extensions.Caching.Memory >= 9.0.3",
       "MyIoTPlatform.Application >= 1.0.0",
       "MyIoTPlatform.Infrastructure >= 1.0.0",
       "Swashbuckle.AspNetCore >= 8.1.0"
@@ -3990,11 +4091,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\Bon Bon\\project 1\\git\\Thingsboard-iot-by-.NET\\backend\\src\\MyIoTPlatform.API\\MyIoTPlatform.API.csproj",
+      "projectUniqueName": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.API\\MyIoTPlatform.API.csproj",
       "projectName": "MyIoTPlatform.API",
-      "projectPath": "D:\\Bon Bon\\project 1\\git\\Thingsboard-iot-by-.NET\\backend\\src\\MyIoTPlatform.API\\MyIoTPlatform.API.csproj",
+      "projectPath": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.API\\MyIoTPlatform.API.csproj",
       "packagesPath": "C:\\Users\\BonBon\\.nuget\\packages\\",
-      "outputPath": "D:\\Bon Bon\\project 1\\git\\Thingsboard-iot-by-.NET\\backend\\src\\MyIoTPlatform.API\\obj\\",
+      "outputPath": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.API\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "D:\\Program Files\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -4015,11 +4116,11 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "projectReferences": {
-            "D:\\Bon Bon\\project 1\\git\\Thingsboard-iot-by-.NET\\backend\\src\\MyIoTPlatform.Application\\MyIoTPlatform.Application.csproj": {
-              "projectPath": "D:\\Bon Bon\\project 1\\git\\Thingsboard-iot-by-.NET\\backend\\src\\MyIoTPlatform.Application\\MyIoTPlatform.Application.csproj"
+            "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Application\\MyIoTPlatform.Application.csproj": {
+              "projectPath": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Application\\MyIoTPlatform.Application.csproj"
             },
-            "D:\\Bon Bon\\project 1\\git\\Thingsboard-iot-by-.NET\\backend\\src\\MyIoTPlatform.Infrastructure\\MyIoTPlatform.Infrastructure.csproj": {
-              "projectPath": "D:\\Bon Bon\\project 1\\git\\Thingsboard-iot-by-.NET\\backend\\src\\MyIoTPlatform.Infrastructure\\MyIoTPlatform.Infrastructure.csproj"
+            "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Infrastructure\\MyIoTPlatform.Infrastructure.csproj": {
+              "projectPath": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Infrastructure\\MyIoTPlatform.Infrastructure.csproj"
             }
           }
         }
@@ -4040,9 +4141,17 @@
       "net9.0": {
         "targetAlias": "net9.0",
         "dependencies": {
+          "Ardalis.GuardClauses": {
+            "target": "Package",
+            "version": "[5.0.0, )"
+          },
           "FluentValidation.AspNetCore": {
             "target": "Package",
             "version": "[11.3.0, )"
+          },
+          "MediatR": {
+            "target": "Package",
+            "version": "[11.1.0, )"
           },
           "MediatR.Extensions.Microsoft.DependencyInjection": {
             "target": "Package",
@@ -4051,6 +4160,10 @@
           "Microsoft.AspNetCore.OpenApi": {
             "target": "Package",
             "version": "[9.0.0, )"
+          },
+          "Microsoft.Extensions.Caching.Memory": {
+            "target": "Package",
+            "version": "[9.0.3, )"
           },
           "Swashbuckle.AspNetCore": {
             "target": "Package",
@@ -4079,25 +4192,5 @@
         "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.100/PortableRuntimeIdentifierGraph.json"
       }
     }
-  },
-  "logs": [
-    {
-      "code": "NU1102",
-      "level": "Error",
-      "message": "Unable to find package Ardalis.GuardClauses with version (>= 8.1.0)\r\n  - Found 41 version(s) in nuget.org [ Nearest version: 5.0.0 ]\r\n  - Found 0 version(s) in Microsoft Visual Studio Offline Packages",
-      "libraryId": "Ardalis.GuardClauses",
-      "targetGraphs": [
-        "net9.0"
-      ]
-    },
-    {
-      "code": "NU1107",
-      "level": "Error",
-      "message": "Version conflict detected for MediatR. Install/reference MediatR 12.5.0 directly to project MyIoTPlatform.API to resolve this issue. \r\n MyIoTPlatform.API -> MyIoTPlatform.Application -> MediatR (>= 12.5.0) \r\n MyIoTPlatform.API -> MediatR.Extensions.Microsoft.DependencyInjection 11.1.0 -> MediatR (>= 11.0.0 && < 12.0.0).",
-      "libraryId": "MediatR",
-      "targetGraphs": [
-        "net9.0"
-      ]
-    }
-  ]
+  }
 }

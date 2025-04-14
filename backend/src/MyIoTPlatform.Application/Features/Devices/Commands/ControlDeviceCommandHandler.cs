@@ -43,7 +43,7 @@ public class ControlDeviceCommandHandler : IRequestHandler<ControlDeviceCommand,
         var controlTopic = $"devices/{device.Id}/control/request"; // Ví dụ topic điều khiển
 
         // Gửi lệnh MQTT
-        await _mqttClientService.PublishAsync(controlTopic, controlPayload, false, cancellationToken);
+        await _mqttClientService.PublishAsync(controlTopic, controlPayload, false, qosLevel: 1); // Corrected QoS level argument
 
         // Cập nhật trạng thái trong DB (Cách tiếp cận đơn giản: cập nhật ngay)
         // Cách tốt hơn: Chờ phản hồi từ thiết bị qua MQTT rồi mới cập nhật DB

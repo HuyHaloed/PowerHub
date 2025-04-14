@@ -9,4 +9,5 @@ public class User
     public string LastName { get; set; } = string.Empty;
     public DateTime CreatedTime { get; set; }
     public DateTime? UpdatedTime { get; set; }
+    public string Role { get; set; } = "User"; // Role of the user (e.g., Admin, User)
 }

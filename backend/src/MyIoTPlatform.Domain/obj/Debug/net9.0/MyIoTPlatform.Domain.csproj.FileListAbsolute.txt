@@ -1,0 +1,13 @@
+D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.Domain\bin\Debug\net9.0\MyIoTPlatform.Domain.deps.json
+D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.Domain\bin\Debug\net9.0\MyIoTPlatform.Domain.dll
+D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.Domain\bin\Debug\net9.0\MyIoTPlatform.Domain.pdb
+D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.Domain\obj\Debug\net9.0\MyIoTPlatform.Domain.csproj.AssemblyReference.cache
+D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.Domain\obj\Debug\net9.0\MyIoTPlatform.Domain.GeneratedMSBuildEditorConfig.editorconfig
+D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.Domain\obj\Debug\net9.0\MyIoTPlatform.Domain.AssemblyInfoInputs.cache
+D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.Domain\obj\Debug\net9.0\MyIoTPlatform.Domain.AssemblyInfo.cs
+D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.Domain\obj\Debug\net9.0\MyIoTPlatform.Domain.csproj.CoreCompileInputs.cache
+D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.Domain\obj\Debug\net9.0\MyIoTPlatform.Domain.sourcelink.json
+D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.Domain\obj\Debug\net9.0\MyIoTPlatform.Domain.dll
+D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.Domain\obj\Debug\net9.0\refint\MyIoTPlatform.Domain.dll
+D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.Domain\obj\Debug\net9.0\MyIoTPlatform.Domain.pdb
+D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.Domain\obj\Debug\net9.0\ref\MyIoTPlatform.Domain.dll

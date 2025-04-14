@@ -3,6 +3,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting; // Cần cho IHostedService
 using MyIoTPlatform.Application.Interfaces.Communication; // Interface IMqttClientService
 using MyIoTPlatform.Infrastructure.Communication.Mqtt;
+using MyIoTPlatform.Application.Features.MachineLearning.Services;
+using MyIoTPlatform.Infrastructure.Services;
+using MyIoTPlatform.Domain.Interfaces.Repositories;
+using MyIoTPlatform.Infrastructure.Persistence.Repositories;
+using MyIoTPlatform.Infrastructure.MachineLearning; // Added namespace for FreeMlService
 // ... các using khác ...
 
 namespace MyIoTPlatform.Infrastructure;
@@ -30,6 +35,13 @@ public static class DependencyInjection
         services.AddHostedService(provider =>
             provider.GetRequiredService<MqttClientService>());
         // =====================
+
+        // Register FreeMlService as the implementation for IAzureMlService
+        services.AddScoped<IAzureMlService, FreeMlService>();
+
+        // Register repositories for Rules and Dashboards
+        services.AddScoped<IRuleRepository, RuleRepository>();
+        services.AddScoped<IDashboardRepository, DashboardRepository>();
 
         // ... (Đăng ký RealtimeNotifier, AzureMlService...)
 

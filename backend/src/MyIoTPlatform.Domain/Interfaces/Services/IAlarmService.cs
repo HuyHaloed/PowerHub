@@ -12,5 +12,6 @@ namespace MyIoTPlatform.Domain.Interfaces.Services
         Task ClearAlarmAsync(Guid deviceId, string type, CancellationToken cancellationToken = default);
         Task AcknowledgeAlarmAsync(Guid alarmId, CancellationToken cancellationToken = default);
         Task<IEnumerable<Alarm>> GetActiveAlarmsByDeviceAsync(Guid deviceId, CancellationToken cancellationToken = default);
+        Task<IEnumerable<Alarm>> GetHistoricalAlarmsByDeviceAsync(Guid deviceId, DateTime startTime, DateTime endTime, CancellationToken cancellationToken = default);
     }
 }
