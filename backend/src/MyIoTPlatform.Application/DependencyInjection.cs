@@ -19,6 +19,7 @@ public static class DependencyInjection
         services.AddMediatR(typeof(DependencyInjection).Assembly);
         // Có thể thêm các behaviors (pipeline) cho MediatR ở đây nếu cần (Logging, Validation...)
         // cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+        
 
         return services;
     }

@@ -1,12 +1,7 @@
 using AutoMapper;
 using MediatR;
 using MyIoTPlatform.Application.Features.Telemetry.DTOs;
-using MyIoTPlatform.Domain.Entities;
-using MyIoTPlatform.Domain.Interfaces.Repositories;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+using MyIoTPlatform.Application.Interfaces.Repositories;
 
 namespace MyIoTPlatform.Application.Features.Telemetry.Queries;
 

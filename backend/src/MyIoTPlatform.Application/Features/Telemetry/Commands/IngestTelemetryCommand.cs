@@ -4,4 +4,6 @@ namespace MyIoTPlatform.Application.Features.Telemetry.Commands;
 
 // deviceId: Thiết bị nào gửi dữ liệu
 // PayloadJson: Nội dung dữ liệu dạng JSON string nhận từ MQTT
-public record IngestTelemetryCommand(Guid DeviceId, string PayloadJson) : IRequest<Unit>;
+public record IngestTelemetryCommand(Guid DeviceId, string PayloadJson) : IRequest<Unit>
+{
+};

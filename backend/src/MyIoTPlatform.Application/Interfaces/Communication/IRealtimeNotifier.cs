@@ -1,10 +1,10 @@
-using System;
-using System.Threading.Tasks;
-
-namespace MyIoTPlatform.Application.Interfaces.Communication;
-
-public interface IRealtimeNotifier
+using MyIoTPlatform.Application.Features.Telemetry.DTOs;
+namespace MyIoTPlatform.Application.Interfaces.Communication
 {
-    Task NotifyTelemetryUpdateAsync(Guid deviceId, string key, string value, DateTime timestamp);
-    // Bạn có thể thêm các phương thức khác nếu cần
+    public interface IRealtimeNotifier
+    {
+        Task NotifyAllAsync(string eventName, object payload);
+        Task NotifyUserAsync(string userId, string eventName, object payload);
+        Task NotifyTelemetryUpdateAsync(TelemetryDto payload);
+    }
 }

@@ -1,23 +1,11 @@
 {
   "Version": 1,
-  "Hash": "MliamjqX0B/qtWCrvJflcNAVWLPpiUtFbQCQ+Qfr9Hw=",
+  "Hash": "cKsURiSI9ueVLwqu5IMNuuN+EsYTtRqP2AjzpwKKOuM=",
   "Source": "MyIoTPlatform.API",
   "BasePath": "_content/MyIoTPlatform.API",
   "Mode": "Default",
   "ManifestType": "Build",
-  "ReferencedProjectsConfiguration": [
-    {
-      "Identity": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Infrastructure\\MyIoTPlatform.Infrastructure.csproj",
-      "Version": 2,
-      "Source": "MyIoTPlatform.Infrastructure",
-      "GetPublishAssetsTargets": "ComputeReferencedStaticWebAssetsPublishManifest;GetCurrentProjectPublishStaticWebAssetItems",
-      "AdditionalPublishProperties": "",
-      "AdditionalPublishPropertiesToRemove": "WebPublishProfileFile;TargetFramework;RuntimeIdentifier;SelfContained",
-      "GetBuildAssetsTargets": "GetCurrentProjectBuildStaticWebAssetItems",
-      "AdditionalBuildProperties": "",
-      "AdditionalBuildPropertiesToRemove": "WebPublishProfileFile;TargetFramework;RuntimeIdentifier;SelfContained"
-    }
-  ],
+  "ReferencedProjectsConfiguration": [],
   "DiscoveryPatterns": [],
   "Assets": [],
   "Endpoints": []

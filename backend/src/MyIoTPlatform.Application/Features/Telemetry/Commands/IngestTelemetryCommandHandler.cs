@@ -65,7 +65,7 @@ public class IngestTelemetryCommandHandler : IRequestHandler<IngestTelemetryComm
                 Value = "exampleValue", // Set required Value property
                 Timestamp = DateTime.UtcNow // Set required Timestamp property
             };
-            await _realtimeNotifier.NotifyTelemetryUpdateAsync(request.DeviceId, telemetryDto.Key, telemetryDto.Value, telemetryDto.Timestamp); // Pass timestamp argument
+            await _realtimeNotifier.NotifyTelemetryUpdateAsync(telemetryDto); // Pass timestamp argument
 
 
             // 4. (Tùy chọn) Trigger xử lý ML

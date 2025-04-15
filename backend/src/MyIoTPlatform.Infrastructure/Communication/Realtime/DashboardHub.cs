@@ -17,7 +17,7 @@ namespace MyIoTPlatform.Infrastructure.Communication.Realtime
         }
 
         // Called when a client disconnects
-        public override async Task OnDisconnectedAsync(Exception? exception)
+        public override async Task OnDisconnectedAsync(Exception exception)
         {
             // Custom logic for disconnects
             await base.OnDisconnectedAsync(exception);

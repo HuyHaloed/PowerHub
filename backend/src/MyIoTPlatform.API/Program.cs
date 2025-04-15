@@ -1,9 +1,10 @@
 // Ví dụ rút gọn trong Program.cs
+using Microsoft.EntityFrameworkCore;
 using MyIoTPlatform.Application; // Assuming AddApplicationServices is defined here
 using MyIoTPlatform.Infrastructure; // Assuming AddInfrastructureServices is defined here
 using MyIoTPlatform.Infrastructure.Communication.Realtime; // For DashboardHub
 using MyIoTPlatform.Infrastructure.Communication.Mqtt; // For MqttClientService
-
+using MyIoTPlatform.Infrastructure.Persistence.DbContexts; // For ApplicationDbContext
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +35,9 @@ builder.Services.AddSignalR();
 
 // Đăng ký MQTT Client như một Hosted Service để nó tự chạy nền
 builder.Services.AddHostedService<MqttClientService>();
+builder.Services.AddScoped<MyIoTPlatform.Application.Interfaces.Repositories.ITelemetryRepository, MyIoTPlatform.Infrastructure.Persistence.Repositories.TelemetryRepository>();
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var app = builder.Build();
 
@@ -56,3 +60,10 @@ app.MapControllers();
 app.MapHub<DashboardHub>("/dashboardhub"); // Map SignalR Hub endpoint
 
 app.Run();
+
+// builder.Services.AddInfrastructureServices(builder.Configuration);
+
+// services.AddDbContext<ApplicationDbContext>(options =>
+//     options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+
+// services.AddScoped<IAzureMlService, AzureMlService>();

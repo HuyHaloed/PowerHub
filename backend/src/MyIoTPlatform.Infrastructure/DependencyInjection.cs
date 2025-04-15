@@ -1,18 +1,13 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting; // Cần cho IHostedService
+using MyIoTPlatform.Application.Interfaces.Persistence; // Interface IApplicationDbContext
+using MyIoTPlatform.Domain.Interfaces.Repositories; 
 using MyIoTPlatform.Application.Interfaces.Communication; // Interface IMqttClientService
 using MyIoTPlatform.Infrastructure.Communication.Mqtt;
 using MyIoTPlatform.Application.Features.MachineLearning.Services;
-using MyIoTPlatform.Infrastructure.Services;
-using MyIoTPlatform.Domain.Interfaces.Repositories;
-using MyIoTPlatform.Infrastructure.MachineLearning; // Added namespace for FreeMlService
-using MyIoTPlatform.Infrastructure.Persistence;
-using MyIoTPlatform.Application.Interfaces.Persistence;
 using MyIoTPlatform.Infrastructure.Persistence.DbContexts;
 using MyIoTPlatform.Infrastructure.Persistence.Repositories;
-using DbContext1 = MyIoTPlatform.Infrastructure.Persistence.DbContexts.ApplicationDbContext;
-using Microsoft.EntityFrameworkCore;
+using MyIoTPlatform.Infrastructure.MachineLearning; // Added namespace for FreeMlService
 // ... các using khác ...
 
 namespace MyIoTPlatform.Infrastructure;
@@ -22,6 +17,16 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
     {
         // ... (Đăng ký DbContext, Repositories...)
+        services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
+
+
+        // === Repositories (Vòng đời Scoped) ===
+        services.AddScoped<IDeviceRepository, DeviceRepository>();
+        // services.AddScoped<ITelemetryRepository, TelemetryRepository>();
+        // services.AddScoped<IUserRepository, UserRepository>();       
+        // services.AddScoped<IUnitOfWork, UnitOfWork>(); 
+        // ========================================
+
 
         // === MQTT Service ===
         // 1. Đọc cấu hình từ appsettings vào lớp MqttConfig
@@ -41,22 +46,12 @@ public static class DependencyInjection
             provider.GetRequiredService<MqttClientService>());
         // =====================
 
-        // Register ApplicationDbContext with options from configuration
-        services.AddDbContext<MyIoTPlatform.Infrastructure.Persistence.DbContexts.ApplicationDbContext>(options =>
-            options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
-
         // Register FreeMlService as the implementation for IAzureMlService
         services.AddScoped<IAzureMlService, FreeMlService>();
 
         // Register repositories for Rules and Dashboards
         services.AddScoped<IRuleRepository, RuleRepository>();
         services.AddScoped<IDashboardRepository, DashboardRepository>();
-
-        // Register new minimal repository and context implementations
-        services.AddScoped<IDeviceRepository, MyIoTPlatform.Infrastructure.Persistence.Repositories.DeviceRepository>();
-        services.AddScoped<ITelemetryRepository, MyIoTPlatform.Infrastructure.Persistence.TelemetryRepository>();
-        services.AddScoped<IApplicationDbContext, DbContext1>();
-        services.AddScoped<IPredictionRepository, PredictionRepository>();
 
         // ... (Đăng ký RealtimeNotifier, AzureMlService...)
 
