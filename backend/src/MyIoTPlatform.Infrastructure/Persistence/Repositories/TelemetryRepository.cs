@@ -15,15 +15,20 @@ namespace MyIoTPlatform.Infrastructure.Persistence.Repositories
         }
 
         public async Task<List<TelemetryData>> GetByDeviceIdAsync(Guid deviceId) =>
-            await _dbContext.Telemetries
+            await _dbContext.TelemetryData
                 .Where(t => t.DeviceId == deviceId)
                 .OrderByDescending(t => t.Timestamp)
                 .ToListAsync();
 
         public async Task AddAsync(TelemetryData telemetry)
         {
-            await _dbContext.Telemetries.AddAsync(telemetry);
-            await _dbContext.SaveChangesAsync();
+            await AddAsync(telemetry, default);
+        }
+
+        public async Task AddAsync(TelemetryData telemetry, CancellationToken cancellationToken = default)
+        {
+            await _dbContext.TelemetryData.AddAsync(telemetry, cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
         }
     }
 }

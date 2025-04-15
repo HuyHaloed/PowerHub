@@ -18,6 +18,7 @@ namespace MyIoTPlatform.API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetDashboardData()
         {
+            await Task.Yield();
             // TODO: Implement logic to retrieve dashboard data
             // For now, return a placeholder response
             return Ok(new
@@ -60,6 +61,7 @@ namespace MyIoTPlatform.API.Controllers
         [HttpGet("quick-stats")]
         public async Task<IActionResult> GetQuickStats()
         {
+            await Task.Yield();
             // TODO: Implement logic to retrieve quick stats
             // For now, return a placeholder response
             return Ok(new List<object>
@@ -76,6 +78,7 @@ namespace MyIoTPlatform.API.Controllers
         [HttpGet("alerts/unread")]
         public async Task<IActionResult> GetUnreadAlerts()
         {
+            await Task.Yield();
             // TODO: Implement logic to retrieve unread alerts
             // For now, return a placeholder response
             return Ok(new List<object>

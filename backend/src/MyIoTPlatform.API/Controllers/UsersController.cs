@@ -51,18 +51,18 @@ namespace MyIoTPlatform.API.Controllers
     // Define simple request models
     public class UpdateProfileRequest
     {
-        public string Name { get; set; }
-        public string Email { get; set; }
-        public string Phone { get; set; }
-        public string Language { get; set; }
-        public string Avatar { get; set; }
+        public required string Name { get; set; }
+        public required string Email { get; set; }
+        public required string Phone { get; set; }
+        public required string Language { get; set; }
+        public required string Avatar { get; set; }
     }
 
     public class ChangePasswordRequest
     {
-        public string CurrentPassword { get; set; }
-        public string NewPassword { get; set; }
-        public string ConfirmPassword { get; set; }
+        public required string CurrentPassword { get; set; }
+        public required string NewPassword { get; set; }
+        public required string ConfirmPassword { get; set; }
     }
 
     public class UpdateNotificationSettingsRequest
@@ -77,7 +77,7 @@ namespace MyIoTPlatform.API.Controllers
 
     public class UpdateUserPreferencesRequest
     {
-        public string Theme { get; set; }
+        public required string Theme { get; set; }
         public bool Animations { get; set; }
         public int EnergyGoal { get; set; }
         public int AlertThreshold { get; set; }
@@ -85,7 +85,7 @@ namespace MyIoTPlatform.API.Controllers
 
     public class DeleteAccountRequest
     {
-        public string Password { get; set; }
-        public string ConfirmationText { get; set; }
+        public required string Password { get; set; }
+        public required string ConfirmationText { get; set; }
     }
 }
