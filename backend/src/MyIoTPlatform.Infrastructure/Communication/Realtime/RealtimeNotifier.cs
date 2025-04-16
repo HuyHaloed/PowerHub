@@ -1,12 +1,13 @@
 using Microsoft.AspNetCore.SignalR;
-using System.Threading.Tasks;
+using MyIoTPlatform.Application.Features.Telemetry.DTOs;
+using MyIoTPlatform.Application.Interfaces.Communication;
 
 namespace MyIoTPlatform.Infrastructure.Communication.Realtime
 {
     /// <summary>
     /// Service for sending real-time notifications to connected dashboard clients.
     /// </summary>
-    public class RealtimeNotifier
+    public class RealtimeNotifier : IRealtimeNotifier
     {
         private readonly IHubContext<DashboardHub> _hubContext;
 
@@ -32,5 +33,9 @@ namespace MyIoTPlatform.Infrastructure.Communication.Realtime
         }
 
         // Extend with more methods for device, telemetry, or alarm notifications as needed.
+        public async Task NotifyTelemetryUpdateAsync(TelemetryDto telemetry)
+        {
+            await _hubContext.Clients.All.SendAsync("TelemetryUpdated", telemetry);
+        }
     }
 }

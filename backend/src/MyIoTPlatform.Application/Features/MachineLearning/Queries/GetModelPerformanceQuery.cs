@@ -1,9 +1,16 @@
 using MediatR;
+using MyIoTPlatform.Domain.Models;
+using System;
 
 namespace MyIoTPlatform.Application.Features.MachineLearning.Queries
 {
-    public class GetModelPerformanceQuery : IRequest<double> // Assuming performance is a double value
+    public class GetModelPerformanceQuery : IRequest<ModelPerformanceDto> // Thêm ": IRequest<ModelPerformanceDto>"
     {
-        public required string ModelId { get; set; } // Added required modifier
+        public string ModelId { get; set; }
+
+        public GetModelPerformanceQuery(string modelId)
+        {
+            ModelId = modelId;
+        }
     }
 }

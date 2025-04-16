@@ -4,7 +4,7 @@ using MyIoTPlatform.Application.Interfaces.Persistence; // Interface IApplicatio
 using MyIoTPlatform.Domain.Interfaces.Repositories; 
 using MyIoTPlatform.Application.Interfaces.Communication; // Interface IMqttClientService
 using MyIoTPlatform.Infrastructure.Communication.Mqtt;
-using MyIoTPlatform.Application.Features.MachineLearning.Services;
+using MyIoTPlatform.Domain.Interfaces.Services;
 using MyIoTPlatform.Infrastructure.Persistence.DbContexts;
 using MyIoTPlatform.Infrastructure.Persistence.Repositories;
 using MyIoTPlatform.Infrastructure.MachineLearning; // Added namespace for FreeMlService
@@ -47,7 +47,7 @@ public static class DependencyInjection
         // =====================
 
         // Register FreeMlService as the implementation for IAzureMlService
-        services.AddScoped<IAzureMlService, FreeMlService>();
+        services.AddScoped<IMachineLearningService, FreeMlService>();
 
         // Register repositories for Rules and Dashboards
         services.AddScoped<IRuleRepository, RuleRepository>();

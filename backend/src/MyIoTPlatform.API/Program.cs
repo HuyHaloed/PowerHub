@@ -5,6 +5,8 @@ using MyIoTPlatform.Infrastructure; // Assuming AddInfrastructureServices is def
 using MyIoTPlatform.Infrastructure.Communication.Realtime; // For DashboardHub
 using MyIoTPlatform.Infrastructure.Communication.Mqtt; // For MqttClientService
 using MyIoTPlatform.Infrastructure.Persistence.DbContexts; // For ApplicationDbContext
+using MyIoTPlatform.Application.Interfaces.Communication;
+using MyIoTPlatform.Domain.Interfaces.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,8 +38,12 @@ builder.Services.AddSignalR();
 // Đăng ký MQTT Client như một Hosted Service để nó tự chạy nền
 builder.Services.AddHostedService<MqttClientService>();
 builder.Services.AddScoped<MyIoTPlatform.Application.Interfaces.Repositories.ITelemetryRepository, MyIoTPlatform.Infrastructure.Persistence.Repositories.TelemetryRepository>();
+builder.Services.AddTransient<IRealtimeNotifier, RealtimeNotifier>();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddScoped<MyIoTPlatform.Domain.Interfaces.Services.IMachineLearningService, MyIoTPlatform.Infrastructure.MachineLearning.LocalAIService>();
+builder.Services.AddScoped<MyIoTPlatform.Application.Interfaces.Persistence.IPredictionRepository, MyIoTPlatform.Infrastructure.Persistence.Repositories.PredictionRepository>();
+builder.Services.AddScoped<IUnitOfWork, MyIoTPlatform.Infrastructure.Persistence.UnitOfWork>();
 
 var app = builder.Build();
 
@@ -60,10 +66,3 @@ app.MapControllers();
 app.MapHub<DashboardHub>("/dashboardhub"); // Map SignalR Hub endpoint
 
 app.Run();
-
-// builder.Services.AddInfrastructureServices(builder.Configuration);
-
-// services.AddDbContext<ApplicationDbContext>(options =>
-//     options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
-
-// services.AddScoped<IAzureMlService, AzureMlService>();

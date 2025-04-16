@@ -3,8 +3,7 @@ using MediatR;
 using MyIoTPlatform.Domain.Interfaces.Repositories;
 using MyIoTPlatform.Application.Features.Devices.DTOs;
 using MyIoTPlatform.Domain.Entities;
-using System.Text.Json; // Hoặc Newtonsoft.Json
-using MyIoTPlatform.Application.Interfaces.Persistence; // IUnitOfWork
+using System.Text.Json;
 
 namespace MyIoTPlatform.Application.Features.Devices.Commands;
 
