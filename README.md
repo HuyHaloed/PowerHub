@@ -21,3 +21,21 @@ IOTgateway: chạy trên laptop
 yolouno: chạy trên yolouno
     yolo_uno.py: file chạy yolouno,
     yolouno-gateway.py: check connectivity giữa iotgateway và yolouno.
+
+run.py: File chính để khởi chạy ứng dụng DataProcessingManager.
+
+requirements.txt: Danh sách các thư viện Python cần thiết.
+
+* Chạy lệnh sau để cài đặt các thư viện cần thiết:
+        pip install -r requirements.txt
+
+Chạy Ứng Dụng:**
+    * Trong terminal, vẫn ở thư mục `PowerHub`, chạy lệnh:
+        python run.py
+
+Nói lệnh sau
+        * `turn on light`
+        * `turn off light`
+        * `turn on fan`
+        * `turn off fan`
+        * `stop`
