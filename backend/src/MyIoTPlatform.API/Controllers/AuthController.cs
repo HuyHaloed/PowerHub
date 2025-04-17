@@ -1,6 +1,7 @@
+// Controllers/AuthController.cs
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
-
+using MyIoTPlatform.API.Models;
+using MyIoTPlatform.API.Services;
 namespace MyIoTPlatform.API.Controllers
 {
     /// <summary>
@@ -10,31 +11,93 @@ namespace MyIoTPlatform.API.Controllers
     [Route("api/auth")]
     public class AuthController : ControllerBase
     {
+        private readonly UserService _userService;
+        private readonly TokenService _tokenService;
+
+        public AuthController(UserService userService, TokenService tokenService)
+        {
+            _userService = userService;
+            _tokenService = tokenService;
+        }
+
         /// <summary>
         /// Logs in to the system and returns a JWT token.
         /// </summary>
         /// <param name="request">The login request containing email and password.</param>
         /// <returns>A JWT token and user information.</returns>
         [HttpPost("login")]
-        public IActionResult Login([FromBody] LoginRequest request)
+        public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            // TODO: Implement login logic (authentication, token generation)
-            // For now, return a placeholder response
-            return Ok(new
+            try
             {
-                token = "sample_token",
-                user = new
+                // Xác thực người dùng
+                var user = await _userService.AuthenticateAsync(request.Email, request.Password);
+                if (user == null)
+                    return Unauthorized(new { message = "Invalid email or password" });
+
+                // Tạo token
+                var token = _tokenService.GenerateJwtToken(user);
+
+                // Tạo response
+                var response = new AuthResponse
                 {
-                    id = 1,
-                    name = "Sample User",
-                    email = "user@example.com",
-                    subscription = new
+                    Token = token,
+                    User = new UserDto
                     {
-                        plan = "basic",
-                        validUntil = "2024-12-31"
+                        Id = user.Id,
+                        Name = user.Name,
+                        Email = user.Email,
+                        Avatar = user.Avatar,
+                        Subscription = user.Subscription,
+                        Preferences = user.Preferences
                     }
-                }
-            });
+                };
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Registers a new user.
+        /// </summary>
+        /// <param name="request">The register request containing user details.</param>
+        /// <returns>A success message if registration is successful.</returns>
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+        {
+            try
+            {
+                // Tạo người dùng mới
+                var user = await _userService.CreateUserAsync(request);
+
+                // Tạo token
+                var token = _tokenService.GenerateJwtToken(user);
+
+                // Tạo response
+                var response = new AuthResponse
+                {
+                    Token = token,
+                    User = new UserDto
+                    {
+                        Id = user.Id,
+                        Name = user.Name,
+                        Email = user.Email,
+                        Avatar = user.Avatar,
+                        Subscription = user.Subscription,
+                        Preferences = user.Preferences
+                    }
+                };
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         /// <summary>
@@ -44,8 +107,9 @@ namespace MyIoTPlatform.API.Controllers
         [HttpPost("logout")]
         public IActionResult Logout()
         {
-            // TODO: Implement logout logic (invalidate token, etc.)
-            return Ok();
+            // JWT là stateless nên không cần invalidate token trên server
+            // Trong thực tế, có thể lưu blacklist các token đã logout
+            return Ok(new { message = "Logged out successfully" });
         }
 
         /// <summary>
@@ -53,34 +117,67 @@ namespace MyIoTPlatform.API.Controllers
         /// </summary>
         /// <returns>The current user's details, including preferences and subscription.</returns>
         [HttpGet("me")]
-        public IActionResult GetCurrentUser()
+        public async Task<IActionResult> GetCurrentUser()
         {
-            // TODO: Implement logic to retrieve current user's information
-            // For now, return a placeholder response
-            return Ok(new
+            try
             {
-                id = 1,
-                name = "Sample User",
-                email = "user@example.com",
-                subscription = new
-                {
-                    plan = "basic",
-                    validUntil = "2024-12-31"
-                },
-                preferences = new
-                {
-                    theme = "light",
-                    notifications = true,
-                    energyGoal = 1000
-                }
-            });
-        }
-    }
+                // Lấy user ID từ token (cần cấu hình JWT authentication)
+                var userId = User.FindFirst("sub")?.Value;
+                if (string.IsNullOrEmpty(userId))
+                    return Unauthorized(new { message = "Invalid token" });
 
-    // Define a simple LoginRequest model
-    public class LoginRequest
-    {
-        public required string Email { get; set; }
-        public required string Password { get; set; }
+                var user = await _userService.GetUserByIdAsync(userId);
+                if (user == null)
+                    return NotFound(new { message = "User not found" });
+
+                var userDto = new UserDto
+                {
+                    Id = user.Id,
+                    Name = user.Name,
+                    Email = user.Email,
+                    Avatar = user.Avatar,
+                    Subscription = user.Subscription,
+                    Preferences = user.Preferences
+                };
+
+                return Ok(userDto);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+        /// <summary>
+        /// Retrieves a user by their ID.
+        /// </summary>
+        /// <param name="id">The user's ID.</param>
+        /// <returns>The user's details, or 404 if not found.</returns>
+        [HttpGet("user/{id}")]
+        public async Task<IActionResult> GetUserById(string id)
+        {
+            try
+            {
+                var user = await _userService.GetUserByIdAsync(id);
+                if (user == null)
+                    return NotFound(new { message = "User not found" });
+
+                var userDto = new UserDto
+                {
+                    Id = user.Id,
+                    Name = user.Name,
+                    Email = user.Email,
+                    Avatar = user.Avatar,
+                    Subscription = user.Subscription,
+                    Preferences = user.Preferences
+                };
+
+                return Ok(userDto);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
     }
 }

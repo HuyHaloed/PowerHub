@@ -1,48 +1,44 @@
+// src/action/signup.tsx
 import authorizedAxiosInstance from "@/lib/axios";
+import { SignupRequest, SignupResponse } from "@/types/auth";
 
-// interface SignupResponse {
-//   code: string;
-//   message: string;
-//   result?: {
-//     token: string;
-//   };
-// }
-
-interface SignupRequest {
-  email: string;
-  password: string;
-  name: string;
-  phone: string;
-}
-
-export async function signup(values: SignupRequest) {
+export async function signup(values: SignupRequest): Promise<SignupResponse> {
   try {
+    // Gọi API register từ backend
     const response = await authorizedAxiosInstance.post("/auth/register", {
+      name: values.name,
       email: values.email,
       password: values.password,
-      name: values.name,
-      phoneNumber: values.phone,
-      dob: "2000-01-01",
-      address: "Hà Nội",
-      gender: "Male",
+      phone: values.phone
     });
 
-    if (response.data.result) {
+    // Kiểm tra nếu API trả về thành công
+    if (response.data && response.data.token) {
+      // Trong một số trường hợp, bạn có thể muốn lưu token ngay sau khi đăng ký
+      // localStorage.setItem("token", response.data.token);
+      
       return {
         success: true,
-        message: `Tài khoản ${values.email} đã đăng ký tài khoản thành công`,
+        message: `Tài khoản ${values.email} đã đăng ký thành công`,
+        data: {
+          token: response.data.token,
+          user: response.data.user
+        }
       };
     }
 
     return {
-      success: false,
-      message: "Đăng ký thất bại",
+      success: true,
+      message: `Tài khoản ${values.email} đã đăng ký thành công`,
     };
   } catch (error: any) {
+    // Xử lý các lỗi từ API
+    const errorMessage = error.response?.data?.message || 
+                          "Đăng ký thất bại, vui lòng thử lại sau";
+    
     return {
       success: false,
-      message:
-        error.response?.data?.message || "Đăng ký thất bại, vui lòng thử lại",
+      message: errorMessage
     };
   }
 }

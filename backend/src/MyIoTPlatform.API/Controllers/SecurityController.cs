@@ -100,7 +100,7 @@ namespace MyIoTPlatform.API.Controllers
         /// <summary>
         /// The 2FA code provided by the user.
         /// </summary>
-        public string Code { get; set; }
+        public required string Code { get; set; }
     }
 
     /// <summary>
@@ -111,6 +111,6 @@ namespace MyIoTPlatform.API.Controllers
         /// <summary>
         /// The user's password for verification.
         /// </summary>
-        public string Password { get; set; }
+        public required string Password { get; set; }
     }
 }

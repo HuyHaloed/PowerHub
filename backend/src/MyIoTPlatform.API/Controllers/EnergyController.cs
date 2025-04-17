@@ -19,8 +19,9 @@ namespace MyIoTPlatform.API.Controllers
         /// <param name="endDate">The end date for the data (optional).</param>
         /// <returns>Energy consumption data for the specified period.</returns>
         [HttpGet("consumption")]
-        public async Task<IActionResult> GetEnergyConsumption(string timeRange, string startDate = null, string endDate = null)
+        public async Task<IActionResult> GetEnergyConsumption(string timeRange, string? startDate = null, string? endDate = null)
         {
+            await Task.Yield();
             // TODO: Implement logic to retrieve energy consumption data based on time range and dates
             // For now, return a placeholder response
             return Ok(new List<object>
@@ -37,6 +38,7 @@ namespace MyIoTPlatform.API.Controllers
         [HttpGet("distribution")]
         public async Task<IActionResult> GetEnergyDistribution()
         {
+            await Task.Yield();
             // TODO: Implement logic to retrieve energy distribution data
             // For now, return a placeholder response
             return Ok(new List<object>
@@ -55,6 +57,7 @@ namespace MyIoTPlatform.API.Controllers
         [HttpGet("predictions")]
         public async Task<IActionResult> GetEnergyPredictions(string timeRange, int periods)
         {
+            await Task.Yield();
             // TODO: Implement logic to retrieve energy predictions
             // For now, return a placeholder response
             return Ok(new List<object>
@@ -72,8 +75,9 @@ namespace MyIoTPlatform.API.Controllers
         /// <param name="endDate">The end date for the current period.</param>
         /// <returns>Comparison of energy usage between the current and previous periods.</returns>
         [HttpGet("compare")]
-        public async Task<IActionResult> CompareEnergyUsage(string timeRange, string startDate, string endDate)
+        public async Task<IActionResult> CompareEnergyUsage(string timeRange, string? startDate, string? endDate)
         {
+            await Task.Yield();
             // TODO: Implement logic to compare energy usage with the previous period
             // For now, return a placeholder response
             return Ok(new

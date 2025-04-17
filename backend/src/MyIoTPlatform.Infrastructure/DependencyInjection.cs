@@ -1,11 +1,11 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting; // Cần cho IHostedService
+using MyIoTPlatform.Application.Interfaces.Persistence; // Interface IApplicationDbContext
+using MyIoTPlatform.Domain.Interfaces.Repositories; 
 using MyIoTPlatform.Application.Interfaces.Communication; // Interface IMqttClientService
 using MyIoTPlatform.Infrastructure.Communication.Mqtt;
-using MyIoTPlatform.Application.Features.MachineLearning.Services;
-using MyIoTPlatform.Infrastructure.Services;
-using MyIoTPlatform.Domain.Interfaces.Repositories;
+using MyIoTPlatform.Domain.Interfaces.Services;
+using MyIoTPlatform.Infrastructure.Persistence.DbContexts;
 using MyIoTPlatform.Infrastructure.Persistence.Repositories;
 using MyIoTPlatform.Infrastructure.MachineLearning; // Added namespace for FreeMlService
 // ... các using khác ...
@@ -17,6 +17,16 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
     {
         // ... (Đăng ký DbContext, Repositories...)
+        services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
+
+
+        // === Repositories (Vòng đời Scoped) ===
+        services.AddScoped<IDeviceRepository, DeviceRepository>();
+        // services.AddScoped<ITelemetryRepository, TelemetryRepository>();
+        // services.AddScoped<IUserRepository, UserRepository>();       
+        // services.AddScoped<IUnitOfWork, UnitOfWork>(); 
+        // ========================================
+
 
         // === MQTT Service ===
         // 1. Đọc cấu hình từ appsettings vào lớp MqttConfig
@@ -37,7 +47,7 @@ public static class DependencyInjection
         // =====================
 
         // Register FreeMlService as the implementation for IAzureMlService
-        services.AddScoped<IAzureMlService, FreeMlService>();
+        services.AddScoped<IMachineLearningService, FreeMlService>();
 
         // Register repositories for Rules and Dashboards
         services.AddScoped<IRuleRepository, RuleRepository>();

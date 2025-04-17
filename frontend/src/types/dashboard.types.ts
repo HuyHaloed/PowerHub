@@ -1,77 +1,108 @@
-import { ReactNode } from "react";
+// src/types/dashboard.types.ts
 
-// Kiểu dữ liệu cho thiết bị
+// Định nghĩa kiểu dữ liệu cho thiết bị
 export interface Device {
   id: number;
   name: string;
-  status: "on" | "off";
+  type: string;
+  location: string;
+  status: 'on' | 'off';
   consumption: number;
-  icon?: ReactNode;
-  location?: string;
-  type?: string;
-  lastUpdated?: Date;
+  lastUpdated: string;
+  icon?: string;
 }
 
-// Kiểu dữ liệu cho biểu đồ tiêu thụ điện
+// Định nghĩa kiểu dữ liệu cho lịch sử thiết bị
+export interface DeviceHistory {
+  date: string;
+  value: number;
+  status: 'on' | 'off';
+  duration: number;
+}
+
+// Định nghĩa kiểu dữ liệu cho thuộc tính thiết bị
+export interface DeviceProperties {
+  brand: string;
+  model: string;
+  serialNumber: string;
+  installDate: string;
+  powerRating: number;
+}
+
+// Định nghĩa kiểu dữ liệu đầy đủ cho chi tiết thiết bị
+export interface DeviceDetails extends Device {
+  history: DeviceHistory[];
+  properties: DeviceProperties;
+}
+
+// Định nghĩa kiểu dữ liệu cho thống kê nhanh
+export interface QuickStat {
+  id: number;
+  title: string;
+  value: number;
+  unit: string;
+  change: number;
+  changeType: 'increase' | 'decrease';
+  icon?: string;
+}
+
+// Định nghĩa kiểu dữ liệu cho cảnh báo
+export interface Alert {
+  id: number;
+  title: string;
+  message: string;
+  severity: 'info' | 'warning' | 'error';
+  read: boolean;
+  date: string;
+}
+
+// Định nghĩa kiểu dữ liệu cho người dùng
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  avatar: string;
+  subscription?: {
+    plan: string;
+    validUntil: string;
+  };
+  preferences?: {
+    theme: string;
+    notifications: boolean;
+    energyGoal: number;
+  };
+}
+
+// Định nghĩa kiểu dữ liệu cho dữ liệu dashboard
+export interface DashboardData {
+  user: User;
+  stats: QuickStat[];
+  alerts: Alert[];
+}
+
+// Định nghĩa kiểu dữ liệu cho dữ liệu tiêu thụ năng lượng
 export interface EnergyData {
   name: string;
   value: number;
+  date: string;
 }
 
-// Kiểu dữ liệu cho phân phối năng lượng
+// Định nghĩa kiểu dữ liệu cho phân phối năng lượng
 export interface EnergyDistribution {
   name: string;
   value: number;
   color: string;
 }
 
-// Kiểu dữ liệu cho thống kê nhanh
-export interface QuickStat {
-  id: string;
-  title: string;
-  value: number | string;
-  unit?: string;
-  icon?: ReactNode;
-  change?: number;
-  changeType?: "increase" | "decrease";
+// Định nghĩa kiểu dữ liệu cho yêu cầu điều khiển thiết bị
+export interface ControlDeviceRequest {
+  status: 'on' | 'off';
 }
 
-// Kiểu dữ liệu cho người dùng
-export interface DashboardUser {
-  id: string;
+// Định nghĩa kiểu dữ liệu cho phản hồi điều khiển thiết bị
+export interface ControlDeviceResponse {
+  id: number;
   name: string;
-  email: string;
-  avatar?: string;
-  subscription?: {
-    plan: string;
-    validUntil: Date;
-  };
-  preferences?: {
-    theme: "light" | "dark" | "system";
-    notifications: boolean;
-    energyGoal?: number;
-  };
-}
-
-// Kiểu dữ liệu cho cảnh báo
-export interface Alert {
-  id: string;
-  title: string;
+  status: 'on' | 'off';
   message: string;
-  severity: "info" | "warning" | "error";
-  timestamp: Date;
-  read: boolean;
-}
-
-// Kiểu dữ liệu cho toàn bộ dữ liệu dashboard
-export interface DashboardData {
-  user: DashboardUser;
-  quickStats: QuickStat[];
-  devices: Device[];
-  dailyEnergyData: EnergyData[];
-  weeklyEnergyData: EnergyData[];
-  monthlyEnergyData: EnergyData[];
-  yearlyEnergyData: EnergyData[];
-  energyDistribution: EnergyDistribution[];
-  alerts: Alert[];
 }

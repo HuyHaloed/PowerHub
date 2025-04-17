@@ -59,7 +59,7 @@ export default function LoginPage() {
 
       if (response.success) {
         toast.success(response.message);
-        navigate(paths.Profile);
+        navigate(paths.Dashboard);
       } else {
         toast.error(response.message);
       }
