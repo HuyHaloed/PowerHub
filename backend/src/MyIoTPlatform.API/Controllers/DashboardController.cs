@@ -1,6 +1,9 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MyIoTPlatform.API.Services;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Security.Claims;
 
 namespace MyIoTPlatform.API.Controllers
 {
@@ -9,8 +12,18 @@ namespace MyIoTPlatform.API.Controllers
     /// </summary>
     [ApiController]
     [Route("api/dashboard")]
+    [Authorize] // Yêu cầu đăng nhập để truy cập dashboard
     public class DashboardController : ControllerBase
     {
+        private readonly UserService _userService;
+        private readonly DashboardService _dashboardService;
+
+        public DashboardController(UserService userService, DashboardService dashboardService)
+        {
+            _userService = userService;
+            _dashboardService = dashboardService;
+        }
+
         /// <summary>
         /// Retrieves the overview data for the dashboard.
         /// </summary>
@@ -18,39 +31,41 @@ namespace MyIoTPlatform.API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetDashboardData()
         {
-            // TODO: Implement logic to retrieve dashboard data
-            // For now, return a placeholder response
-            return Ok(new
+            // Lấy ID của người dùng hiện tại từ token
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { message = "User not authenticated" });
+            }
+
+            // Lấy thông tin người dùng
+            var user = await _userService.GetUserByIdAsync(userId);
+            if (user == null)
+            {
+                return NotFound(new { message = "User not found" });
+            }
+
+            // Lấy thống kê và cảnh báo cho người dùng cụ thể
+            var stats = await _dashboardService.GetStatsForUserAsync(userId);
+            var alerts = await _dashboardService.GetAlertsForUserAsync(userId);
+
+            // Tạo response
+            var response = new
             {
                 user = new
                 {
-                    id = 1,
-                    name = "Sample User",
-                    email = "user@example.com",
-                    avatar = "avatar_url",
-                    subscription = new
-                    {
-                        plan = "basic",
-                        validUntil = "2024-12-31"
-                    },
-                    preferences = new
-                    {
-                        theme = "light",
-                        notifications = true,
-                        energyGoal = 1000
-                    }
+                    id = user.Id,
+                    name = user.Name,
+                    email = user.Email,
+                    avatar = user.Avatar,
+                    subscription = user.Subscription,
+                    preferences = user.Preferences
                 },
-                stats = new List<object>
-                {
-                    new { id = 1, title = "Total Consumption", value = 5000, unit = "kWh", change = 100, changeType = "increase" },
-                    new { id = 2, title = "Average Daily Use", value = 150, unit = "kWh", change = 5, changeType = "decrease" }
-                },
-                alerts = new List<object>
-                {
-                    new { id = 1, title = "High Consumption Alert", message = "Energy consumption exceeded the daily goal.", severity = "warning", read = false, date = "2023-11-20" },
-                    new { id = 2, title = "Device Offline", message = "Device XYZ is offline.", severity = "error", read = false, date = "2023-11-20" }
-                }
-            });
+                stats = stats,
+                alerts = alerts
+            };
+
+            return Ok(response);
         }
 
         /// <summary>
@@ -60,13 +75,17 @@ namespace MyIoTPlatform.API.Controllers
         [HttpGet("quick-stats")]
         public async Task<IActionResult> GetQuickStats()
         {
-            // TODO: Implement logic to retrieve quick stats
-            // For now, return a placeholder response
-            return Ok(new List<object>
+            // Lấy ID của người dùng hiện tại từ token
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
             {
-                new { id = 1, title = "Total Devices", value = 100, unit = "", change = 10, changeType = "increase", icon = "devices" },
-                new { id = 2, title = "Active Devices", value = 80, unit = "", change = 5, changeType = "increase", icon = "active_devices" }
-            });
+                return Unauthorized(new { message = "User not authenticated" });
+            }
+
+            // Lấy thống kê nhanh cho người dùng cụ thể
+            var quickStats = await _dashboardService.GetQuickStatsForUserAsync(userId);
+
+            return Ok(quickStats);
         }
 
         /// <summary>
@@ -76,13 +95,17 @@ namespace MyIoTPlatform.API.Controllers
         [HttpGet("alerts/unread")]
         public async Task<IActionResult> GetUnreadAlerts()
         {
-            // TODO: Implement logic to retrieve unread alerts
-            // For now, return a placeholder response
-            return Ok(new List<object>
+            // Lấy ID của người dùng hiện tại từ token
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
             {
-                new { id = 1, title = "High Consumption Alert", message = "Energy consumption exceeded the daily goal.", severity = "warning", date = "2023-11-20" },
-                new { id = 2, title = "Device Offline", message = "Device XYZ is offline.", severity = "error", date = "2023-11-20" }
-            });
+                return Unauthorized(new { message = "User not authenticated" });
+            }
+
+            // Lấy cảnh báo chưa đọc cho người dùng cụ thể
+            var unreadAlerts = await _dashboardService.GetUnreadAlertsForUserAsync(userId);
+
+            return Ok(unreadAlerts);
         }
 
         /// <summary>
@@ -91,10 +114,23 @@ namespace MyIoTPlatform.API.Controllers
         /// <param name="id">The ID of the alert to mark as read.</param>
         /// <returns>Status 200 OK.</returns>
         [HttpPut("alerts/{id}/read")]
-        public IActionResult MarkAlertAsRead(int id)
+        public async Task<IActionResult> MarkAlertAsRead(string id)
         {
-            // TODO: Implement logic to mark an alert as read
-            return Ok();
+            // Lấy ID của người dùng hiện tại từ token
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { message = "User not authenticated" });
+            }
+
+            // Đánh dấu cảnh báo đã đọc
+            var success = await _dashboardService.MarkAlertAsReadAsync(id, userId);
+            if (!success)
+            {
+                return NotFound(new { message = "Alert not found or you don't have permission" });
+            }
+
+            return Ok(new { message = "Alert marked as read" });
         }
     }
 }

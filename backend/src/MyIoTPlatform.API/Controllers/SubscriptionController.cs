@@ -85,12 +85,12 @@ namespace MyIoTPlatform.API.Controllers
         /// <summary>
         /// The new subscription plan to upgrade to.
         /// </summary>
-        public string Plan { get; set; }
+        public required string Plan { get; set; }
 
         /// <summary>
         /// The ID of the payment method to use for the upgrade.
         /// </summary>
-        public string PaymentMethodId { get; set; }
+        public required string PaymentMethodId { get; set; }
     }
 
     /// <summary>
@@ -101,26 +101,26 @@ namespace MyIoTPlatform.API.Controllers
         /// <summary>
         /// The type of payment method (e.g., Credit Card, PayPal).
         /// </summary>
-        public string Type { get; set; }
+        public required string Type { get; set; }
 
         /// <summary>
         /// The card number for the payment method.
         /// </summary>
-        public string CardNumber { get; set; }
+        public required string CardNumber { get; set; }
 
         /// <summary>
         /// The expiry date of the card.
         /// </summary>
-        public string ExpiryDate { get; set; }
+        public required string ExpiryDate { get; set; }
 
         /// <summary>
         /// The CVC code of the card.
         /// </summary>
-        public string Cvc { get; set; }
+        public required string Cvc { get; set; }
 
         /// <summary>
         /// The name of the cardholder.
         /// </summary>
-        public string CardholderName { get; set; }
+        public required string CardholderName { get; set; }
     }
 }

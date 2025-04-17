@@ -1,0 +1,12 @@
+{
+  "Version": 1,
+  "Hash": "cKsURiSI9ueVLwqu5IMNuuN+EsYTtRqP2AjzpwKKOuM=",
+  "Source": "MyIoTPlatform.API",
+  "BasePath": "_content/MyIoTPlatform.API",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}

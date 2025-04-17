@@ -1,50 +1,109 @@
+// src/components/DashboardIOT/DeviceStatusCard.tsx
 import React from 'react';
+import { Device } from '@/types/dashboard.types';
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Device } from "@/types/dashboard.types";
-import { deviceIcons } from "@/data/dashboardIOT";
+import { Lightbulb, Tv, AirVent, AreaChart, Thermometer, Refrigerator, Plug, Laptop } from 'lucide-react';
 
 interface DeviceStatusCardProps {
   device: Device;
-  onToggle?: (id: number, newStatus: "on" | "off") => void;
+  onToggle?: (id: number, status: 'on' | 'off') => void;
+  isToggling?: boolean;
 }
 
-export default function DeviceStatusCard({ device, onToggle }: DeviceStatusCardProps) {
-  const handleToggle = () => {
-    if (onToggle) {
-      onToggle(device.id, device.status === "on" ? "off" : "on");
+const DeviceStatusCard: React.FC<DeviceStatusCardProps> = ({ 
+  device, 
+  onToggle,
+  isToggling = false
+}) => {
+  // Map device type to appropriate icon
+  const getDeviceIcon = () => {
+    switch(device.type?.toLowerCase()) {
+      case 'light':
+        return <Lightbulb className={`h-5 w-5 ${device.status === 'on' ? 'text-yellow-500' : 'text-gray-400'}`} />;
+      case 'tv':
+      case 'entertainment':
+        return <Tv className={`h-5 w-5 ${device.status === 'on' ? 'text-blue-500' : 'text-gray-400'}`} />;
+      case 'ac':
+        return <AirVent className={`h-5 w-5 ${device.status === 'on' ? 'text-blue-500' : 'text-gray-400'}`} />;
+      case 'sensor':
+        return <AreaChart className={`h-5 w-5 ${device.status === 'on' ? 'text-green-500' : 'text-gray-400'}`} />;
+      case 'thermostat':
+        return <Thermometer className={`h-5 w-5 ${device.status === 'on' ? 'text-red-500' : 'text-gray-400'}`} />;
+      case 'refrigerator':
+        return <Refrigerator className={`h-5 w-5 ${device.status === 'on' ? 'text-blue-500' : 'text-gray-400'}`} />;
+      case 'computer':
+      case 'laptop':
+        return <Laptop className={`h-5 w-5 ${device.status === 'on' ? 'text-purple-500' : 'text-gray-400'}`} />;
+      default:
+        return <Plug className={`h-5 w-5 ${device.status === 'on' ? 'text-blue-500' : 'text-gray-400'}`} />;
     }
   };
-
-  // Ensure the icon is rendered correctly
-  const DeviceIcon = device.icon || deviceIcons["default"];
-
+  
+  // Handle device toggle
+  const handleToggle = () => {
+    if (onToggle && !isToggling) {
+      const newStatus = device.status === 'on' ? 'off' : 'on';
+      onToggle(device.id, newStatus);
+    }
+  };
+  
+  // Format consumption
+  const formatConsumption = (value: number): string => {
+    if (value === 0) return '0 W';
+    if (value < 1000) return `${value} W`;
+    return `${(value / 1000).toFixed(1)} kW`;
+  };
+  
   return (
-    <div className="device-status-card">
-      <div className="device-header">
-        <div className="device-icon">
-          {React.isValidElement(DeviceIcon) ? DeviceIcon : null}
-        </div>
-        <div className="device-info">
-          <h3>{device.name}</h3>
-          <p>{device.location}</p>
-        </div>
-        <div className="device-toggle">
+    <Card className={`overflow-hidden transition-all duration-200 hover:shadow-md ${device.status === 'on' ? 'border-blue-200 bg-gradient-to-br from-blue-50 to-white' : 'bg-white'}`}>
+      <CardContent className="p-4">
+        <div className="flex justify-between items-start">
+          <div className="flex items-center space-x-3">
+            <div className={`p-2 rounded-full ${device.status === 'on' ? 'bg-blue-100' : 'bg-gray-100'}`}>
+              {getDeviceIcon()}
+            </div>
+            <div>
+              <h3 className="font-medium text-gray-800 line-clamp-1">{device.name}</h3>
+              <p className="text-sm text-gray-500">{device.location}</p>
+            </div>
+          </div>
           <Switch
-            checked={device.status === "on"}
+            checked={device.status === 'on'}
+            disabled={isToggling}
             onCheckedChange={handleToggle}
+            className="data-[state=checked]:bg-[var(--primary-ground)] data-[state=unchecked]:bg-gray-200"
           />
         </div>
-      </div>
-      <div className="device-details">
-        <div className="device-consumption">
-          <span>Tiêu thụ</span>
-          <span>{device.status === "on" ? `${device.consumption} kWh` : "0 kWh"}</span>
+        
+        <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-100">
+          <div>
+            <span className="text-xs text-gray-500">Tiêu thụ</span>
+            <p className={`font-medium ${device.status === 'on' ? 'text-blue-600' : 'text-gray-400'}`}>
+              {formatConsumption(device.consumption)}
+            </p>
+          </div>
+          <div>
+            <Badge 
+              variant="outline" 
+              className={`${
+                device.status === 'on' 
+                  ? 'border-green-200 bg-green-50 text-green-700' 
+                  : 'border-gray-200 bg-gray-50 text-gray-500'
+              }`}
+            >
+              {device.status === 'on' ? 'Đang hoạt động' : 'Đã tắt'}
+            </Badge>
+          </div>
         </div>
-        <div className="device-status">
-          <span>Trạng thái</span>
-          <span>{device.status === "on" ? "Đang hoạt động" : "Đã tắt"}</span>
+        
+        <div className="mt-2">
+          <span className="text-xs text-gray-500 block">Cập nhật cuối: {device.lastUpdated}</span>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
-}
+};
+
+export default DeviceStatusCard;

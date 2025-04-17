@@ -1,182 +1,149 @@
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-
+using MyIoTPlatform.API.Models;
+using MyIoTPlatform.API.Services;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 namespace MyIoTPlatform.API.Controllers
 {
-    /// <summary>
-    /// Manages device-related operations.
-    /// </summary>
     [ApiController]
     [Route("api/devices")]
+    [Authorize]
     public class DevicesController : ControllerBase
     {
-        /// <summary>
-        /// Retrieves a list of all devices.
-        /// </summary>
-        /// <param name="status">Filter by device status (e.g., "on", "off").</param>
-        /// <param name="location">Filter by device location.</param>
-        /// <param name="type">Filter by device type.</param>
-        /// <param name="search">Search by device name or other attributes.</param>
-        /// <returns>A list of devices matching the filters.</returns>
+        private readonly MongoDbService _mongoDbService;
+
+        public DevicesController(MongoDbService mongoDbService)
+        {
+            _mongoDbService = mongoDbService;
+        }
+
         [HttpGet]
-        public IActionResult GetAllDevices(string? status = null, string? location = null, string? type = null, string? search = null)
+        public async Task<IActionResult> GetAllDevices(string status = null, string location = null, string type = null, string search = null)
         {
-            // TODO: Implement logic to retrieve all devices based on query parameters
-            // For now, return a placeholder response
-            return Ok(new List<object>
-            {
-                new { id = 1, name = "Device A", type = "Meter", location = "Room 1", status = "on", consumption = 100, lastUpdated = "2023-11-20" },
-                new { id = 2, name = "Device B", type = "Sensor", location = "Room 2", status = "off", consumption = 50, lastUpdated = "2023-11-20" }
-            });
+            var devices = await _mongoDbService.GetAllDevicesAsync(status, location, type, search);
+            return Ok(devices);
         }
 
-        /// <summary>
-        /// Retrieves a list of active devices.
-        /// </summary>
-        /// <returns>A list of active devices.</returns>
         [HttpGet("active")]
-        public IActionResult GetActiveDevices()
+        public async Task<IActionResult> GetActiveDevices()
         {
-            // TODO: Implement logic to retrieve active devices
-            // For now, return a placeholder response
-            return Ok(new List<object>
-            {
-                new { id = 1, name = "Device A", type = "Meter", location = "Room 1", status = "on", consumption = 100, lastUpdated = "2023-11-20" }
-            });
+            var devices = await _mongoDbService.GetActiveDevicesAsync();
+            return Ok(devices);
         }
 
-        /// <summary>
-        /// Retrieves detailed information about a specific device.
-        /// </summary>
-        /// <param name="id">The ID of the device.</param>
-        /// <returns>Details of the specified device.</returns>
         [HttpGet("{id}")]
-        public IActionResult GetDeviceDetails(int id)
+        public async Task<IActionResult> GetDeviceDetails(string id)
         {
-            // TODO: Implement logic to retrieve device details
-            // For now, return a placeholder response
-            return Ok(new
-            {
-                id = 1,
-                name = "Device A",
-                type = "Meter",
-                location = "Room 1",
-                status = "on",
-                consumption = 100,
-                lastUpdated = "2023-11-20",
-                history = new List<object>
-                {
-                    new { date = "2023-11-19", value = 90, status = "on", duration = 24 }
-                },
-                properties = new
-                {
-                    brand = "Brand X",
-                    model = "Model Y",
-                    serialNumber = "SN123",
-                    installDate = "2023-01-01",
-                    powerRating = 1000
-                }
-            });
+            var device = await _mongoDbService.GetDeviceByIdAsync(id);
+            if (device == null)
+                return NotFound($"Device with ID {id} not found.");
+
+            return Ok(device);
         }
 
-        /// <summary>
-        /// Controls the status of a specific device.
-        /// </summary>
-        /// <param name="id">The ID of the device.</param>
-        /// <param name="request">The request containing the new status.</param>
-        /// <returns>The updated status of the device.</returns>
         [HttpPut("{id}/control")]
-        public IActionResult ControlDevice(int id, [FromBody] ControlDeviceRequest request)
+        public async Task<IActionResult> ControlDevice(string id, [FromBody] ControlDeviceRequest request)
         {
-            // TODO: Implement logic to control the device status
+            var device = await _mongoDbService.GetDeviceByIdAsync(id);
+            if (device == null)
+                return NotFound($"Device with ID {id} not found.");
+
+            var updatedDevice = await _mongoDbService.ControlDeviceAsync(id, request.Status);
+            
             return Ok(new
             {
-                id = id,
-                name = "Device A",
-                status = request.Status,
+                id = updatedDevice.Id,
+                name = updatedDevice.Name,
+                status = updatedDevice.Status,
                 message = "Device status updated."
             });
         }
 
-        /// <summary>
-        /// Adds a new device.
-        /// </summary>
-        /// <param name="request">The request containing the device details.</param>
-        /// <returns>The details of the newly added device.</returns>
         [HttpPost]
-        public IActionResult AddNewDevice([FromBody] AddDeviceRequest request)
+        public async Task<IActionResult> AddNewDevice([FromBody] AddDeviceRequest request)
         {
-            // TODO: Implement logic to add a new device
-            return Ok(new
+            // Lấy ID của người dùng hiện tại từ token
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
             {
-                id = 3,
-                name = request.Name,
-                type = request.Type,
-                location = request.Location,
-                status = "off",
+                return Unauthorized(new { message = "User not authenticated" });
+            }
+
+            var device = new Device
+            {
+                Name = request.Name,
+                Type = request.Type,
+                Location = request.Location,
+                Status = "off",
+                Consumption = 0,
+                LastUpdated = DateTime.UtcNow.ToString("yyyy-MM-dd"),
+                UserId = userId, // Thêm userId vào thiết bị
+                Properties = request.Properties != null ? new DeviceProperties
+                {
+                    Brand = request.Properties.Brand,
+                    Model = request.Properties.Model,
+                    SerialNumber = request.Properties.SerialNumber,
+                    PowerRating = request.Properties.PowerRating,
+                    InstallDate = DateTime.UtcNow.ToString("yyyy-MM-dd")
+                } : null
+            };
+
+            await _mongoDbService.CreateDeviceAsync(device);
+
+            return CreatedAtAction(nameof(GetDeviceDetails), new { id = device.Id }, new
+            {
+                id = device.Id,
+                name = device.Name,
+                type = device.Type,
+                location = device.Location,
+                status = device.Status,
                 message = "Device added successfully."
             });
         }
 
-        /// <summary>
-        /// Updates the information of a specific device.
-        /// </summary>
-        /// <param name="id">The ID of the device.</param>
-        /// <param name="request">The request containing the updated device details.</param>
-        /// <returns>A message indicating the update status.</returns>
         [HttpPut("{id}")]
-        public IActionResult UpdateDevice(int id, [FromBody] UpdateDeviceRequest request)
+        public async Task<IActionResult> UpdateDevice(string id, [FromBody] UpdateDeviceRequest request)
         {
-            // TODO: Implement logic to update device information
+            var device = await _mongoDbService.GetDeviceByIdAsync(id);
+            if (device == null)
+                return NotFound($"Device with ID {id} not found.");
+
+            device.Name = request.Name;
+            device.Type = request.Type;
+            device.Location = request.Location;
+
+            if (request.Properties != null)
+            {
+                device.Properties = new DeviceProperties
+                {
+                    Brand = request.Properties.Brand,
+                    Model = request.Properties.Model,
+                    SerialNumber = request.Properties.SerialNumber,
+                    PowerRating = request.Properties.PowerRating,
+                    InstallDate = device.Properties?.InstallDate ?? DateTime.UtcNow.ToString("yyyy-MM-dd")
+                };
+            }
+
+            await _mongoDbService.UpdateDeviceAsync(id, device);
+
             return Ok(new
             {
-                id = id,
-                name = request.Name,
+                id = device.Id,
+                name = device.Name,
                 message = "Device updated successfully."
             });
         }
 
-        /// <summary>
-        /// Deletes a specific device.
-        /// </summary>
-        /// <param name="id">The ID of the device.</param>
-        /// <returns>A message indicating the deletion status.</returns>
         [HttpDelete("{id}")]
-        public IActionResult DeleteDevice(int id)
+        public async Task<IActionResult> DeleteDevice(string id)
         {
-            // TODO: Implement logic to delete a device
+            var device = await _mongoDbService.GetDeviceByIdAsync(id);
+            if (device == null)
+                return NotFound($"Device with ID {id} not found.");
+
+            await _mongoDbService.DeleteDeviceAsync(id);
+
             return Ok(new { message = "Device deleted successfully." });
         }
-    }
-
-    // Define simple request models
-    public class ControlDeviceRequest
-    {
-        public string Status { get; set; } = string.Empty;
-    }
-
-    public class AddDeviceRequest
-    {
-        public string Name { get; set; } = string.Empty;
-        public string Type { get; set; } = string.Empty;
-        public string Location { get; set; } = string.Empty;
-        public Properties? Properties { get; set; }
-    }
-
-    public class UpdateDeviceRequest
-    {
-        public string Name { get; set; } = string.Empty;
-        public string Type { get; set; } = string.Empty;
-        public string Location { get; set; } = string.Empty;
-        public Properties? Properties { get; set; }
-    }
-
-    public class Properties
-    {
-        public string Brand { get; set; } = string.Empty;
-        public string Model { get; set; } = string.Empty;
-        public string SerialNumber { get; set; } = string.Empty;
-        public int PowerRating { get; set; }
     }
 }

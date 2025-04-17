@@ -1,12 +1,6 @@
 using MediatR;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using MyIoTPlatform.Application.Interfaces.Persistence;
+using MyIoTPlatform.Application.Interfaces.Repositories;
 using MyIoTPlatform.Application.Features.Telemetry.DTOs;
-using System.Linq;
-using MyIoTPlatform.Domain.Interfaces.Repositories;
-using System;
 
 namespace MyIoTPlatform.Application.Features.Telemetry.Queries
 {

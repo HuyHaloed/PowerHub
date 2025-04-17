@@ -1,25 +1,24 @@
 using MediatR;
 using System.Threading;
 using System.Threading.Tasks;
-using MyIoTPlatform.Application.Interfaces; // Assuming you'll need an interface for ML service
 using MyIoTPlatform.Domain.Interfaces.Services;
+using MyIoTPlatform.Application.Features.MachineLearning.DTOs;
+using MyIoTPlatform.Domain.Models;
 
 namespace MyIoTPlatform.Application.Features.MachineLearning.Queries
 {
-    public class GetModelPerformanceQueryHandler : IRequestHandler<GetModelPerformanceQuery, double>
+    public class GetModelPerformanceQueryHandler : IRequestHandler<GetModelPerformanceQuery, ModelPerformanceDto>
     {
-        private readonly IAzureMlService _azureMlService;
+        private readonly IMachineLearningService _MlService;
 
-        public GetModelPerformanceQueryHandler(IAzureMlService azureMlService)
+        public GetModelPerformanceQueryHandler(IMachineLearningService MlService)
         {
-            _azureMlService = azureMlService;
+            _MlService = MlService;
         }
 
-        public async Task<double> Handle(GetModelPerformanceQuery request, CancellationToken cancellationToken)
+        public async Task<ModelPerformanceDto> Handle(GetModelPerformanceQuery request, CancellationToken cancellationToken)
         {
-            // Call the Azure ML service to get the model performance
-            // Example:
-            return await _azureMlService.GetModelPerformanceAsync(request.ModelId);
+            return await _MlService.GetModelPerformanceAsync(request.ModelId, cancellationToken);
         }
     }
 }

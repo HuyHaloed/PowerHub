@@ -1,20 +1,28 @@
-using MyIoTPlatform.Application.Features.MachineLearning.Services;
+using MyIoTPlatform.Domain.Interfaces.Services;
+using MyIoTPlatform.Domain.Models;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace MyIoTPlatform.Infrastructure.MachineLearning
 {
-    public class FreeMlService : IAzureMlService
+    public class FreeMlService : IMachineLearningService
     {
-        public Task<string> PredictAsync(string input)
+        public Task<ModelPerformanceDto> GetModelPerformanceAsync(string modelId, CancellationToken cancellationToken = default)
         {
-            // Placeholder implementation for prediction logic
-            return Task.FromResult("Prediction result for input: " + input);
+            // Placeholder implementation to return a ModelPerformanceDto
+            // In a real scenario, you would load performance data from your local AI folder
+            return Task.FromResult(new ModelPerformanceDto
+            {
+                ModelId = modelId,
+                Accuracy = 0.88,
+                F1Score = 0.92,
+                Precision = 0.85,
+                Recall = 0.95,
+                EvaluationDate = System.DateTime.Now.ToString("yyyy-MM-dd"),
+                Notes = "Local ML Performance"
+            });
         }
 
-        public Task<string> PredictAsync(int deviceId, double temperature, double humidity, double lightIntensity)
-        {
-            // Placeholder implementation for prediction logic
-            return Task.FromResult($"Prediction result for Device {deviceId}: Temperature={temperature}, Humidity={humidity}, LightIntensity={lightIntensity}");
-        }
+        // Các phương thức khác từ IMachineLearningService (nếu có)
     }
 }

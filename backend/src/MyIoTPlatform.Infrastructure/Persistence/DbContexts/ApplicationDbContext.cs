@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using MyIoTPlatform.Application.Interfaces.Persistence; // Interface từ Application
 using MyIoTPlatform.Domain.Entities; // Entities từ Domain
-using System.Reflection; // Cần cho ApplyConfigurationsFromAssembly
+using System.Reflection;
 
 namespace MyIoTPlatform.Infrastructure.Persistence.DbContexts;
 
@@ -50,4 +50,6 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
         base.OnModelCreating(modelBuilder);
     }
+
+    public DbSet<Prediction> Predictions { get; set; } 
 }

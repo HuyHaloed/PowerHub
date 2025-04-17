@@ -1,48 +1,44 @@
-// Author: TrungQuanDev: https://youtube.com/@trungquandev
+// src/lib/axios.ts
 import axios from "axios";
-// import toast from "react-hot-toast";
-// import { toast } from "react-hot-toast";
-// Khởi tạo đối tượng Axios (authorizedAxiosInstance) mục đích để custom và cấu hình chung cho dự án.
-// import { toast } from "react-hot-toast";
+
+const API_URL = "http://localhost:5000/api";
+
 const authorizedAxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_BACK_END_URL,
+  baseURL: API_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+  timeout: 10000,
 });
 
-// Thời gian chờ tối đa của 1 request là 10 phút
-authorizedAxiosInstance.defaults.timeout = 1000 * 60 * 10;
-
-// withCredentials: sẽ cho phép axios tự động đính kèm và gửi cookie trong mỗi request lên BE
-// phục vụ trường hợp nếu chúng ta sử dụng JWT tokens (refresh và access) theo cơ chế httpOnly Cookie
-// authorizedAxiosInstance.defaults.withCredentials = true;
-
-/**
- * Cấu hình Interceptors (Bộ đánh chặn vào giữa mọi Request và Response)
- * https://axios-http.com/docs/interceptors
- */
-
-// Add a request interceptor: can thiệp vào giữa những request API
+// Interceptor cho request
 authorizedAxiosInstance.interceptors.request.use(
   (config) => {
-    // console.log('Base url:', config.baseURL);
-    const token = localStorage.getItem("token"); // Ví dụ lấy token từ localStorage
+    const token = localStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => Promise.reject(error),
+  (error) => {
+    return Promise.reject(error);
+  }
 );
 
-// Add a response interceptor: Can thiệp vào những response nhận về từ API
+// Interceptor cho response
 authorizedAxiosInstance.interceptors.response.use(
   (response) => {
-    // Any status code that lie within the range of 2xx cause this function to trigger
-    // Do something with response data
     return response;
   },
-  async (error) => {
+  (error) => {
+    // Xử lý lỗi 401 Unauthorized
+    if (error.response && error.response.status === 401) {
+      // Xóa token và đưa người dùng về trang đăng nhập nếu cần
+      localStorage.removeItem("token");
+    }
+    
     return Promise.reject(error);
-  },
+  }
 );
 
 export default authorizedAxiosInstance;

@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { useDevices, useDeviceControl } from '@/hooks/useDashboardIOTData';
+// src/pages/Customer/Dashboard/DevicesView.tsx
+import React, { useState, useEffect, useCallback } from 'react';
+import { useDevices, useDeviceControl } from '@/hooks/useDeviceAPI';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -7,28 +8,57 @@ import DeviceStatusCard from '@/components/DashboardIOT/DeviceStatusCard';
 import { Plus, Search, Filter, Sliders } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Device } from '@/types/dashboard.types';
+import { toast } from 'react-toastify';
 
 export default function DevicesView() {
-  const allDevices = useDevices();
-  const { toggleDevice } = useDeviceControl();
+  const { devices: allDevices, isLoading, error, fetchDevices } = useDevices();
+  const { toggleDevice, isLoading: isToggling } = useDeviceControl();
   const [searchTerm, setSearchTerm] = useState("");
   const [activeFilter, setActiveFilter] = useState<"all" | "on" | "off">("all");
   const [locationFilter, setLocationFilter] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
+  const [filteredDevices, setFilteredDevices] = useState<Device[]>([]);
+  
+  // Áp dụng bộ lọc
+  useEffect(() => {
+    // Áp dụng các bộ lọc cho dữ liệu thiết bị hiện tại
+    let result = [...allDevices];
+    
+    // Lọc theo trạng thái
+    if (activeFilter !== "all") {
+      result = result.filter(device => device.status === activeFilter);
+    }
+    
+    // Lọc theo vị trí
+    if (locationFilter) {
+      result = result.filter(device => device.location === locationFilter);
+    }
+    
+    // Lọc theo loại
+    if (typeFilter) {
+      result = result.filter(device => device.type === typeFilter);
+    }
+    
+    // Lọc theo tìm kiếm
+    if (searchTerm) {
+      result = result.filter(device => 
+        device.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
+    setFilteredDevices(result);
+  }, [allDevices, activeFilter, locationFilter, typeFilter, searchTerm]);
+  
+  // Hiển thị thông báo lỗi nếu có
+  useEffect(() => {
+    if (error) {
+      toast.error("Không thể tải dữ liệu thiết bị: " + error.message);
+    }
+  }, [error]);
   
   // Get unique locations for filtering
   const locations = Array.from(new Set(allDevices.map(device => device.location))).filter(Boolean) as string[];
   const deviceTypes = Array.from(new Set(allDevices.map(device => device.type))).filter(Boolean) as string[];
-  
-  // Filter devices based on search, status, location and type
-  const filteredDevices = allDevices.filter(device => {
-    const matchesSearch = device.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = activeFilter === "all" || device.status === activeFilter;
-    const matchesLocation = !locationFilter || device.location === locationFilter;
-    const matchesType = !typeFilter || device.type === typeFilter;
-    
-    return matchesSearch && matchesStatus && matchesLocation && matchesType;
-  });
   
   // Group devices by location
   const devicesByLocation: Record<string, Device[]> = {};
@@ -42,8 +72,14 @@ export default function DevicesView() {
   });
   
   // Handle device toggle
-  const handleToggleDevice = (id: number, newStatus: "on" | "off") => {
-    toggleDevice(id, newStatus);
+  const handleToggleDevice = async (id: number, newStatus: "on" | "off") => {
+    try {
+      await toggleDevice(id, newStatus);
+      toast.success(`Đã ${newStatus === 'on' ? 'bật' : 'tắt'} thiết bị thành công`);
+    } catch (err) {
+      toast.error("Không thể thay đổi trạng thái thiết bị");
+      console.error(err);
+    }
   };
   
   // Reset all filters
@@ -53,6 +89,20 @@ export default function DevicesView() {
     setLocationFilter(null);
     setTypeFilter(null);
   };
+
+  // Xử lý tìm kiếm 
+  const handleSearch = (value: string) => {
+    setSearchTerm(value);
+  };
+
+  // Hiển thị loading
+  if (isLoading) {
+    return (
+      <div className="p-6 flex justify-center items-center h-full">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6">
@@ -80,7 +130,7 @@ export default function DevicesView() {
               type="text"
               placeholder="Tìm kiếm thiết bị..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => handleSearch(e.target.value)}
               className="pl-9"
             />
           </div>
@@ -129,7 +179,7 @@ export default function DevicesView() {
         
         {/* Active filters */}
         {(searchTerm || activeFilter !== "all" || locationFilter || typeFilter) && (
-          <div className="mt-4 flex items-center gap-2">
+          <div className="mt-4 flex flex-wrap items-center gap-2">
             <div className="text-sm text-gray-500">Bộ lọc đang kích hoạt:</div>
             {searchTerm && (
               <div className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">

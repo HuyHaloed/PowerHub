@@ -37,7 +37,7 @@ export default function HomePage() {
             sử dụng điện một cách hợp lý.
           </p>
           <div className="mt-5 flex items-center gap-5">
-            <Link to="/dashboardIOT">
+            <Link to="/sign-in">
               <Button variant="secondary" size="lg">
                 Dashboard của tôi
               </Button>
@@ -137,8 +137,7 @@ export default function HomePage() {
       </div>
     </div>
   );
-}
-// Data for features section
+}// Data for features section
 const features = [
   {
     icon: (
