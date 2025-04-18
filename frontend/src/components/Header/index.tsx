@@ -75,9 +75,9 @@ export default function Header() {
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
+    sessionStorage.removeItem("auth_token");
     toast.success("Đăng xuất thành công");
-    navigate("/sign-in");
+    navigate("/");
   };
 
   const handleReadNotification = (id: number) => {

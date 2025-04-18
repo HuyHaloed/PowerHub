@@ -1,94 +1,288 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
+using MyIoTPlatform.API.Models;
+using MyIoTPlatform.API.Services;
 
 namespace MyIoTPlatform.API.Controllers
 {
-    /// <summary>
-    /// Handles analytics-related operations.
-    /// </summary>
     [ApiController]
     [Route("api/analytics")]
+    [Authorize]
     public class AnalyticsController : ControllerBase
     {
-        /// <summary>
-        /// Retrieves overall analytics data.
-        /// </summary>
-        /// <param name="startDate">The start date for the analytics data.</param>
-        /// <param name="endDate">The end date for the analytics data.</param>
-        /// <param name="timeRange">The time range for the analytics data (e.g., day, week, month).</param>
-        /// <returns>Overall analytics data including consumption and cost estimates.</returns>
-        [HttpGet]
-        public async Task<IActionResult> GetAnalyticsData(string startDate, string endDate, string timeRange)
+        private readonly EnergyService _energyService;
+        private readonly MongoDbService _mongoDbService;
+        
+        public AnalyticsController(EnergyService energyService, MongoDbService mongoDbService)
         {
-            // Simulate asynchronous operation
-            await Task.Delay(1);
+            _energyService = energyService;
+            _mongoDbService = mongoDbService;
+        }
 
-            // TODO: Implement logic to retrieve overall analytics data
+        [HttpGet]
+        public async Task<IActionResult> GetAnalyticsData(string? startDate = null, string? endDate = null, string timeRange = "day")
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { message = "User not authenticated" });
+            }
+            
+            DateTime? startDateTime = null;
+            if (!string.IsNullOrEmpty(startDate))
+            {
+                if (DateTime.TryParse(startDate, out var parsedStartDate))
+                    startDateTime = parsedStartDate;
+            }
+            
+            DateTime? endDateTime = null;
+            if (!string.IsNullOrEmpty(endDate))
+            {
+                if (DateTime.TryParse(endDate, out var parsedEndDate))
+                    endDateTime = parsedEndDate;
+            }
+            
+            // If dates are not provided, set defaults based on time range
+            if (!startDateTime.HasValue)
+            {
+                switch (timeRange.ToLower())
+                {
+                    case "day":
+                        startDateTime = DateTime.UtcNow.Date;
+                        break;
+                    case "week":
+                        startDateTime = DateTime.UtcNow.AddDays(-(int)DateTime.UtcNow.DayOfWeek).Date;
+                        break;
+                    case "month":
+                        startDateTime = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
+                        break;
+                    case "year":
+                        startDateTime = new DateTime(DateTime.UtcNow.Year, 1, 1);
+                        break;
+                    default:
+                        startDateTime = DateTime.UtcNow.Date;
+                        break;
+                }
+            }
+            
+            if (!endDateTime.HasValue)
+            {
+                switch (timeRange.ToLower())
+                {
+                    case "day":
+                        endDateTime = startDateTime.Value.AddDays(1).AddTicks(-1);
+                        break;
+                    case "week":
+                        endDateTime = startDateTime.Value.AddDays(7).AddTicks(-1);
+                        break;
+                    case "month":
+                        endDateTime = startDateTime.Value.AddMonths(1).AddTicks(-1);
+                        break;
+                    case "year":
+                        endDateTime = startDateTime.Value.AddYears(1).AddTicks(-1);
+                        break;
+                    default:
+                        endDateTime = startDateTime.Value.AddDays(1).AddTicks(-1);
+                        break;
+                }
+            }
+            
+            var consumptionData = await _energyService.GetEnergyConsumptionAsync(userId, timeRange, startDateTime, endDateTime);
+            
+            if (consumptionData.Count == 0)
+            {
+                return Ok(new
+                {
+                    totalConsumption = 0,
+                    avgConsumption = 0,
+                    peakConsumption = 0,
+                    lowestConsumption = 0,
+                    comparisonValue = 0,
+                    estimatedCost = 0,
+                    costPerKwh = 0.15, // Default value
+                    data = new List<object>()
+                });
+            }
+            
+            var totalConsumption = consumptionData.Sum(c => c.Value);
+            var avgConsumption = totalConsumption / consumptionData.Count;
+            var peakConsumption = consumptionData.Max(c => c.Value);
+            var lowestConsumption = consumptionData.Min(c => c.Value);
+            
+            // Get previous period data for comparison
+            var previousStartDate = startDateTime.Value.AddDays(-(endDateTime.Value - startDateTime.Value).Days);
+            var previousEndDate = startDateTime.Value.AddTicks(-1);
+            
+            var previousData = await _energyService.GetEnergyConsumptionAsync(userId, timeRange, previousStartDate, previousEndDate);
+            
+            double comparisonValue = 0;
+            if (previousData.Count > 0)
+            {
+                var previousTotal = previousData.Sum(c => c.Value);
+                if (previousTotal > 0)
+                {
+                    comparisonValue = Math.Round(((totalConsumption - previousTotal) / previousTotal) * 100, 1);
+                }
+            }
+            
+            // Calculate estimated cost
+            var costPerKwh = 0.15; // Default value - could be retrieved from user preferences
+            var estimatedCost = totalConsumption * costPerKwh;
+            
             return Ok(new
             {
-                totalConsumption = 10000,
-                avgConsumption = 500,
-                peakConsumption = 1200,
-                lowestConsumption = 100,
-                comparisonValue = 10,
-                estimatedCost = 500,
-                costPerKwh = 0.05,
-                data = new List<object>
-                {
-                    new { name = "Device A", value = 100, date = "2023-11-20" },
-                    new { name = "Device B", value = 150, date = "2023-11-20" }
-                }
+                totalConsumption,
+                avgConsumption,
+                peakConsumption,
+                lowestConsumption,
+                comparisonValue,
+                estimatedCost,
+                costPerKwh,
+                data = consumptionData
             });
         }
 
-        /// <summary>
-        /// Retrieves analytics data for a specific device or all devices.
-        /// </summary>
-        /// <param name="deviceId">The ID of the device (optional).</param>
-        /// <param name="startDate">The start date for the analytics data.</param>
-        /// <param name="endDate">The end date for the analytics data.</param>
-        /// <param name="timeRange">The time range for the analytics data (e.g., day, week, month).</param>
-        /// <returns>Analytics data for the specified device or all devices.</returns>
         [HttpGet("devices")]
-        public async Task<IActionResult> GetDeviceAnalytics(int? deviceId, string startDate, string endDate, string timeRange)
+        public async Task<IActionResult> GetDeviceAnalytics(string deviceId = null, string? startDate = null, string? endDate = null, string timeRange = "day")
         {
-            // Simulate asynchronous operation
-            await Task.Delay(1);
-
-            // TODO: Implement logic to retrieve analytics data per device
-            return Ok(new List<object>
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
             {
-                new
+                return Unauthorized(new { message = "User not authenticated" });
+            }
+            
+            DateTime? startDateTime = null;
+            if (!string.IsNullOrEmpty(startDate))
+            {
+                if (DateTime.TryParse(startDate, out var parsedStartDate))
+                    startDateTime = parsedStartDate;
+            }
+            
+            DateTime? endDateTime = null;
+            if (!string.IsNullOrEmpty(endDate))
+            {
+                if (DateTime.TryParse(endDate, out var parsedEndDate))
+                    endDateTime = parsedEndDate;
+            }
+            
+            // If dates are not provided, set defaults based on time range
+            if (!startDateTime.HasValue)
+            {
+                switch (timeRange.ToLower())
                 {
-                    deviceId = 1,
-                    deviceName = "Device A",
-                    totalConsumption = 5000,
-                    avgConsumption = 250,
-                    peakConsumption = 600,
-                    onDuration = 24,
-                    costEstimate = 250,
-                    data = new List<object>
-                    {
-                        new { date = "2023-11-20", value = 100 }
-                    }
+                    case "day":
+                        startDateTime = DateTime.UtcNow.Date;
+                        break;
+                    case "week":
+                        startDateTime = DateTime.UtcNow.AddDays(-(int)DateTime.UtcNow.DayOfWeek).Date;
+                        break;
+                    case "month":
+                        startDateTime = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
+                        break;
+                    case "year":
+                        startDateTime = new DateTime(DateTime.UtcNow.Year, 1, 1);
+                        break;
+                    default:
+                        startDateTime = DateTime.UtcNow.Date;
+                        break;
                 }
-            });
+            }
+            
+            if (!endDateTime.HasValue)
+            {
+                endDateTime = DateTime.UtcNow;
+            }
+            
+            List<Device> devices;
+            if (!string.IsNullOrEmpty(deviceId))
+            {
+                var device = await _mongoDbService.GetDeviceByIdAsync(deviceId);
+                if (device == null || device.UserId != userId)
+                    return NotFound(new { message = "Device not found" });
+                
+                devices = new List<Device> { device };
+            }
+            else
+            {
+                devices = await _mongoDbService.GetDevicesByUserIdAsync(userId);
+            }
+            
+            var result = new List<object>();
+            
+            foreach (var device in devices)
+            {
+                var consumptionData = await _energyService.GetEnergyConsumptionByDeviceAsync(userId, device.Id, timeRange, startDateTime, endDateTime);
+                
+                if (consumptionData.Count == 0)
+                {
+                    result.Add(new
+                    {
+                        deviceId = device.Id,
+                        deviceName = device.Name,
+                        totalConsumption = 0,
+                        avgConsumption = 0,
+                        peakConsumption = 0,
+                        onDuration = 0,
+                        costEstimate = 0,
+                        data = new List<object>()
+                    });
+                    continue;
+                }
+                
+                var totalConsumption = consumptionData.Sum(c => c.Value);
+                var avgConsumption = totalConsumption / consumptionData.Count;
+                var peakConsumption = consumptionData.Max(c => c.Value);
+                
+                // Estimate on duration in hours
+                var onDuration = device.History
+                    .Where(h => h.Status == "on" && h.Timestamp >= startDateTime && h.Timestamp <= endDateTime)
+                    .Sum(h => h.Consumption > 0 ? 1 : 0); // Simplified estimate - 1 hour for each consumption data point
+                
+                // Calculate estimated cost
+                var costPerKwh = 0.15; // Default value - could be retrieved from user preferences
+                var costEstimate = totalConsumption * costPerKwh;
+                
+                result.Add(new
+                {
+                    deviceId = device.Id,
+                    deviceName = device.Name,
+                    totalConsumption,
+                    avgConsumption,
+                    peakConsumption,
+                    onDuration,
+                    costEstimate,
+                    data = consumptionData
+                });
+            }
+            
+            return Ok(result);
         }
 
-        /// <summary>
-        /// Exports analytics data in the specified format.
-        /// </summary>
-        /// <param name="format">The format of the exported data (e.g., csv, pdf, excel).</param>
-        /// <param name="startDate">The start date for the analytics data.</param>
-        /// <param name="endDate">The end date for the analytics data.</param>
-        /// <param name="type">The type of data to export (e.g., consumption, devices, distribution).</param>
-        /// <returns>A file containing the exported analytics data.</returns>
         [HttpGet("export")]
-        public IActionResult ExportData(string format, string startDate, string endDate, string type)
+        public IActionResult ExportData(string format, string? startDate = null, string? endDate = null, string type = "consumption")
         {
-            // TODO: Implement logic to export analytics data
-            // This is a placeholder; you'll need to generate the actual file
-            return Ok("Exporting data...");
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { message = "User not authenticated" });
+            }
+            
+            // In a real implementation, this would generate and return a file
+            // For demonstration purposes, we return a placeholder message
+            
+            return Ok(new 
+            { 
+                message = $"Exporting {type} data in {format} format...",
+                format,
+                startDate,
+                endDate,
+                type
+            });
         }
     }
 }

@@ -1,166 +1,151 @@
-// src/Services/DashboardService.cs
-using Microsoft.Extensions.Options;
-using MongoDB.Driver;
 using MyIoTPlatform.API.Models;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+
 
 namespace MyIoTPlatform.API.Services
 {
     public class DashboardService
     {
-        private readonly IMongoCollection<User> _usersCollection;
-        private readonly IMongoCollection<Device> _devicesCollection;
-        private readonly IMongoCollection<Alert> _alertsCollection;
-        private readonly IMongoCollection<EnergyConsumption> _energyCollection;
+        private readonly MongoDbService _mongoDbService;
+        private readonly EnergyService _energyService;
 
-        public DashboardService(IOptions<MongoDbSettings> mongoDBSettings)
+        public DashboardService(MongoDbService mongoDbService, EnergyService energyService)
         {
-            var mongoClient = new MongoClient(mongoDBSettings.Value.ConnectionString);
-            var mongoDatabase = mongoClient.GetDatabase(mongoDBSettings.Value.DatabaseName);
-            _usersCollection = mongoDatabase.GetCollection<User>("Users");
-            _devicesCollection = mongoDatabase.GetCollection<Device>("Devices");
-            _alertsCollection = mongoDatabase.GetCollection<Alert>("Alerts");
-            _energyCollection = mongoDatabase.GetCollection<EnergyConsumption>("EnergyConsumption");
+            _mongoDbService = mongoDbService;
+            _energyService = energyService;
         }
 
-        // Lấy thống kê cho người dùng cụ thể
-        public async Task<List<Stat>> GetStatsForUserAsync(string userId)
+        // Get dashboard quick stats for a user
+        public async Task<List<Stat>> GetQuickStatsForUserAsync(string userId)
         {
             var stats = new List<Stat>();
-
-            // Tổng tiêu thụ năng lượng hôm nay
-            var today = DateTime.UtcNow.Date;
-            var todayConsumption = await GetTodayConsumptionAsync(userId);
+            
+            // Get energy consumption for today
+            var todayConsumption = await _energyService.GetDailyConsumptionAsync(userId, DateTime.UtcNow);
+            var yesterdayConsumption = await _energyService.GetDailyConsumptionAsync(userId, DateTime.UtcNow.AddDays(-1));
+            
+            double todayChange = 0;
+            if (yesterdayConsumption > 0)
+            {
+                todayChange = Math.Round(((todayConsumption - yesterdayConsumption) / yesterdayConsumption) * 100, 1);
+            }
+            
             stats.Add(new Stat
             {
-                Id = "1",
-                Title = "Tiêu thụ hôm nay",
+                Title = "Today's Consumption",
                 Value = todayConsumption,
                 Unit = "kWh",
-                Change = 5, // Giả lập
-                ChangeType = todayConsumption > 0 ? "increase" : "decrease",
-                Icon = "energy"
+                Change = todayChange,
+                ChangeType = todayChange >= 0 ? "increase" : "decrease",
             });
-
-            // Tổng tiêu thụ tháng này
-            var monthlyConsumption = await GetMonthlyConsumptionAsync(userId);
+            
+            // Get energy consumption for the current month
+            var thisMonthConsumption = await _energyService.GetMonthlyConsumptionAsync(userId, DateTime.UtcNow.Year, DateTime.UtcNow.Month);
+            var lastMonthConsumption = await _energyService.GetMonthlyConsumptionAsync(userId, DateTime.UtcNow.AddMonths(-1).Year, DateTime.UtcNow.AddMonths(-1).Month);
+            
+            double monthChange = 0;
+            if (lastMonthConsumption > 0)
+            {
+                monthChange = Math.Round(((thisMonthConsumption - lastMonthConsumption) / lastMonthConsumption) * 100, 1);
+            }
+            
             stats.Add(new Stat
             {
-                Id = "2",
-                Title = "Tiêu thụ tháng này",
-                Value = monthlyConsumption,
+                Title = "This Month's Consumption",
+                Value = thisMonthConsumption,
                 Unit = "kWh",
-                Change = 12, // Giả lập
-                ChangeType = "increase",
-                Icon = "calendar"
+                Change = monthChange,
+                ChangeType = monthChange >= 0 ? "increase" : "decrease",
             });
-
-            // Thiết bị đang hoạt động
-            var activeDevicesCount = await GetActiveDevicesCountAsync(userId);
+            
+            // Get active device count
+            var activeDevices = await _mongoDbService.GetActiveDevicesByUserIdAsync(userId);
+            var allDevices = await _mongoDbService.GetDevicesByUserIdAsync(userId);
+            
+            double deviceChange = 0;
+            if (allDevices.Count > 0)
+            {
+                var lastWeekActiveCount = allDevices.Count(d => d.LastUpdated > DateTime.UtcNow.AddDays(-7));
+                deviceChange = Math.Round(((double)activeDevices.Count - lastWeekActiveCount) / lastWeekActiveCount * 100, 1);
+            }
+            
             stats.Add(new Stat
             {
-                Id = "3",
-                Title = "Thiết bị đang hoạt động",
-                Value = activeDevicesCount,
-                Unit = "",
-                Change = 2, // Giả lập
-                ChangeType = "increase",
-                Icon = "device"
+                Title = "Active Devices",
+                Value = activeDevices.Count,
+                Unit = "devices",
+                Change = deviceChange,
+                ChangeType = deviceChange >= 0 ? "increase" : "decrease",
             });
-
-            // Dự tính tiền điện
-            var estimatedBill = CalculateEstimatedBill(monthlyConsumption);
+            
+            // Calculate estimated cost
+            var costPerKwh = 0.15; // Default cost per kWh
+            var estimatedCost = thisMonthConsumption * costPerKwh;
+            var lastMonthCost = lastMonthConsumption * costPerKwh;
+            
+            double costChange = 0;
+            if (lastMonthCost > 0)
+            {
+                costChange = Math.Round(((estimatedCost - lastMonthCost) / lastMonthCost) * 100, 1);
+            }
+            
             stats.Add(new Stat
             {
-                Id = "4",
-                Title = "Dự tính tiền điện",
-                Value = estimatedBill,
+                Title = "Estimated Cost",
+                Value = estimatedCost,
                 Unit = "VND",
-                Change = 8, // Giả lập
-                ChangeType = "increase",
-                Icon = "money"
+                Change = costChange,
+                ChangeType = costChange >= 0 ? "increase" : "decrease",
             });
-
+            
             return stats;
         }
 
-        // Lấy thống kê nhanh
-        public async Task<List<Stat>> GetQuickStatsForUserAsync(string userId)
+        // Get dashboard stats for a user
+        public async Task<List<Stat>> GetStatsForUserAsync(string userId)
         {
-            // Trong thực tế, bạn có thể gọi phương thức GetStatsForUserAsync hoặc triển khai logic khác
-            return await GetStatsForUserAsync(userId);
+            return await GetQuickStatsForUserAsync(userId);
         }
 
-        // Lấy cảnh báo cho người dùng
+        // Get alerts for a user
         public async Task<List<Alert>> GetAlertsForUserAsync(string userId)
         {
-            var filter = Builders<Alert>.Filter.Eq(a => a.UserId, userId);
-            return await _alertsCollection.Find(filter).ToListAsync();
+            return await _mongoDbService.GetAlertsForUserAsync(userId);
         }
 
-        // Lấy cảnh báo chưa đọc
+        // Get unread alerts for a user
         public async Task<List<Alert>> GetUnreadAlertsForUserAsync(string userId)
         {
-            var filter = Builders<Alert>.Filter.And(
-                Builders<Alert>.Filter.Eq(a => a.UserId, userId),
-                Builders<Alert>.Filter.Eq(a => a.Read, false)
-            );
-            return await _alertsCollection.Find(filter).ToListAsync();
+            return await _mongoDbService.GetUnreadAlertsForUserAsync(userId);
         }
 
-        // Đánh dấu cảnh báo đã đọc
-        public async Task<bool> MarkAlertAsReadAsync(string alertId, string userId)
+        // Mark an alert as read
+        public async Task<bool> MarkAlertAsReadAsync(string id, string userId)
         {
-            var filter = Builders<Alert>.Filter.And(
-                Builders<Alert>.Filter.Eq(a => a.Id, alertId),
-                Builders<Alert>.Filter.Eq(a => a.UserId, userId)
-            );
-            var update = Builders<Alert>.Update.Set(a => a.Read, true);
-            var result = await _alertsCollection.UpdateOneAsync(filter, update);
-            return result.ModifiedCount > 0;
+            return await _mongoDbService.MarkAlertAsReadAsync(id, userId);
         }
 
-        // Phương thức helper
-        private async Task<double> GetTodayConsumptionAsync(string userId)
+        // Generate an alert for high energy consumption
+        public async Task GenerateHighConsumptionAlertAsync(string userId, double consumption, string deviceName = null)
         {
-            var today = DateTime.UtcNow.Date;
-            var filter = Builders<EnergyConsumption>.Filter.And(
-                Builders<EnergyConsumption>.Filter.Eq(e => e.UserId, userId),
-                Builders<EnergyConsumption>.Filter.Gte(e => e.Date, today),
-                Builders<EnergyConsumption>.Filter.Lt(e => e.Date, today.AddDays(1))
-            );
-            var consumptions = await _energyCollection.Find(filter).ToListAsync();
-            return consumptions.Sum(c => c.Value);
-        }
-
-        private async Task<double> GetMonthlyConsumptionAsync(string userId)
-        {
-            var firstDayOfMonth = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
-            var filter = Builders<EnergyConsumption>.Filter.And(
-                Builders<EnergyConsumption>.Filter.Eq(e => e.UserId, userId),
-                Builders<EnergyConsumption>.Filter.Gte(e => e.Date, firstDayOfMonth),
-                Builders<EnergyConsumption>.Filter.Lt(e => e.Date, firstDayOfMonth.AddMonths(1))
-            );
-            var consumptions = await _energyCollection.Find(filter).ToListAsync();
-            return consumptions.Sum(c => c.Value);
-        }
-
-        private async Task<int> GetActiveDevicesCountAsync(string userId)
-        {
-            var filter = Builders<Device>.Filter.And(
-                Builders<Device>.Filter.Eq(d => d.UserId, userId),
-                Builders<Device>.Filter.Eq(d => d.Status, "on")
-            );
-            return (int)await _devicesCollection.CountDocumentsAsync(filter);
-        }
-
-        private double CalculateEstimatedBill(double consumption)
-        {
-            // Giả lập tính tiền điện dựa trên mức tiêu thụ
-            const double baseCost = 1700; // VND/kWh
-            return consumption * baseCost;
+            var user = await _mongoDbService.GetUserByIdAsync(userId);
+            var energyGoal = user.Preferences.EnergyGoal;
+            
+            if (consumption > energyGoal * 0.8)
+            {
+                var alert = new Alert
+                {
+                    UserId = userId,
+                    Title = "High Energy Consumption",
+                    Message = deviceName != null 
+                        ? $"Device '{deviceName}' has high energy consumption"
+                        : "Your energy consumption is higher than usual",
+                    Severity = consumption > energyGoal ? "error" : "warning",
+                    Read = false,
+                    Date = DateTime.UtcNow
+                };
+                
+                await _mongoDbService.AddAlertAsync(alert);
+            }
         }
     }
 }

@@ -1,23 +1,24 @@
-// src/lib/axios.ts
-import axios from "axios";
-
-const API_URL = "http://localhost:5000/api";
+// lib/axios.ts
+import axios from 'axios';
 
 const authorizedAxiosInstance = axios.create({
-  baseURL: API_URL,
+  baseURL: 'http://localhost:5000/api',
   headers: {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
   },
-  timeout: 10000,
 });
 
-// Interceptor cho request
+// Request interceptor to add the auth token to requests
 authorizedAxiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
+    // Get JWT token from session storage
+    const token = sessionStorage.getItem('auth_token');
+    
+    // If token exists, add it to the request's Authorization header
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
     return config;
   },
   (error) => {
@@ -25,18 +26,15 @@ authorizedAxiosInstance.interceptors.request.use(
   }
 );
 
-// Interceptor cho response
+// Response interceptor to handle 401 Unauthorized errors
 authorizedAxiosInstance.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   (error) => {
-    // Xử lý lỗi 401 Unauthorized
+    // If response status is 401, redirect to login page
     if (error.response && error.response.status === 401) {
-      // Xóa token và đưa người dùng về trang đăng nhập nếu cần
-      localStorage.removeItem("token");
+      sessionStorage.removeItem('auth_token');
+      window.location.href = '/sign-in';
     }
-    
     return Promise.reject(error);
   }
 );

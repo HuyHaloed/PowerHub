@@ -1,43 +1,115 @@
-// src/types/dashboard.types.ts
+// Types derived from backend MongoDB models
 
-// Định nghĩa kiểu dữ liệu cho thiết bị
+// User Types
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  avatar?: string;
+  createdAt: string;
+  lastLogin: string;
+  isActive: boolean;
+  twoFactorEnabled: boolean;
+  subscription: {
+    plan: string;
+    validUntil: string;
+    paymentHistory: {
+      id: string;
+      date: string;
+      amount: number;
+      description: string;
+      status: string;
+    }[];
+    paymentMethod: {
+      type: string;
+      lastFour: string;
+      expiryDate: string;
+      cardholderName: string;
+    };
+  };
+  preferences: {
+    theme: string;
+    notifications: boolean;
+    energyGoal: number;
+    language: string;
+    currency: string;
+  };
+}
+
+// Device Types
 export interface Device {
-  id: number;
+  id: string;
+  userId: string;
   name: string;
   type: string;
   location: string;
   status: 'on' | 'off';
   consumption: number;
   lastUpdated: string;
+  properties: {
+    brand: string;
+    model: string;
+    serialNumber: string;
+    installDate: string;
+    powerRating: number;
+  };
+  history: {
+    timestamp: string;
+    status: string;
+    consumption: number;
+  }[];
+}
+
+// Energy Consumption Types
+export interface EnergyConsumption {
+  id: string;
+  userId: string;
+  deviceId: string;
+  deviceName: string;
+  value: number;
+  date: string;
+  timeRange: 'day' | 'week' | 'month' | 'year';
+}
+
+export interface QuickStat {
+  id: string;
+  title: string;
+  value: number;
+  unit?: string;
+  change: number;
+  changeType: 'increase' | 'decrease';
   icon?: string;
 }
-
-// Định nghĩa kiểu dữ liệu cho lịch sử thiết bị
-export interface DeviceHistory {
+// Alert Types
+export interface Alert {
+  id: string;
+  userId: string;
+  title: string;
+  message: string;
+  severity: 'info' | 'warning' | 'error';
+  read: boolean;
   date: string;
-  value: number;
-  status: 'on' | 'off';
-  duration: number;
 }
 
-// Định nghĩa kiểu dữ liệu cho thuộc tính thiết bị
-export interface DeviceProperties {
-  brand: string;
-  model: string;
-  serialNumber: string;
-  installDate: string;
-  powerRating: number;
+// Notification Types
+export interface Notification {
+  id: string;
+  userId: string;
+  title: string;
+  message: string;
+  type: 'alert' | 'info' | 'update';
+  read: boolean;
+  date: string;
+  action: {
+    type: 'url' | 'action';
+    url?: string;
+  };
 }
 
-// Định nghĩa kiểu dữ liệu đầy đủ cho chi tiết thiết bị
-export interface DeviceDetails extends Device {
-  history: DeviceHistory[];
-  properties: DeviceProperties;
-}
-
-// Định nghĩa kiểu dữ liệu cho thống kê nhanh
-export interface QuickStat {
-  id: number;
+// Quick Stats Types
+export interface Stat {
+  id: string;
   title: string;
   value: number;
   unit: string;
@@ -46,63 +118,105 @@ export interface QuickStat {
   icon?: string;
 }
 
-// Định nghĩa kiểu dữ liệu cho cảnh báo
-export interface Alert {
-  id: number;
-  title: string;
-  message: string;
-  severity: 'info' | 'warning' | 'error';
-  read: boolean;
-  date: string;
-}
-
-// Định nghĩa kiểu dữ liệu cho người dùng
-export interface User {
-  id: number;
-  name: string;
-  email: string;
-  avatar: string;
-  subscription?: {
-    plan: string;
-    validUntil: string;
-  };
-  preferences?: {
-    theme: string;
-    notifications: boolean;
-    energyGoal: number;
-  };
-}
-
-// Định nghĩa kiểu dữ liệu cho dữ liệu dashboard
-export interface DashboardData {
-  user: User;
-  stats: QuickStat[];
-  alerts: Alert[];
-}
-
-// Định nghĩa kiểu dữ liệu cho dữ liệu tiêu thụ năng lượng
-export interface EnergyData {
-  name: string;
-  value: number;
-  date: string;
-}
-
-// Định nghĩa kiểu dữ liệu cho phân phối năng lượng
+// Energy Distribution Types
 export interface EnergyDistribution {
+  id: string;
+  userId: string;
+  deviceId: string;
   name: string;
   value: number;
   color: string;
+  date: string;
 }
 
-// Định nghĩa kiểu dữ liệu cho yêu cầu điều khiển thiết bị
+// Request Types
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface RegisterRequest {
+  name: string;
+  email: string;
+  password: string;
+  phone?: string;
+}
+
+export interface AddDeviceRequest {
+  name: string;
+  type: string;
+  location: string;
+  properties: {
+    brand: string;
+    model: string;
+    serialNumber: string;
+    powerRating: number;
+  };
+}
+
+export interface UpdateDeviceRequest {
+  name: string;
+  type: string;
+  location: string;
+  properties: {
+    brand: string;
+    model: string;
+    serialNumber: string;
+    powerRating: number;
+  };
+}
+
 export interface ControlDeviceRequest {
   status: 'on' | 'off';
 }
 
-// Định nghĩa kiểu dữ liệu cho phản hồi điều khiển thiết bị
-export interface ControlDeviceResponse {
-  id: number;
-  name: string;
-  status: 'on' | 'off';
-  message: string;
+export interface Verify2FARequest {
+  code: string;
+}
+
+export interface Disable2FARequest {
+  password: string;
+}
+
+export interface UpgradeSubscriptionRequest {
+  plan: string;
+}
+
+export interface AddPaymentMethodRequest {
+  type: string;
+  cardNumber: string;
+  expiryDate: string;
+  cardholderName: string;
+  cvv: string;
+}
+
+// Response Types
+export interface AuthResponse {
+  token: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    avatar: string;
+    subscription: {
+      plan: string;
+      validUntil: string;
+    };
+    preferences: {
+      theme: string;
+      notifications: boolean;
+      energyGoal: number;
+    };
+  };
+}
+
+// Dashboard Data Aggregate Type
+export interface DashboardData {
+  user: User;
+  devices: Device[];
+  alerts: Alert[];
+  energyConsumption: EnergyConsumption[];
+  energyDistribution: EnergyDistribution[];
+  quickStats: Stat[];
+  notifications: Notification[];
 }

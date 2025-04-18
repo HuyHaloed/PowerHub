@@ -1,83 +1,85 @@
+using System;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
+using MyIoTPlatform.API.Services;
 
 namespace MyIoTPlatform.API.Controllers
 {
-    /// <summary>
-    /// Handles operations related to notifications.
-    /// </summary>
     [ApiController]
     [Route("api/notifications")]
+    [Authorize]
     public class NotificationsController : ControllerBase
     {
-        /// <summary>
-        /// Retrieves all notifications with optional filters for pagination and read status.
-        /// </summary>
-        /// <param name="page">The page number for pagination.</param>
-        /// <param name="limit">The number of notifications per page.</param>
-        /// <param name="read">Filter by read status (true, false, or null for all).</param>
-        /// <returns>A list of notifications with metadata.</returns>
-        [HttpGet]
-        public IActionResult GetAllNotifications(int page, int limit, bool? read)
+        private readonly MongoDbService _mongoDbService;
+        
+        public NotificationsController(MongoDbService mongoDbService)
         {
-            // TODO: Implement logic to get all notifications
+            _mongoDbService = mongoDbService;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAllNotifications(int page = 1, int limit = 10, bool? read = null)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { message = "User not authenticated" });
+            }
+            
+            var notifications = await _mongoDbService.GetNotificationsForUserAsync(userId, page, limit, read);
+            var totalCount = await _mongoDbService.GetNotificationCountForUserAsync(userId);
+            var unreadCount = await _mongoDbService.GetNotificationCountForUserAsync(userId, false);
+            
             return Ok(new
             {
-                total = 100,
-                unread = 10,
-                notifications = new List<object>
-                {
-                    new
-                    {
-                        id = "1",
-                        title = "New Alert",
-                        message = "High energy consumption detected.",
-                        type = "alert",
-                        read = false,
-                        date = "2023-11-20",
-                        action = new
-                        {
-                            type = "url",
-                            url = "/alerts/1"
-                        }
-                    }
-                }
+                total = totalCount,
+                unread = unreadCount,
+                notifications
             });
         }
 
-        /// <summary>
-        /// Marks a specific notification as read.
-        /// </summary>
-        /// <param name="id">The ID of the notification to mark as read.</param>
-        /// <returns>Status 200 OK.</returns>
         [HttpPut("{id}/read")]
-        public IActionResult MarkNotificationAsRead(string id)
+        public async Task<IActionResult> MarkNotificationAsRead(string id)
         {
-            // TODO: Implement logic to mark a notification as read
-            return Ok();
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { message = "User not authenticated" });
+            }
+            
+            await _mongoDbService.MarkNotificationAsReadAsync(id);
+            
+            return Ok(new { message = "Notification marked as read" });
         }
 
-        /// <summary>
-        /// Marks all notifications as read.
-        /// </summary>
-        /// <returns>Status 200 OK.</returns>
         [HttpPut("read-all")]
-        public IActionResult MarkAllNotificationsAsRead()
+        public async Task<IActionResult> MarkAllNotificationsAsRead()
         {
-            // TODO: Implement logic to mark all notifications as read
-            return Ok();
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { message = "User not authenticated" });
+            }
+            
+            await _mongoDbService.MarkAllNotificationsAsReadAsync(userId);
+            
+            return Ok(new { message = "All notifications marked as read" });
         }
 
-        /// <summary>
-        /// Deletes a specific notification.
-        /// </summary>
-        /// <param name="id">The ID of the notification to delete.</param>
-        /// <returns>Status 200 OK.</returns>
         [HttpDelete("{id}")]
-        public IActionResult DeleteNotification(string id)
+        public async Task<IActionResult> DeleteNotification(string id)
         {
-            // TODO: Implement logic to delete a notification
-            return Ok();
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { message = "User not authenticated" });
+            }
+            
+            await _mongoDbService.DeleteNotificationAsync(id);
+            
+            return Ok(new { message = "Notification deleted" });
         }
     }
 }

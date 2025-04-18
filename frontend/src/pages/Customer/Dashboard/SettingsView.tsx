@@ -13,11 +13,18 @@ import { Loader2, User, Key, Bell, CreditCard, Clock, Sliders, Shield, AlertTria
 export default function SettingsView() {
   const { data: dashboardData, isLoading } = useDashboardData();
   const [saving, setSaving] = useState(false);
-  
+  type ThemeType = "light" | "dark" | "system";
   // User preference states
-  const [theme, setTheme] = useState<"light" | "dark" | "system">(
-    dashboardData?.user.preferences?.theme || "light"
-  );
+  const [theme, setTheme] = useState<ThemeType>(() => {
+    const storedTheme = dashboardData?.user.preferences?.theme;
+    
+    // Ensure the theme is one of the allowed values
+    if (storedTheme === "light" || storedTheme === "dark" || storedTheme === "system") {
+      return storedTheme;
+    }
+    
+    return "light"; // default fallback
+  });
   const [notifications, setNotifications] = useState(
     dashboardData?.user.preferences?.notifications || true
   );
@@ -80,9 +87,6 @@ export default function SettingsView() {
                       alt="Avatar" 
                       className="w-full h-full rounded-full object-cover"
                     />
-                    <Button size="sm" variant="outline" className="absolute -bottom-2 -right-2 h-8 w-8 p-0 rounded-full">
-                      <User size={14} />
-                    </Button>
                   </div>
                   
                   <div className="flex-1 space-y-4">
@@ -182,7 +186,7 @@ export default function SettingsView() {
         <TabsContent value="notifications">
           <Card>
             <CardHeader>
-              <CardTitle>Cài đặt thông báo</CardTitle>
+              <h3>Cài đặt thông báo</h3>
               <CardDescription>
                 Quản lý các loại thông báo bạn muốn nhận
               </CardDescription>
@@ -191,7 +195,7 @@ export default function SettingsView() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="font-medium">Email</h4>
+                    <h6 className="font-medium">Email</h6>
                     <p className="text-sm text-gray-500">Nhận thông báo qua email</p>
                   </div>
                   <Switch checked={emailNotifications} onCheckedChange={setEmailNotifications} />
@@ -199,7 +203,7 @@ export default function SettingsView() {
                 
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="font-medium">Thông báo đẩy</h4>
+                    <h6 className="font-medium">Thông báo đẩy</h6>
                     <p className="text-sm text-gray-500">Nhận thông báo trên trình duyệt và thiết bị di động</p>
                   </div>
                   <Switch checked={pushNotifications} onCheckedChange={setPushNotifications} />
@@ -207,12 +211,10 @@ export default function SettingsView() {
               </div>
               
               <div className="border-t pt-6">
-                <h4 className="font-medium mb-4">Loại thông báo</h4>
-                
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-medium">Cảnh báo tiêu thụ cao</h4>
+                      <h6 className="font-medium">Cảnh báo tiêu thụ cao</h6>
                       <p className="text-sm text-gray-500">Khi mức tiêu thụ vượt quá ngưỡng đã đặt</p>
                     </div>
                     <Switch checked={highUsageAlerts} onCheckedChange={setHighUsageAlerts} />
@@ -220,7 +222,7 @@ export default function SettingsView() {
                   
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-medium">Trạng thái thiết bị</h4>
+                      <h6 className="font-medium">Trạng thái thiết bị</h6>
                       <p className="text-sm text-gray-500">Khi thiết bị thay đổi trạng thái</p>
                     </div>
                     <Switch checked={deviceStatusAlerts} onCheckedChange={setDeviceStatusAlerts} />
@@ -228,7 +230,7 @@ export default function SettingsView() {
                   
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-medium">Báo cáo hàng tuần</h4>
+                      <h6 className="font-medium">Báo cáo hàng tuần</h6>
                       <p className="text-sm text-gray-500">Tóm tắt tiêu thụ điện hàng tuần</p>
                     </div>
                     <Switch checked={weeklyReports} onCheckedChange={setWeeklyReports} />
@@ -236,7 +238,7 @@ export default function SettingsView() {
                   
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-medium">Báo cáo hàng tháng</h4>
+                      <h6 className="font-medium">Báo cáo hàng tháng</h6>
                       <p className="text-sm text-gray-500">Báo cáo chi tiết hàng tháng về tiêu thụ điện</p>
                     </div>
                     <Switch checked={monthlyReports} onCheckedChange={setMonthlyReports} />
@@ -346,7 +348,7 @@ export default function SettingsView() {
                     {dashboardData?.user.subscription?.plan || "Free"}
                   </h3>
                   <p className="text-sm text-gray-600 mt-1">
-                    Hiệu lực đến: {dashboardData?.user.subscription?.validUntil.toLocaleDateString('vi-VN')}
+                    Hiệu lực đến: {dashboardData?.user.subscription?.validUntil}
                   </p>
                   <ul className="mt-3 space-y-1 text-sm">
                     <li className="flex items-center">

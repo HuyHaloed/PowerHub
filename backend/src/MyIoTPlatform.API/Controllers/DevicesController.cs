@@ -1,8 +1,11 @@
+using System;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyIoTPlatform.API.Models;
 using MyIoTPlatform.API.Services;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
+
 namespace MyIoTPlatform.API.Controllers
 {
     [ApiController]
@@ -20,22 +23,40 @@ namespace MyIoTPlatform.API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllDevices(string status = null, string location = null, string type = null, string search = null)
         {
-            var devices = await _mongoDbService.GetAllDevicesAsync(status, location, type, search);
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { message = "User not authenticated" });
+            }
+
+            var devices = await _mongoDbService.GetDevicesByUserIdAsync(userId, status, location, type, search);
             return Ok(devices);
         }
 
         [HttpGet("active")]
         public async Task<IActionResult> GetActiveDevices()
         {
-            var devices = await _mongoDbService.GetActiveDevicesAsync();
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { message = "User not authenticated" });
+            }
+
+            var devices = await _mongoDbService.GetActiveDevicesByUserIdAsync(userId);
             return Ok(devices);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetDeviceDetails(string id)
         {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { message = "User not authenticated" });
+            }
+
             var device = await _mongoDbService.GetDeviceByIdAsync(id);
-            if (device == null)
+            if (device == null || device.UserId != userId)
                 return NotFound($"Device with ID {id} not found.");
 
             return Ok(device);
@@ -44,8 +65,14 @@ namespace MyIoTPlatform.API.Controllers
         [HttpPut("{id}/control")]
         public async Task<IActionResult> ControlDevice(string id, [FromBody] ControlDeviceRequest request)
         {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { message = "User not authenticated" });
+            }
+
             var device = await _mongoDbService.GetDeviceByIdAsync(id);
-            if (device == null)
+            if (device == null || device.UserId != userId)
                 return NotFound($"Device with ID {id} not found.");
 
             var updatedDevice = await _mongoDbService.ControlDeviceAsync(id, request.Status);
@@ -62,8 +89,7 @@ namespace MyIoTPlatform.API.Controllers
         [HttpPost]
         public async Task<IActionResult> AddNewDevice([FromBody] AddDeviceRequest request)
         {
-            // Lấy ID của người dùng hiện tại từ token
-            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
             {
                 return Unauthorized(new { message = "User not authenticated" });
@@ -76,8 +102,8 @@ namespace MyIoTPlatform.API.Controllers
                 Location = request.Location,
                 Status = "off",
                 Consumption = 0,
-                LastUpdated = DateTime.UtcNow.ToString("yyyy-MM-dd"),
-                UserId = userId, // Thêm userId vào thiết bị
+                LastUpdated = DateTime.UtcNow,
+                UserId = userId,
                 Properties = request.Properties != null ? new DeviceProperties
                 {
                     Brand = request.Properties.Brand,
@@ -85,7 +111,7 @@ namespace MyIoTPlatform.API.Controllers
                     SerialNumber = request.Properties.SerialNumber,
                     PowerRating = request.Properties.PowerRating,
                     InstallDate = DateTime.UtcNow.ToString("yyyy-MM-dd")
-                } : null
+                } : new DeviceProperties()
             };
 
             await _mongoDbService.CreateDeviceAsync(device);
@@ -104,8 +130,14 @@ namespace MyIoTPlatform.API.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateDevice(string id, [FromBody] UpdateDeviceRequest request)
         {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { message = "User not authenticated" });
+            }
+
             var device = await _mongoDbService.GetDeviceByIdAsync(id);
-            if (device == null)
+            if (device == null || device.UserId != userId)
                 return NotFound($"Device with ID {id} not found.");
 
             device.Name = request.Name;
@@ -137,8 +169,14 @@ namespace MyIoTPlatform.API.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteDevice(string id)
         {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { message = "User not authenticated" });
+            }
+
             var device = await _mongoDbService.GetDeviceByIdAsync(id);
-            if (device == null)
+            if (device == null || device.UserId != userId)
                 return NotFound($"Device with ID {id} not found.");
 
             await _mongoDbService.DeleteDeviceAsync(id);

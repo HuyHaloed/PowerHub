@@ -11,6 +11,7 @@ import { Bell } from 'lucide-react';
 import DevicesView from '@/pages/Customer/Dashboard/DevicesView';
 import AnalyticsView from '@/pages/Customer/Dashboard/AnalyticsView';
 import SettingsView from '@/pages/Customer/Dashboard/SettingsView';
+import { Stat, Device } from '@/types/dashboard.types';
 
 // Custom Alert Component remains the same
 const CustomAlert = ({ 
@@ -51,9 +52,9 @@ type LayoutContextType = {
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = React.useState("dashboard");
-  const { data: dashboardData, isLoading, error } = useDashboardData();
-  const activeDevices = useActiveDevices();
-  const quickStats = useQuickStats();
+  const { data: dashboardData, isLoading: isDashboardLoading, error: dashboardError } = useDashboardData();
+  const { data: activeDevicesData, isLoading: isActiveDevicesLoading } = useActiveDevices();
+  const { data: quickStatsData, isLoading: isQuickStatsLoading } = useQuickStats();
   
   // Get layout context from parent
   const { isMobile, isSidebarOpen, setSidebarOpen } = useOutletContext<LayoutContextType>();
@@ -75,11 +76,11 @@ export default function Dashboard() {
   };
   
   const renderDashboard = () => {
-    if (isLoading) {
+    if (isDashboardLoading || isQuickStatsLoading) {
       return <div className="p-8 text-center">Đang tải dữ liệu...</div>;
     }
     
-    if (error || !dashboardData) {
+    if (dashboardError || !dashboardData) {
       return (
         <CustomAlert 
           title="Lỗi" 
@@ -96,7 +97,7 @@ export default function Dashboard() {
       <div className="p-6">
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          {quickStats.map((stat) => (
+          {quickStatsData?.map((stat: Stat) => (
             <QuickStatCard key={stat.id} stat={stat} />
           ))}
         </div>
@@ -139,8 +140,8 @@ export default function Dashboard() {
           <div>
             <h2 className="text-lg font-medium mb-3">Thiết bị đang hoạt động</h2>
             <div className="space-y-4">
-              {activeDevices.length > 0 ? (
-                activeDevices.slice(0, 3).map((device) => (
+              {activeDevicesData && activeDevicesData.length > 0 ? (
+                activeDevicesData.slice(0, 3).map((device: Device) => (
                   <DeviceStatusCard key={device.id} device={device} />
                 ))
               ) : (
@@ -151,8 +152,8 @@ export default function Dashboard() {
         </div>
       </div>
     );
-  };
-  
+  };  
+
   return (
     <>
       {/* Sidebar */}

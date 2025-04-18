@@ -1,114 +1,257 @@
 import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { dashboardData } from '@/data/dashboardIOT';
-import { DashboardData } from '@/types/dashboard.types';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { DashboardData, Alert, Device, EnergyConsumption } from '@/types/dashboard.types';
 import authorizedAxiosInstance from '@/lib/axios';
 import { useAccount } from '@/hooks/useAccount';
 
-// Hàm lấy dữ liệu từ API
+// Fetch dashboard data from API
 const fetchDashboardData = async (): Promise<DashboardData> => {
-  try {
-    // Gọi API
-    const response = await authorizedAxiosInstance.get<{ result: DashboardData }>('/api/dashboard');
-    return response.data.result;
-  } catch (error) {
-    console.log('Error fetching dashboard data, using mock data', error);
-    // Nếu có lỗi, sử dụng dữ liệu mẫu
-    return dashboardData;
-  }
+  const response = await authorizedAxiosInstance.get('/dashboard');
+  return response.data;
 };
 
-// Hook chính để lấy dữ liệu Dashboard
+// Hook for dashboard data
 export const useDashboardData = () => {
   const { data: user } = useAccount();
   
-  // Sử dụng React Query để quản lý và cache dữ liệu
   return useQuery({
     queryKey: ['dashboard', user?.id],
     queryFn: fetchDashboardData,
-    initialData: dashboardData,
-    enabled: !!user?.id, // Chỉ gọi API khi đã có user
-    refetchInterval: 60000, // Tự động cập nhật mỗi phút
-    refetchOnWindowFocus: true, // Cập nhật khi focus lại tab
-    retry: 1, // Thử lại 1 lần nếu có lỗi
-    staleTime: 30000, // Dữ liệu được coi là "stale" sau 30 giây
+    enabled: !!user?.id,
+    refetchInterval: 60000, // Refresh every minute
+    refetchOnWindowFocus: true,
+    retry: 1,
+    staleTime: 30000,
   });
 };
 
-// Hook để lấy dữ liệu năng lượng theo loại thời gian
-export const useEnergyData = (timeRange: 'day' | 'week' | 'month' | 'year' = 'day') => {
-  const { data } = useDashboardData();
-  
-  if (!data) return [];
-  
-  switch (timeRange) {
-    case 'day':
-      return data.dailyEnergyData;
-    case 'week':
-      return data.weeklyEnergyData;
-    case 'month':
-      return data.monthlyEnergyData;
-    case 'year':
-      return data.yearlyEnergyData;
-    default:
-      return data.dailyEnergyData;
+// Fetch energy data by time range
+const fetchEnergyData = async (timeRange: string, startDate?: Date, endDate?: Date): Promise<EnergyConsumption[]> => {
+  try {
+    const params = new URLSearchParams();
+    params.append('timeRange', timeRange);
+    if (startDate) params.append('startDate', startDate.toISOString());
+    if (endDate) params.append('endDate', endDate.toISOString());
+    
+    const response = await authorizedAxiosInstance.get(`/energy/consumption?${params.toString()}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching energy data', error);
+    throw error; // Rethrow to let the caller handle the error
   }
 };
 
-// Hook để lấy danh sách thiết bị
-export const useDevices = () => {
-  const { data } = useDashboardData();
-  return data?.devices || [];
+// Hook for energy data
+export const useEnergyData = (timeRange: 'day' | 'week' | 'month' | 'year' = 'day', startDate?: Date, endDate?: Date) => {
+  const { data: user } = useAccount();
+  
+  return useQuery({
+    queryKey: ['energyData', user?.id, timeRange, startDate, endDate],
+    queryFn: () => fetchEnergyData(timeRange, startDate, endDate),
+    enabled: !!user?.id,
+    staleTime: 60000,
+  });
 };
 
-// Hook để lấy danh sách thiết bị đang hoạt động
-export const useActiveDevices = () => {
-  const devices = useDevices();
-  return devices.filter((device: { status: string }) => device.status === 'on');};
+// Fetch energy distribution data
+const fetchEnergyDistribution = async (): Promise<any[]> => {
+  try {
+    const response = await authorizedAxiosInstance.get('/energy/distribution');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching energy distribution', error);
+    throw error;
+  }
+};
 
-// Hook để lấy phân phối năng lượng
+// Hook for energy distribution
 export const useEnergyDistribution = () => {
-  const { data } = useDashboardData();
-  return data?.energyDistribution || [];
-};
-
-// Hook để lấy danh sách cảnh báo
-export const useAlerts = () => {
-  const { data } = useDashboardData();
-  return data?.alerts || [];
-};
-
-// Hook để lấy danh sách cảnh báo chưa đọc
-export const useUnreadAlerts = () => {
-  const alerts = useAlerts();
-  return alerts.filter((alert: { read: boolean }) => !alert.read);};
-
-// Hook để lấy thống kê nhanh
-export const useQuickStats = () => {
-  const { data } = useDashboardData();
-  return data?.quickStats || [];
-};
-
-// Hook để cập nhật trạng thái thiết bị
-export const useDeviceControl = () => {
-  const { data, refetch } = useDashboardData();
-  const [loading, setLoading] = useState<Record<number, boolean>>({});
+  const { data: user } = useAccount();
   
-  const toggleDevice = async (deviceId: number, newStatus: "on" | "off") => {
-    setLoading(prev => ({ ...prev, [deviceId]: true }));
+  return useQuery({
+    queryKey: ['energyDistribution', user?.id],
+    queryFn: fetchEnergyDistribution,
+    enabled: !!user?.id,
+    staleTime: 300000, // 5 minutes
+  });
+};
+
+// Fetch devices
+const fetchDevices = async (filters: { status?: string; location?: string; type?: string; search?: string } = {}): Promise<Device[]> => {
+  try {
+    const params = new URLSearchParams();
+    if (filters.status && filters.status !== 'all') params.append('status', filters.status);
+    if (filters.location) params.append('location', filters.location);
+    if (filters.type) params.append('type', filters.type);
+    if (filters.search) params.append('search', filters.search);
     
-    try {
-      await authorizedAxiosInstance.post(`/api/devices/${deviceId}/toggle`, {
-        status: newStatus
-      });
-      
-      await refetch();
-    } catch (error) {
-      console.error('Error toggling device', error);
-    } finally {
-      setLoading(prev => ({ ...prev, [deviceId]: false }));
-    }
-  };
+    const response = await authorizedAxiosInstance.get(`/devices?${params.toString()}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching devices', error);
+    throw error;
+  }
+};
+
+// Hook for devices
+export const useDevices = (filters: { status?: string; location?: string; type?: string; search?: string } = {}) => {
+  const { data: user } = useAccount();
   
-  return { toggleDevice, loading };
+  const result = useQuery({
+    queryKey: ['devices', user?.id, filters],
+    queryFn: () => fetchDevices(filters),
+    enabled: !!user?.id,
+  });
+  
+  return {
+    devices: result.data || [],
+    isLoading: result.isLoading,
+    error: result.error,
+    fetchDevices: () => result.refetch()
+  };
+};
+
+// Hook for active devices
+export const useActiveDevices = () => {
+  const { data: user } = useAccount();
+  
+  return useQuery({
+    queryKey: ['activeDevices', user?.id],
+    queryFn: () => authorizedAxiosInstance.get('/devices/active').then(res => res.data),
+    enabled: !!user?.id,
+    staleTime: 30000, // 30 seconds
+  });
+};
+
+// Toggle device status mutation
+export const useDeviceControl = () => {
+  const queryClient = useQueryClient();
+  
+  const mutation = useMutation({
+    mutationFn: async ({ deviceId, status }: { deviceId: number | string, status: "on" | "off" }) => {
+      return authorizedAxiosInstance.put(`/devices/${deviceId}/control`, { status });
+    },
+    onSuccess: () => {
+      // Invalidate and refetch queries that depend on this data
+      queryClient.invalidateQueries({ queryKey: ['devices'] });
+      queryClient.invalidateQueries({ queryKey: ['activeDevices'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+    },
+  });
+  
+  return { 
+    toggleDevice: (deviceId: number, newStatus: "on" | "off") => mutation.mutate({ deviceId, status: newStatus }),
+    loading: mutation.isPending 
+  };
+};
+
+// Fetch alerts
+const fetchAlerts = async (unreadOnly = false): Promise<Alert[]> => {
+  try {
+    const endpoint = unreadOnly ? '/dashboard/alerts/unread' : '/dashboard/alerts';
+    const response = await authorizedAxiosInstance.get(endpoint);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching alerts', error);
+    throw error;
+  }
+};
+
+// Hook for alerts
+export const useAlerts = (unreadOnly = false) => {
+  const { data: user } = useAccount();
+  
+  return useQuery({
+    queryKey: ['alerts', user?.id, unreadOnly],
+    queryFn: () => fetchAlerts(unreadOnly),
+    enabled: !!user?.id,
+    staleTime: 30000, // 30 seconds
+  });
+};
+
+// Hook for unread alerts
+export const useUnreadAlerts = () => {
+  return useAlerts(true);
+};
+
+// Fetch quick stats
+const fetchQuickStats = async () => {
+  try {
+    const response = await authorizedAxiosInstance.get('/dashboard/quick-stats');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching quick stats', error);
+    throw error;
+  }
+};
+
+// Hook for quick stats
+export const useQuickStats = () => {
+  const { data: user } = useAccount();
+  
+  return useQuery({
+    queryKey: ['quickStats', user?.id],
+    queryFn: fetchQuickStats,
+    enabled: !!user?.id,
+    staleTime: 60000, // 1 minute
+  });
+};
+
+// Analytics data fetching
+export const useAnalyticsData = (timeRange: string, startDate?: Date, endDate?: Date) => {
+  const { data: user } = useAccount();
+  
+  return useQuery({
+    queryKey: ['analytics', user?.id, timeRange, startDate, endDate],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      params.append('timeRange', timeRange);
+      if (startDate) params.append('startDate', startDate.toISOString());
+      if (endDate) params.append('endDate', endDate.toISOString());
+      
+      const response = await authorizedAxiosInstance.get(`/analytics?${params.toString()}`);
+      return response.data;
+    },
+    enabled: !!user?.id,
+    staleTime: 300000, // 5 minutes
+  });
+};
+
+// Compare energy usage
+export const useEnergyComparison = (timeRange: string, startDate?: Date, endDate?: Date) => {
+  const { data: user } = useAccount();
+  
+  return useQuery({
+    queryKey: ['energyComparison', user?.id, timeRange, startDate, endDate],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      params.append('timeRange', timeRange);
+      if (startDate) params.append('startDate', startDate.toISOString());
+      if (endDate) params.append('endDate', endDate.toISOString());
+      
+      const response = await authorizedAxiosInstance.get(`/energy/compare?${params.toString()}`);
+      return response.data;
+    },
+    enabled: !!user?.id,
+    staleTime: 300000, // 5 minutes
+  });
+};
+
+// Energy predictions
+export const useEnergyPredictions = (timeRange: string, periods: number = 4) => {
+  const { data: user } = useAccount();
+  
+  return useQuery({
+    queryKey: ['energyPredictions', user?.id, timeRange, periods],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      params.append('timeRange', timeRange);
+      params.append('periods', periods.toString());
+      
+      const response = await authorizedAxiosInstance.get(`/energy/predictions?${params.toString()}`);
+      return response.data;
+    },
+    enabled: !!user?.id,
+    staleTime: 300000, // 5 minutes
+  });
 };
