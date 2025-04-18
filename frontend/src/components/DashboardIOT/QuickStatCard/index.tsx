@@ -31,10 +31,7 @@ export default function QuickStatCard({ stat }: QuickStatCardProps) {
             </div>
           )}
         </div>
-        
-        <div className="bg-blue-50 p-2 rounded-full">
-          {stat.icon}
-        </div>
+      
       </div>
     </Card>
   );

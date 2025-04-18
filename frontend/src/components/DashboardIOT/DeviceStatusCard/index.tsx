@@ -45,10 +45,9 @@ const DeviceStatusCard: React.FC<DeviceStatusCardProps> = ({
   const handleToggle = () => {
     if (onToggle && !isToggling) {
       const newStatus = device.status === 'on' ? 'off' : 'on';
-      onToggle(device.id, newStatus);
+      onToggle(Number(device.id), newStatus);
     }
-  };
-  
+  };  
   // Format consumption
   const formatConsumption = (value: number): string => {
     if (value === 0) return '0 W';

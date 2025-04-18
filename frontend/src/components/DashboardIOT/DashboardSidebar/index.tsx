@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import  {Link} from "react-router-dom";
 import logo from "@/assets/logo.png";
 import { motion } from "framer-motion";
+import { toast } from "react-toastify";
 import {
   LayoutDashboard,
   Zap,
@@ -18,6 +19,7 @@ import {
   Bell
 } from "lucide-react";
 import { useUnreadAlerts } from "@/hooks/useDashboardIOTData";
+import { Alert } from "@/types/dashboard.types";
 
 interface DashboardSidebarProps {
   activeTab: string;
@@ -36,7 +38,7 @@ export default function DashboardSidebar({
 }: DashboardSidebarProps) {
   const { data: user } = useAccount();
   const navigate = useNavigate();
-  const unreadAlerts = useUnreadAlerts();
+  const { data: unreadAlertsData = [] } = useUnreadAlerts();
   
   // Close sidebar when changing tab on mobile
   const handleTabChange = (tab: string) => {
@@ -46,6 +48,11 @@ export default function DashboardSidebar({
     }
   };
   
+  const handleLogout = () => {
+      sessionStorage.removeItem("auth_token");
+      toast.success("Đăng xuất thành công");
+      navigate("/");
+    };
   // Close sidebar when clicking outside on mobile
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -129,9 +136,9 @@ export default function DashboardSidebar({
               >
                 <span className="mr-2">{item.icon}</span>
                 {item.title}
-                {item.tab === "dashboard" && unreadAlerts.length > 0 && (
+                {item.tab === "dashboard" && unreadAlertsData.length > 0 && (
                   <span className="ml-auto bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                    {unreadAlerts.length}
+                    {unreadAlertsData.length}
                   </span>
                 )}
               </Button>
@@ -148,9 +155,9 @@ export default function DashboardSidebar({
             <Button variant="ghost" className="w-full justify-start">
               <Bell size={18} className="mr-2" />
               Thông báo
-              {unreadAlerts.length > 0 && (
+              {unreadAlertsData.length > 0 && (
                 <span className="ml-auto bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  {unreadAlerts.length}
+                  {unreadAlertsData.length}
                 </span>
               )}
             </Button>
@@ -175,10 +182,9 @@ export default function DashboardSidebar({
               <p className="text-xs text-gray-500">{user?.email || "user@example.com"}</p>
             </div>
           </div>
-          <Button variant="outline" className="w-full justify-start text-red-500 hover:text-red-700 hover:bg-red-50">
-            <LogOut size={18} className="mr-2" />
-            Đăng xuất
-          </Button>
+            <Button variant="outline" className="w-full justify-start text-red-500 hover:text-red-700 hover:bg-red-50" onClick={handleLogout}>
+              Đăng xuất
+            </Button>
         </div>
       </div>
     </>

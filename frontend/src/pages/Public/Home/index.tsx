@@ -37,7 +37,7 @@ export default function HomePage() {
             sử dụng điện một cách hợp lý.
           </p>
           <div className="mt-5 flex items-center gap-5">
-            <Link to="/sign-in">
+            <Link to={sessionStorage.getItem("auth_token") ? "/dashboardIOT" : "/sign-in"}>
               <Button variant="secondary" size="lg">
                 Dashboard của tôi
               </Button>
@@ -104,7 +104,7 @@ export default function HomePage() {
           <p className="text-dark-100 mb-8 max-w-2xl mx-auto">
             Nếu bạn đang cần một phương pháp thông minh cho ngôi nhà của bạn
           </p>
-          <Link to="/dashboardIOT">
+          <Link to={sessionStorage.getItem("auth_token") ? "/dashboardIOT" : "/sign-in"}>
             <Button variant="secondary" size="lg" className="font-semibold">
               Dashboard của tôi
             </Button>

@@ -1,63 +1,60 @@
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { useEnergyDistribution } from "@/hooks/useDashboardIOTData";
+import { useEnergyDistribution } from '@/hooks/useDashboardIOTData';
+import { EnergyDistribution } from '@/types/dashboard.types';
 
-export default function EnergyDistributionChart() {
-  const data = useEnergyDistribution();
-  
-  // Custom legend renderer to add percentage
-  const renderCustomizedLegend = (props: any) => {
-    const { payload } = props;
-    
-    return (
-      <ul className="flex flex-wrap justify-center mt-4 gap-4">
-        {payload.map((entry: any, index: number) => (
-          <li key={`item-${index}`} className="flex items-center">
-            <div
-              className="h-3 w-3 mr-2 rounded-full"
-              style={{ backgroundColor: entry.color }}
-            />
-            <span className="text-xs">{entry.value} ({entry.payload.value}%)</span>
-          </li>
-        ))}
-      </ul>
-    );
-  };
+const EnergyDistributionChart: React.FC = () => {
+  const { data: energyDistributionData = [] } = useEnergyDistribution();
+
+  // Ensure data is an array and map it to the format recharts expects
+  const chartData = Array.isArray(energyDistributionData) 
+    ? energyDistributionData.map((item: EnergyDistribution) => ({
+        name: item.name,
+        value: item.value,
+        color: item.color
+      }))
+    : [];
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="text-md font-medium">
-          Phân phối tiêu thụ điện
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={data}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-                nameKey="name"
-              >
-                {data.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip
-                formatter={(value) => [`${value}%`, 'Tỷ lệ sử dụng']}
-              />
-              <Legend content={renderCustomizedLegend} />
-            </PieChart>
-          </ResponsiveContainer>
+    <div className="bg-white rounded-lg shadow-md p-4">
+      <h2 className="text-lg font-semibold mb-4">Phân phối năng lượng</h2>
+      {chartData.length > 0 ? (
+        <ResponsiveContainer width="100%" height={300}>
+          <PieChart>
+            <Pie
+              data={chartData}
+              cx="50%"
+              cy="50%"
+              labelLine={false}
+              outerRadius={80}
+              fill="#8884d8"
+              dataKey="value"
+              label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+            >
+              {chartData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color || `hsl(${index * 360 / chartData.length}, 70%, 50%)`} />
+              ))}
+            </Pie>
+            <Tooltip 
+              formatter={(value, name) => [
+                `${value.toLocaleString()} kWh`, 
+                name
+              ]}
+            />
+            <Legend 
+              layout="horizontal" 
+              verticalAlign="bottom" 
+              align="center"
+            />
+          </PieChart>
+        </ResponsiveContainer>
+      ) : (
+        <div className="text-center text-gray-500 py-8">
+          Không có dữ liệu phân phối năng lượng
         </div>
-      </CardContent>
-    </Card>
+      )}
+    </div>
   );
-}
+};
+
+export default EnergyDistributionChart;

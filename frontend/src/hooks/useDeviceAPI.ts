@@ -29,7 +29,7 @@ export function useDevices() {
       
       const url = `${API_URL}/devices${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
       
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('auth_token');
       const response = await fetch(url, {
         headers: {
           'Authorization': token ? `Bearer ${token}` : '',
@@ -73,7 +73,7 @@ export function useDeviceControl() {
     setIsLoading(true);
     try {
       const url = `${API_URL}/devices/${deviceId}/control`;
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('auth_token');
       
       const response = await fetch(url, {
         method: 'PUT',
@@ -123,76 +123,148 @@ export function useActiveDevices() {
 function getMockDevices(): Device[] {
   return [
     {
-      id: 1, 
-      name: "Đèn phòng khách", 
-      type: "Light", 
-      location: "Phòng khách", 
-      status: "on", 
+      id: "1",
+      name: "Đèn phòng khách",
+      type: "Light",
+      location: "Phòng khách",
+      status: "on",
       consumption: 15,
-      lastUpdated: "2023-11-20"
+      lastUpdated: "2023-11-20",
+      userId: '',
+      properties: {
+        brand: '',
+        model: '',
+        serialNumber: '',
+        installDate: '',
+        powerRating: 0
+      },
+      history: []
     },
     {
-      id: 2, 
+      id: "2", 
       name: "Điều hòa phòng ngủ", 
       type: "AC", 
       location: "Phòng ngủ", 
       status: "off", 
       consumption: 0,
-      lastUpdated: "2023-11-20"
+      lastUpdated: "2023-11-20",
+      userId: '',
+      properties: {
+        brand: '',
+        model: '',
+        serialNumber: '',
+        installDate: '',
+        powerRating: 0
+      },
+      history: []
     },
     {
-      id: 3, 
+      id: "3", 
       name: "TV phòng khách", 
       type: "Entertainment", 
       location: "Phòng khách", 
       status: "off", 
       consumption: 0,
-      lastUpdated: "2023-11-20"
+      lastUpdated: "2023-11-20",
+      userId: '',
+      properties: {
+        brand: '',
+        model: '',
+        serialNumber: '',
+        installDate: '',
+        powerRating: 0
+      },
+      history: []
     },
     {
-      id: 4, 
+      id: "4", 
       name: "Đèn bếp", 
       type: "Light", 
       location: "Nhà bếp", 
       status: "on", 
       consumption: 10,
-      lastUpdated: "2023-11-20"
+      lastUpdated: "2023-11-20",
+      userId: '',
+      properties: {
+        brand: '',
+        model: '',
+        serialNumber: '',
+        installDate: '',
+        powerRating: 0
+      },
+      history: []
     },
     {
-      id: 5, 
+      id: "5", 
       name: "Tủ lạnh", 
       type: "Appliance", 
       location: "Nhà bếp", 
       status: "on", 
       consumption: 50,
-      lastUpdated: "2023-11-20"
+      lastUpdated: "2023-11-20",
+      userId: '',
+      properties: {
+        brand: '',
+        model: '',
+        serialNumber: '',
+        installDate: '',
+        powerRating: 0
+      },
+      history: []
     },
     {
-      id: 6, 
+      id: "6", 
       name: "Máy giặt", 
       type: "Appliance", 
       location: "Phòng giặt", 
       status: "off", 
       consumption: 0,
-      lastUpdated: "2023-11-20"
+      lastUpdated: "2023-11-20",
+      userId: '',
+      properties: {
+        brand: '',
+        model: '',
+        serialNumber: '',
+        installDate: '',
+        powerRating: 0
+      },
+      history: []
     },
     {
-      id: 7, 
+      id: "7", 
       name: "Bếp điện", 
       type: "Appliance", 
       location: "Nhà bếp", 
       status: "off", 
       consumption: 0,
-      lastUpdated: "2023-11-20"
+      lastUpdated: "2023-11-20",
+      userId: '',
+      properties: {
+        brand: '',
+        model: '',
+        serialNumber: '',
+        installDate: '',
+        powerRating: 0
+      },
+      history: []
     },
     {
-      id: 8, 
+      id: "8", 
       name: "Đèn phòng ngủ", 
       type: "Light", 
       location: "Phòng ngủ", 
       status: "off", 
       consumption: 0,
-      lastUpdated: "2023-11-20"
+      lastUpdated: "2023-11-20",
+      userId: '',
+      properties: {
+        brand: '',
+        model: '',
+        serialNumber: '',
+        installDate: '',
+        powerRating: 0
+      },
+      history: []
     }
   ];
 }

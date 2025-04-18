@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,6 +11,7 @@ import { vi } from "date-fns/locale";
 import { CalendarIcon, Download, TrendingUp, TrendingDown, Zap } from "lucide-react";
 import { ResponsiveContainer, LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell } from 'recharts';
 import { useEnergyData, useEnergyDistribution } from '@/hooks/useDashboardIOTData';
+import { EnergyConsumption, EnergyDistribution } from '@/types/dashboard.types';
 
 export default function AnalyticsView() {
   // States for date range selection
@@ -20,23 +22,26 @@ export default function AnalyticsView() {
   const [timeRange, setTimeRange] = useState<'day' | 'week' | 'month' | 'year'>('month');
   
   // Get energy data based on selected time range
-  const energyData = useEnergyData(timeRange);
-  const energyDistribution = useEnergyDistribution();
+  const { data: energyData = [] } = useEnergyData(timeRange);
+  const { data: energyDistribution = [] } = useEnergyDistribution();
   
   // Comparison data (simulated)
   const comparisonValue = timeRange === 'day' ? 5 : timeRange === 'week' ? 12 : timeRange === 'month' ? 8 : 15;
   const isIncrease = comparisonValue > 0;
   
   // Calculate some statistics
-  const totalConsumption = energyData.reduce((sum, item) => sum + item.value, 0);
-  const avgConsumption = totalConsumption / energyData.length;
-  const peakConsumption = Math.max(...energyData.map(item => item.value));
-  const lowestConsumption = Math.min(...energyData.map(item => item.value));
+  const totalConsumption = energyData.reduce((sum, item: EnergyConsumption) => sum + item.value, 0);
+  const avgConsumption = energyData.length > 0 ? totalConsumption / energyData.length : 0;
+  const peakConsumption = energyData.length > 0 
+    ? Math.max(...energyData.map((item: EnergyConsumption) => item.value)) 
+    : 0;
+  const lowestConsumption = energyData.length > 0 
+    ? Math.min(...energyData.map((item: EnergyConsumption) => item.value)) 
+    : 0;
   
   // Cost calculation (simplified)
   const costPerKwh = 3500; // 3,500 VND per kWh
   const estimatedCost = totalConsumption * costPerKwh;
-  
   // Format date for display
   const formatDateDisplay = (date: Date | undefined) => {
     if (!date) return "";
@@ -248,11 +253,10 @@ export default function AnalyticsView() {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={energyData.map(item => ({
-                      name: item.name,
+                      name: item.deviceName,
                       'Kỳ này': item.value,
                       'Kỳ trước': item.value * (1 - comparisonValue / 100)
                     }))}
-                    margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                     <XAxis dataKey="name" />

@@ -1,126 +1,175 @@
-using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using MyIoTPlatform.API.Models;
+using MyIoTPlatform.API.Services;
 
 namespace MyIoTPlatform.API.Controllers
 {
-    /// <summary>
-    /// Handles operations related to user subscriptions.
-    /// </summary>
     [ApiController]
     [Route("api/subscription")]
+    [Authorize]
     public class SubscriptionController : ControllerBase
     {
-        /// <summary>
-        /// Retrieves the details of the user's current subscription.
-        /// </summary>
-        /// <returns>Subscription details including plan, validity, features, and payment history.</returns>
-        [HttpGet]
-        public IActionResult GetSubscriptionDetails()
+        private readonly UserService _userService;
+        
+        public SubscriptionController(UserService userService)
         {
-            // TODO: Implement logic to retrieve subscription details
+            _userService = userService;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetSubscriptionDetails()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { message = "User not authenticated" });
+            }
+            
+            var user = await _userService.GetUserByIdAsync(userId);
+            if (user == null)
+            {
+                return NotFound(new { message = "User not found" });
+            }
+            
             return Ok(new
             {
-                plan = "Premium",
-                validUntil = "2024-12-31",
-                features = new List<string> { "Unlimited Devices", "Advanced Analytics" },
-                price = 99.99,
-                billingCycle = "Monthly",
-                paymentMethod = new
-                {
-                    type = "Credit Card",
-                    lastFour = "1234",
-                    expiryDate = "12/24"
-                },
-                history = new List<object>
-                {
-                    new { date = "2023-10-20", amount = 99.99, status = "Paid" }
-                }
+                plan = user.Subscription.Plan,
+                validUntil = user.Subscription.ValidUntil,
+                features = GetPlanFeatures(user.Subscription.Plan),
+                price = GetPlanPrice(user.Subscription.Plan),
+                billingCycle = "Monthly", // This could be retrieved from user data
+                paymentMethod = user.Subscription.PaymentMethod,
+                history = user.Subscription.PaymentHistory
             });
         }
 
-        /// <summary>
-        /// Upgrades the user's subscription to a new plan.
-        /// </summary>
-        /// <param name="request">The request containing the new plan and payment method details.</param>
-        /// <returns>A success message if the subscription is upgraded successfully.</returns>
         [HttpPost("upgrade")]
-        public IActionResult UpgradeSubscription([FromBody] UpgradeSubscriptionRequest request)
+        public async Task<IActionResult> UpgradeSubscription([FromBody] UpgradeSubscriptionRequest request)
         {
-            // TODO: Implement logic to upgrade subscription
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { message = "User not authenticated" });
+            }
+            
+            var user = await _userService.GetUserByIdAsync(userId);
+            if (user == null)
+            {
+                return NotFound(new { message = "User not found" });
+            }
+            
+            // Update subscription
+            user.Subscription.Plan = request.Plan;
+            user.Subscription.ValidUntil = DateTime.UtcNow.AddYears(1);
+            
+            // Add payment history
+            var payment = new PaymentHistory
+            {
+                Date = DateTime.UtcNow,
+                Amount = GetPlanPrice(request.Plan),
+                Description = $"Upgrade to {request.Plan} plan",
+                Status = "Paid"
+            };
+            
+            user.Subscription.PaymentHistory.Add(payment);
+            
+            await _userService.UpdateUserSubscriptionAsync(userId, user.Subscription);
+            
             return Ok(new { message = "Subscription upgraded successfully." });
         }
 
-        /// <summary>
-        /// Adds a new payment method for the user.
-        /// </summary>
-        /// <param name="request">The request containing payment method details.</param>
-        /// <returns>A success message if the payment method is added successfully.</returns>
         [HttpPost("payment-methods")]
-        public IActionResult AddPaymentMethod([FromBody] AddPaymentMethodRequest request)
+        public async Task<IActionResult> AddPaymentMethod([FromBody] AddPaymentMethodRequest request)
         {
-            // TODO: Implement logic to add payment method
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { message = "User not authenticated" });
+            }
+            
+            var user = await _userService.GetUserByIdAsync(userId);
+            if (user == null)
+            {
+                return NotFound(new { message = "User not found" });
+            }
+            
+            // In a real implementation, you would securely store payment information
+            // For demonstration purposes, we just store the last four digits
+            var paymentMethod = new PaymentMethod
+            {
+                Type = request.Type,
+                LastFour = request.CardNumber.Substring(request.CardNumber.Length - 4),
+                ExpiryDate = request.ExpiryDate,
+                CardholderName = request.CardholderName
+            };
+            
+            await _userService.UpdatePaymentMethodAsync(userId, paymentMethod);
+            
             return Ok(new { message = "Payment method added successfully." });
         }
 
-        /// <summary>
-        /// Retrieves the user's payment history.
-        /// </summary>
-        /// <returns>A list of payment transactions.</returns>
         [HttpGet("payments")]
-        public IActionResult GetPaymentHistory()
+        public async Task<IActionResult> GetPaymentHistory()
         {
-            // TODO: Implement logic to get payment history
-            return Ok(new List<object>
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
             {
-                new { id = "1", date = "2023-11-20", amount = 99.99, description = "Monthly Subscription", status = "Paid" }
-            });
+                return Unauthorized(new { message = "User not authenticated" });
+            }
+            
+            var user = await _userService.GetUserByIdAsync(userId);
+            if (user == null)
+            {
+                return NotFound(new { message = "User not found" });
+            }
+            
+            return Ok(user.Subscription.PaymentHistory);
         }
-    }
-
-    /// <summary>
-    /// Request model for upgrading a subscription.
-    /// </summary>
-    public class UpgradeSubscriptionRequest
-    {
-        /// <summary>
-        /// The new subscription plan to upgrade to.
-        /// </summary>
-        public required string Plan { get; set; }
-
-        /// <summary>
-        /// The ID of the payment method to use for the upgrade.
-        /// </summary>
-        public required string PaymentMethodId { get; set; }
-    }
-
-    /// <summary>
-    /// Request model for adding a new payment method.
-    /// </summary>
-    public class AddPaymentMethodRequest
-    {
-        /// <summary>
-        /// The type of payment method (e.g., Credit Card, PayPal).
-        /// </summary>
-        public required string Type { get; set; }
-
-        /// <summary>
-        /// The card number for the payment method.
-        /// </summary>
-        public required string CardNumber { get; set; }
-
-        /// <summary>
-        /// The expiry date of the card.
-        /// </summary>
-        public required string ExpiryDate { get; set; }
-
-        /// <summary>
-        /// The CVC code of the card.
-        /// </summary>
-        public required string Cvc { get; set; }
-
-        /// <summary>
-        /// The name of the cardholder.
-        /// </summary>
-        public required string CardholderName { get; set; }
+        
+        #region Helper Methods
+        private List<string> GetPlanFeatures(string plan)
+        {
+            switch (plan.ToLower())
+            {
+                case "premium":
+                    return new List<string> 
+                    { 
+                        "Unlimited Devices", 
+                        "Advanced Analytics", 
+                        "API Access", 
+                        "Priority Support" 
+                    };
+                case "basic":
+                    return new List<string> 
+                    { 
+                        "Up to 10 Devices", 
+                        "Basic Analytics" 
+                    };
+                default:
+                    return new List<string> 
+                    { 
+                        "Up to 3 Devices" 
+                    };
+            }
+        }
+        
+        private double GetPlanPrice(string plan)
+        {
+            switch (plan.ToLower())
+            {
+                case "premium":
+                    return 99.99;
+                case "basic":
+                    return 49.99;
+                default:
+                    return 0;
+            }
+        }
+        #endregion
     }
 }
