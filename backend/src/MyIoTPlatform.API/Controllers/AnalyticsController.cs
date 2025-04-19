@@ -202,7 +202,7 @@ namespace MyIoTPlatform.API.Controllers
             if (!string.IsNullOrEmpty(deviceId))
             {
                 var device = await _mongoDbService.GetDeviceByIdAsync(deviceId);
-                if (device == null || device.UserId != userId)
+                if (device == null || !device.UserIds.Contains(userId))
                     return NotFound(new { message = "Device not found" });
                 
                 devices = new List<Device> { device };
