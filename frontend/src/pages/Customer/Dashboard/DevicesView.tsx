@@ -131,9 +131,6 @@ export default function DevicesView() {
       // Kiểm tra userIds
       const userIds = response.data.userIds || [];
       const firstUserId = userIds.length > 0 ? userIds[0] : null;
-      if (!firstUserId) {
-        throw new Error("Không tìm thấy userId trong response.");
-      }
   
       await authorizedAxiosInstance.post('/mqtt/publish', {
         topic: 'devices/new',
