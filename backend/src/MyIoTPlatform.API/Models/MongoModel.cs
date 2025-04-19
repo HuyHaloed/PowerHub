@@ -80,7 +80,8 @@ namespace MyIoTPlatform.API.Models
         [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; }
         
-        public string UserId { get; set; }
+        // Thay vì chỉ có một UserId, giờ có một danh sách các UserId
+        public List<string> UserIds { get; set; } = new List<string>();
         
         public string Name { get; set; }
         
@@ -97,6 +98,12 @@ namespace MyIoTPlatform.API.Models
         public DeviceProperties Properties { get; set; } = new DeviceProperties();
         
         public List<DeviceHistory> History { get; set; } = new List<DeviceHistory>();
+    }
+
+    public class ShareDeviceRequest
+    {
+        public string DeviceId { get; set; }
+        public string EmailToShare { get; set; }
     }
 
     public class DeviceProperties

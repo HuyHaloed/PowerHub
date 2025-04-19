@@ -56,7 +56,7 @@ namespace MyIoTPlatform.API.Controllers
             }
 
             var device = await _mongoDbService.GetDeviceByIdAsync(id);
-            if (device == null || device.UserId != userId)
+            if (device == null || !device.UserIds.Contains(userId))
                 return NotFound($"Device with ID {id} not found.");
 
             return Ok(device);
@@ -72,7 +72,7 @@ namespace MyIoTPlatform.API.Controllers
             }
 
             var device = await _mongoDbService.GetDeviceByIdAsync(id);
-            if (device == null || device.UserId != userId)
+            if (device == null || !device.UserIds.Contains(userId))
                 return NotFound($"Device with ID {id} not found.");
 
             var updatedDevice = await _mongoDbService.ControlDeviceAsync(id, request.Status);
@@ -103,7 +103,7 @@ namespace MyIoTPlatform.API.Controllers
                 Status = "off",
                 Consumption = 0,
                 LastUpdated = DateTime.UtcNow,
-                UserId = userId,
+                UserIds = new List<string> { userId },
                 Properties = request.Properties != null ? new DeviceProperties
                 {
                     Brand = request.Properties.Brand,
@@ -137,7 +137,7 @@ namespace MyIoTPlatform.API.Controllers
             }
 
             var device = await _mongoDbService.GetDeviceByIdAsync(id);
-            if (device == null || device.UserId != userId)
+            if (device == null || !device.UserIds.Contains(userId))
                 return NotFound($"Device with ID {id} not found.");
 
             device.Name = request.Name;
@@ -176,12 +176,66 @@ namespace MyIoTPlatform.API.Controllers
             }
 
             var device = await _mongoDbService.GetDeviceByIdAsync(id);
-            if (device == null || device.UserId != userId)
+            if (device == null || !device.UserIds.Contains(userId))
                 return NotFound($"Device with ID {id} not found.");
 
             await _mongoDbService.DeleteDeviceAsync(id);
 
             return Ok(new { message = "Device deleted successfully." });
+        }
+        [HttpPost("share")]
+        public async Task<IActionResult> ShareDevice([FromBody] ShareDeviceRequest request)
+        {
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(currentUserId))
+            {
+                return Unauthorized(new { message = "User not authenticated" });
+            }
+
+            var userToShareWith = await _mongoDbService.GetUserByEmailAsync(request.EmailToShare);
+            if (userToShareWith == null)
+            {
+                return BadRequest(new { message = "Người dùng không tồn tại" });
+            }
+
+            var device = await _mongoDbService.GetDeviceByIdAsync(request.DeviceId);
+            if (device == null)
+            {
+                return NotFound(new { message = "Không tìm thấy thiết bị" });
+            }
+
+            if (!device.UserIds.Contains(currentUserId))
+            {
+                return new ForbidResult();
+            }
+
+            if (device.UserIds.Contains(userToShareWith.Id))
+            {
+                return BadRequest(new { message = "Thiết bị đã được chia sẻ với người dùng này" });
+            }
+
+            device.UserIds.Add(userToShareWith.Id);
+            await _mongoDbService.UpdateDeviceAsync(device.Id, device);
+
+            var notification = new Notification
+            {
+                UserId = userToShareWith.Id,
+                Title = "Chia sẻ thiết bị",
+                Message = $"Bạn đã được chia sẻ thiết bị '{device.Name}' từ người dùng khác",
+                Type = "info",
+                Action = new NotificationAction
+                {
+                    Type = "url",
+                    Url = $"/devices/{device.Id}"
+                }
+            };
+            await _mongoDbService.AddNotificationAsync(notification);
+
+            return Ok(new { 
+                message = "Chia sẻ thiết bị thành công", 
+                deviceId = device.Id,
+                sharedWithUserId = userToShareWith.Id 
+            });
         }
     }
 }

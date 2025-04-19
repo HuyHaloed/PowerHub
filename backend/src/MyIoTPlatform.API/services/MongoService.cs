@@ -115,10 +115,26 @@ namespace MyIoTPlatform.API.Services
 
             return await _devicesCollection.Find(filter).ToListAsync();
         }
+        public async Task<bool> UserHasDeviceAccessAsync(string userId, string deviceId)
+        {
+            var device = await GetDeviceByIdAsync(deviceId);
+            return device != null && device.UserIds.Contains(userId);
+        }
+
+        // Phương thức để loại bỏ quyền truy cập của người dùng
+        public async Task RemoveDeviceAccessAsync(string deviceId, string userId)
+        {
+            var device = await GetDeviceByIdAsync(deviceId);
+            if (device != null)
+            {
+                device.UserIds.Remove(userId);
+                await UpdateDeviceAsync(deviceId, device);
+            }
+        }
 
         public async Task<List<Device>> GetDevicesByUserIdAsync(string userId, string status = null, string location = null, string type = null, string search = null)
         {
-            var filter = Builders<Device>.Filter.Eq(d => d.UserId, userId);
+            var filter = Builders<Device>.Filter.AnyEq(d => d.UserIds, userId);
 
             if (!string.IsNullOrEmpty(status))
                 filter &= Builders<Device>.Filter.Eq(d => d.Status, status);
@@ -142,7 +158,7 @@ namespace MyIoTPlatform.API.Services
 
         public async Task<List<Device>> GetActiveDevicesByUserIdAsync(string userId)
         {
-            return await _devicesCollection.Find(d => d.UserId == userId && d.Status == "on").ToListAsync();
+            return await _devicesCollection.Find(d => d.UserIds.Contains(userId) && d.Status == "on").ToListAsync();
         }
 
         public async Task<Device> GetDeviceByIdAsync(string id)
