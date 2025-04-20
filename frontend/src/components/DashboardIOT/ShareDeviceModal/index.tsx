@@ -19,8 +19,6 @@ export function ShareDeviceModal({ device, onDeviceShared }: ShareDeviceModalPro
 
   const handleShareDevice = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       toast.error("Vui lòng nhập địa chỉ email hợp lệ");
@@ -35,16 +33,11 @@ export function ShareDeviceModal({ device, onDeviceShared }: ShareDeviceModalPro
       });
 
       toast.success("Chia sẻ thiết bị thành công!");
-      
-      // Reset form and close modal
       setEmail('');
       setIsOpen(false);
-
-      // Optional callback for parent component
       onDeviceShared && onDeviceShared();
 
     } catch (error: any) {
-      // Handle different error scenarios
       if (error.response) {
         switch (error.response.status) {
           case 400:

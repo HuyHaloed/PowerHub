@@ -27,13 +27,10 @@ namespace MyIoTPlatform.API.Controllers
             {
                 return Unauthorized(new { message = "User not authenticated" });
             }
-            
-            // Special handling for day view with hourly data
             if (timeRange.ToLower() == "day" && !string.IsNullOrEmpty(startDate))
             {
                 if (DateTime.TryParse(startDate, out var parsedDate))
                 {
-                    // Use the special hourly method for day view
                     var hourlyData = await _energyService.GetHourlyEnergyForDayAsync(
                         userId, 
                         DateTime.SpecifyKind(parsedDate.Date, DateTimeKind.Utc)
@@ -42,8 +39,6 @@ namespace MyIoTPlatform.API.Controllers
                     return Ok(hourlyData);
                 }
             }
-            
-            // Regular handling for other time ranges
             DateTime? startDateTime = null;
             DateTime? endDateTime = null;
             
@@ -62,8 +57,6 @@ namespace MyIoTPlatform.API.Controllers
                     endDateTime = DateTime.SpecifyKind(parsedEndDate, DateTimeKind.Utc);
                 }
             }
-            
-            // Now using distribution data to calculate consumption
             var consumptionData = await _energyService.GetConsumptionFromDistributionAsync(userId, timeRange, startDateTime, endDateTime);
             
             return Ok(consumptionData);

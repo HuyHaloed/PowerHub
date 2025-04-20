@@ -86,7 +86,6 @@ namespace MyIoTPlatform.API.Controllers
             });
         }
 
-        
 
         [HttpPost]
         public async Task<IActionResult> AddNewDevice([FromBody] AddDeviceRequest request)

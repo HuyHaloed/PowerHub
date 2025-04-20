@@ -94,10 +94,8 @@ namespace MyIoTPlatform.API.Services
             await _usersCollection.UpdateOneAsync(filter, update);
         }
         
-        // Updated method to properly fetch all users from MongoDB
         public async Task<List<User>> GetAllUsersAsync()
         {
-            // Create an empty filter to get all documents
             var filter = Builders<User>.Filter.Empty;
             return await _usersCollection.Find(filter).ToListAsync();
         }
@@ -128,7 +126,6 @@ namespace MyIoTPlatform.API.Services
             return device != null && device.UserIds.Contains(userId);
         }
 
-        // Phương thức để loại bỏ quyền truy cập của người dùng
         public async Task RemoveDeviceAccessAsync(string deviceId, string userId)
         {
             var device = await GetDeviceByIdAsync(deviceId);
@@ -225,13 +222,11 @@ namespace MyIoTPlatform.API.Services
 
         public async Task<List<EnergyDistribution>> GetAllDistributionsForUserAsync(string userId, DateTime startDate, DateTime endDate)
         {
-            // First get all devices the user has access to
             var devices = await GetDevicesByUserIdAsync(userId);
             
             if (devices.Count == 0)
                 return new List<EnergyDistribution>();
             
-            // Create a filter to get all distributions for this user's devices in the date range
             var deviceIds = devices.Select(d => d.Id).ToList();
             
             var filter = Builders<EnergyDistribution>.Filter.And(
@@ -241,7 +236,6 @@ namespace MyIoTPlatform.API.Services
                 Builders<EnergyDistribution>.Filter.Lte(e => e.Date, endDate)
             );
             
-            // Get all the distribution records in a single query (more efficient)
             var allDistributions = await _energyDistributionCollection.Find(filter)
                 .Sort(Builders<EnergyDistribution>.Sort.Ascending(e => e.Date))
                 .ToListAsync();
@@ -249,11 +243,9 @@ namespace MyIoTPlatform.API.Services
             return allDistributions;
         }
 
-        // Add this method to your MongoDbService class to get hourly data for a specific day
 
         public async Task<List<EnergyDistribution>> GetHourlyDistributionsForDayAsync(string userId, DateTime date)
         {
-            // Get the date range for the whole day (midnight to 11:59:59 PM)
             var startDate = date.Date;
             var endDate = startDate.AddDays(1).AddTicks(-1);
             
@@ -273,15 +265,10 @@ namespace MyIoTPlatform.API.Services
             if (endDate.HasValue)
                 filter &= Builders<EnergyConsumption>.Filter.Lte(e => e.Date, endDate.Value);
 
-            // Lấy tất cả các giá trị tiêu thụ có DeviceId (không null)
             filter &= Builders<EnergyConsumption>.Filter.Ne(e => e.DeviceId, null);
 
             return await _energyConsumptionCollection.Find(filter).SortBy(e => e.Date).ToListAsync();
         }
-
-        // Add these methods to your MongoDbService class
-
-// Get all distributions for a specific day across all devices
         public async Task<List<EnergyDistribution>> GetAllDistributionsForDayAsync(string userId, DateTime date)
         {
             var startDate = date.Date;
@@ -289,28 +276,19 @@ namespace MyIoTPlatform.API.Services
             
             return await GetAllDistributionsForPeriodAsync(userId, startDate, endDate);
         }
-
-        // Get all distributions for a specific time period across all devices
         public async Task<List<EnergyDistribution>> GetAllDistributionsForPeriodAsync(string userId, DateTime startDate, DateTime endDate)
         {
-            // Get all devices the user has access to
             var devices = await GetDevicesByUserIdAsync(userId);
-            
             if (devices.Count == 0)
                 return new List<EnergyDistribution>();
             
-            // Get device IDs
             var deviceIds = devices.Select(d => d.Id).ToList();
-            
-            // Create filter for all devices in the date range
             var filter = Builders<EnergyDistribution>.Filter.And(
                 Builders<EnergyDistribution>.Filter.Eq(e => e.UserId, userId),
                 Builders<EnergyDistribution>.Filter.In(e => e.DeviceId, deviceIds),
                 Builders<EnergyDistribution>.Filter.Gte(e => e.Date, startDate),
                 Builders<EnergyDistribution>.Filter.Lte(e => e.Date, endDate)
             );
-            
-            // Get the distributions and sort by time
             var distributions = await _energyDistributionCollection.Find(filter)
                 .Sort(Builders<EnergyDistribution>.Sort.Ascending(e => e.Date))
                 .ToListAsync();
@@ -322,36 +300,24 @@ namespace MyIoTPlatform.API.Services
         {
             var startDate = date.Date;
             var endDate = startDate.AddDays(1).AddTicks(-1);
-            
-            // Lấy tất cả các thiết bị của người dùng
             var devices = await GetDevicesByUserIdAsync(userId);
-            
-            // Lấy tiêu thụ của từng thiết bị trong ngày
             var deviceConsumptions = new List<(string DeviceId, string DeviceName, double Consumption)>();
-            
             foreach (var device in devices)
             {
                 var consumption = await GetEnergyConsumptionByDeviceAsync(userId, device.Id, "day", startDate, endDate);
                 double totalConsumption = consumption.Sum(c => c.Value);
                 deviceConsumptions.Add((device.Id, device.Name, totalConsumption));
             }
-            
-            // Tính tổng tiêu thụ
             double totalAllConsumption = deviceConsumptions.Sum(dc => dc.Consumption);
-            
-            // Nếu không có tiêu thụ, trả về danh sách trống
             if (totalAllConsumption <= 0)
                 return new List<EnergyDistribution>();
             
-            // Tạo danh sách phân bố năng lượng
             var colors = new[] { "#4CAF50", "#2196F3", "#FFC107", "#9C27B0", "#F44336", "#607D8B" };
             var result = new List<EnergyDistribution>();
-            
             for (int i = 0; i < deviceConsumptions.Count; i++)
             {
                 var (deviceId, deviceName, consumption) = deviceConsumptions[i];
                 double percentage = (consumption / totalAllConsumption) * 100;
-                
                 result.Add(new EnergyDistribution
                 {
                     UserId = userId,
@@ -365,9 +331,6 @@ namespace MyIoTPlatform.API.Services
             
             return result;
         }
-
-        // Phương thức để lấy phân bố năng lượng theo thiết bị và thời gian
-        // Phương thức lấy phân bố năng lượng theo thiết bị và khoảng thời gian
         public async Task<List<EnergyDistribution>> GetEnergyDistributionByDeviceAsync(
             string userId, string deviceId, DateTime startDate, DateTime endDate)
         {
@@ -378,7 +341,6 @@ namespace MyIoTPlatform.API.Services
 
             return await _energyDistributionCollection.Find(filter).ToListAsync();
         }
-        // Phương thức để lấy dữ liệu tiêu thụ năng lượng theo khoảng thời gian
         public async Task<List<EnergyConsumption>> GetEnergyConsumptionByTimeRangeAsync(string userId, string timeRange, DateTime startDate, DateTime endDate)
         {
             var filter = Builders<EnergyConsumption>.Filter.Eq(e => e.UserId, userId)

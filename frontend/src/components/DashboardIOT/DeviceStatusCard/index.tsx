@@ -17,7 +17,6 @@ const DeviceStatusCard: React.FC<DeviceStatusCardProps> = ({
   onToggle,
   isToggling = false
 }) => {
-  // Map device type to appropriate icon
   const getDeviceIcon = () => {
     switch(device.type?.toLowerCase()) {
       case 'light':
@@ -40,15 +39,12 @@ const DeviceStatusCard: React.FC<DeviceStatusCardProps> = ({
         return <Plug className={`h-5 w-5 ${device.status === 'on' ? 'text-blue-500' : 'text-gray-400'}`} />;
     }
   };
-  
-  // Handle device toggle
   const handleToggle = () => {
     if (onToggle && !isToggling) {
       const newStatus = device.status === 'on' ? 'off' : 'on';
       onToggle(Number(device.id), newStatus);
     }
   };  
-  // Format consumption
   const formatConsumption = (value: number): string => {
     if (value === 0) return '0 W';
     if (value < 1000) return `${value} W`;

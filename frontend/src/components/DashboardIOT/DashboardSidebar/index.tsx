@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useAccount } from "@/hooks/useAccount";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -13,13 +13,11 @@ import {
   Zap,
   BarChart3,
   Settings,
-  LogOut,
   Home,
   HelpCircle,
   Bell
 } from "lucide-react";
 import { useUnreadAlerts } from "@/hooks/useDashboardIOTData";
-import { Alert } from "@/types/dashboard.types";
 
 interface DashboardSidebarProps {
   activeTab: string;
@@ -39,8 +37,6 @@ export default function DashboardSidebar({
   const { data: user } = useAccount();
   const navigate = useNavigate();
   const { data: unreadAlertsData = [] } = useUnreadAlerts();
-  
-  // Close sidebar when changing tab on mobile
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
     if (isMobile) {
@@ -53,7 +49,6 @@ export default function DashboardSidebar({
       toast.success("Đăng xuất thành công");
       navigate("/");
     };
-  // Close sidebar when clicking outside on mobile
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const sidebar = document.getElementById('dashboard-sidebar');
@@ -68,13 +63,11 @@ export default function DashboardSidebar({
     };
   }, [isMobile, isOpen, onClose]);
   
-  // Style for mobile
   const sidebarClass = cn(
     "fixed left-0 top-0 h-full bg-white shadow-lg z-40 transition-all duration-300 flex flex-col",
     isMobile ? (isOpen ? "w-64 translate-x-0" : "w-64 -translate-x-full") : "w-64"
   );
 
-  // Navigation items
   const navigationItems = [
     {
       title: "Tổng quan",
@@ -100,15 +93,12 @@ export default function DashboardSidebar({
 
   return (
     <>
-      {/* Overlay for mobile */}
       {isMobile && isOpen && (
         <div 
           className="fixed inset-0 bg-black/30 z-30"
           onClick={onClose}
         />
       )}
-      
-      {/* Sidebar */}
       <div id="dashboard-sidebar" className={sidebarClass}>
         <div className="p-2 border-b flex items-center ">
           <div className="bg-white text-white p-2 rounded mr-2">

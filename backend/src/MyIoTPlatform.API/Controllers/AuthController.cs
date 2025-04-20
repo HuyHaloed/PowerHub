@@ -71,13 +71,8 @@ namespace MyIoTPlatform.API.Controllers
         {
             try
             {
-                // Tạo người dùng mới
                 var user = await _userService.CreateUserAsync(request);
-
-                // Tạo token
                 var token = _tokenService.GenerateJwtToken(user);
-
-                // Tạo response
                 var response = new AuthResponse
                 {
                     Token = token,

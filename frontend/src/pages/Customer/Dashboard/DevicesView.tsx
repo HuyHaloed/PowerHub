@@ -11,6 +11,7 @@ import { toast } from 'react-toastify';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import authorizedAxiosInstance from '@/lib/axios';
 import { ShareDeviceModal } from '@/components/DashboardIOT/ShareDeviceModal';
+import VoiceMicro from '@/components/DashboardIOT/VoiceMicro'; 
 
 export default function DevicesView() {
   const { devices: allDevices, isLoading, error, fetchDevices } = useDevices();
@@ -192,6 +193,8 @@ export default function DevicesView() {
 
   return (
     <div className="p-6">
+      <VoiceMicro />
+
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
         <h1 className="text-2xl font-bold">Quản lý thiết bị</h1>
         <div className="flex flex-col sm:flex-row gap-3">

@@ -15,16 +15,11 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddApplicationServices(); // Registers MediatR, AutoMapper, Validators
-builder.Services.AddInfrastructureServices(builder.Configuration); // Registers DBContext, Repos, Mqtt, ML Service etc.
-
+builder.Services.AddApplicationServices(); 
+builder.Services.AddInfrastructureServices(builder.Configuration); 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
-// Configure CORS (Example: Allow any origin for development)
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(
@@ -33,15 +28,11 @@ builder.Services.AddCors(options =>
         policy.WithOrigins("http://localhost:5173") // URL của React app development server
               .AllowAnyHeader()
               .AllowAnyMethod()
-              .AllowCredentials(); // Cần thiết cho SignalR với credentials
+              .AllowCredentials();
     });
 });
 
-
-// Add SignalR
 builder.Services.AddSignalR();
-
-// Đăng ký MQTT Client như một Hosted Service để nó tự chạy nền
 builder.Services.AddHostedService<MqttClientService>();
 builder.Services.AddScoped<MyIoTPlatform.Application.Interfaces.Repositories.ITelemetryRepository, MyIoTPlatform.Infrastructure.Persistence.Repositories.TelemetryRepository>();
 builder.Services.AddTransient<IRealtimeNotifier, RealtimeNotifier>();
@@ -73,21 +64,17 @@ builder.Services.AddSingleton<UserService>();
 builder.Services.AddSingleton<TokenService>();
 builder.Services.AddScoped<DashboardService>();
 builder.Services.AddScoped<EnergyService>();
-// builder.Services.AddTransient<MyIoTPlatform.API.Utilities.DatabaseInitializer>();
-// builder.Services.AddScoped<MyIoTPlatform.API.Utilities.DatabaseInitializer>();
-// builder.Services.AddTransient<MyIoTPlatform.API.Utilities.EnergyDataGenerator>();
 
-var app = builder.Build();
-// Initialize the database with sample data
-// dùng để tạo data giả
+//Đăng ký tạo dữ liệu giả ở đây ( un comment để tạo dữ liệu giả )##################
+// builder.Services.AddTransient<MyIoTPlatform.API.Utilities.DatabaseInitializer>();
 // using (var scope = app.Services.CreateScope())
 // {
 //     var initializer = scope.ServiceProvider.GetRequiredService<MyIoTPlatform.API.Utilities.DatabaseInitializer>();
 //     await initializer.InitializeAsync();
 // }
+// ##############################################################
 
-
-// Configure the HTTP request pipeline.
+var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -95,14 +82,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseCors(); // Áp dụng policy CORS
-
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
-app.MapHub<DashboardHub>("/dashboardhub"); // Map SignalR Hub endpoint
 
 app.Run();
 

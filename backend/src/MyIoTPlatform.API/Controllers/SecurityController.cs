@@ -81,9 +81,6 @@ namespace MyIoTPlatform.API.Controllers
                 return NotFound(new { message = "User not found" });
             }
             
-            // In a real implementation, you would verify the password
-            // For demonstration purposes, we skip this step
-            
             await _userService.DisableTwoFactorAuthenticationAsync(userId);
             
             return Ok(new { message = "2FA disabled successfully" });
@@ -131,10 +128,6 @@ namespace MyIoTPlatform.API.Controllers
             {
                 return NotFound(new { message = "User not found" });
             }
-            
-            // In a real implementation, you would generate a file with the user's data
-            // For demonstration purposes, we return a placeholder message
-            
             return Ok(new { message = "Personal data export initiated. You will receive an email with the download link." });
         }
     }

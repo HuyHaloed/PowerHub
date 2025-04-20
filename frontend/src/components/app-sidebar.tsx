@@ -13,9 +13,7 @@ import {
 import { paths } from "@/utils/path";
 import { Link, useLocation } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
-import { title } from "process";
 
-// Menu items
 const items = [
   {
     title: "Dashboard",
@@ -52,18 +50,6 @@ const items = [
     url: paths.AdminSettings,
     icon: Calendar,
   }
-
-  // {
-  // {
-  //   title: "Appointments",
-  //   url: paths.AdminAppointments,
-  //   icon: Calendar,
-  // },
-  // {
-  //   title: "Settings",
-  //   url: paths.AdminSettings,
-  //   icon: Settings,
-  // },
 ];
 
 export function AppSidebar() {

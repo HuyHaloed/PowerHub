@@ -1,15 +1,15 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { DashboardUser } from "@/types/dashboard.types";
+import { User } from "@/types/dashboard.types";
 import { Crown, Calendar } from "lucide-react";
 
 interface UserInfoCardProps {
-  user: DashboardUser;
+  user: User;
 }
 
 export default function UserInfoCard({ user }: UserInfoCardProps) {
-  const formatDate = (date: Date) => {
+  const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString('vi-VN', {
       year: 'numeric',
       month: 'long',

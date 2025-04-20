@@ -1,14 +1,6 @@
-// Services/UserService.cs
-using Microsoft.Extensions.Options;
 using MyIoTPlatform.API.Models;
-using System;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
-using System.Security.Claims;
-using System.Collections.Generic;
-using MongoDB.Bson;
-
 namespace MyIoTPlatform.API.Services
 {
     public class UserService
@@ -31,8 +23,6 @@ namespace MyIoTPlatform.API.Services
 
             if (!VerifyPasswordHash(password, user.PasswordHash))
                 return null;
-
-            // Update last login date
             user.LastLogin = DateTime.UtcNow;
             await _mongoDbService.UpdateUserAsync(user.Id, user);
 
@@ -44,12 +34,9 @@ namespace MyIoTPlatform.API.Services
         /// </summary>
         public async Task<User> CreateUserAsync(RegisterRequest request)
         {
-            // Check if email already exists
             var existingUser = await _mongoDbService.GetUserByEmailAsync(request.Email);
             if (existingUser != null)
                 throw new Exception("Email is already registered");
-
-            // Create new user
             var user = new User
             {
                 Name = request.Name,
@@ -100,7 +87,6 @@ namespace MyIoTPlatform.API.Services
         /// </summary>
         public async Task<List<User>> GetAllUsersAsync()
         {
-            // Use the proper implementation from MongoDbService
             return await _mongoDbService.GetAllUsersAsync();
         }
 
@@ -131,12 +117,8 @@ namespace MyIoTPlatform.API.Services
             var user = await _mongoDbService.GetUserByIdAsync(id);
             if (user == null)
                 throw new Exception("User not found");
-
-            // Verify current password
             if (!VerifyPasswordHash(currentPassword, user.PasswordHash))
                 return false;
-
-            // Update password
             user.PasswordHash = HashPassword(newPassword);
             await _mongoDbService.UpdateUserAsync(id, user);
             
@@ -168,15 +150,11 @@ namespace MyIoTPlatform.API.Services
             if (user == null)
                 throw new Exception("User not found");
 
-            // Validate plan
             if (string.IsNullOrEmpty(plan) || !IsValidPlan(plan))
                 throw new Exception("Invalid subscription plan");
 
-            // Set new subscription details
             user.Subscription.Plan = plan;
             user.Subscription.ValidUntil = DateTime.UtcNow.AddYears(1);
-
-            // Add payment record
             var payment = new PaymentHistory
             {
                 Date = DateTime.UtcNow,
@@ -215,10 +193,8 @@ namespace MyIoTPlatform.API.Services
         /// </summary>
         public async Task<string> EnableTwoFactorAuthenticationAsync(string userId)
         {
-            // Generate a random secret
             var secret = GenerateSecretKey();
             
-            // Store the secret for the user
             await _mongoDbService.UpdateTwoFactorAuthenticationAsync(userId, true, secret);
             
             return secret;
@@ -229,22 +205,14 @@ namespace MyIoTPlatform.API.Services
         /// </summary>
         public bool VerifyTwoFactorAuthenticationCode(string secret, string code)
         {
-            // In a real application, this would use TOTP validation
-            // This is a simplified implementation for demonstration purposes
             if (string.IsNullOrEmpty(secret) || string.IsNullOrEmpty(code))
                 return false;
 
             if (code.Length != 6)
                 return false;
-
-            // Simple implementation - in production, use proper TOTP validation
             try
             {
-                // Verify the code is numeric
                 int codeInt = int.Parse(code);
-                
-                // In a real application, would validate against TOTP algorithm
-                // For demo purposes, we just check it's 6 digits
                 return true;
             }
             catch
@@ -296,13 +264,7 @@ namespace MyIoTPlatform.API.Services
             if (user == null)
                 throw new Exception("User with this email address does not exist");
 
-            // Generate a reset token
-            var token = GeneratePasswordResetToken();
-
-            // In a real application, store the token in the database
-            // Since we don't have ResetToken and ResetTokenExpires fields, we'd need to add them
-            // For now, we'll just return the token and assume it would be stored elsewhere
-            
+            var token = GeneratePasswordResetToken();            
             return token;
         }
 
@@ -311,14 +273,10 @@ namespace MyIoTPlatform.API.Services
         /// </summary>
         public async Task<bool> ResetPasswordAsync(string email, string token, string newPassword)
         {
-            // In a real application, we would validate the token against what's stored in the database
-            // Since we don't have that field, we'll just proceed with the reset based on email
             
             var user = await _mongoDbService.GetUserByEmailAsync(email);
             if (user == null)
                 return false;
-
-            // Update password
             user.PasswordHash = HashPassword(newPassword);
             
             await _mongoDbService.UpdateUserAsync(user.Id, user);

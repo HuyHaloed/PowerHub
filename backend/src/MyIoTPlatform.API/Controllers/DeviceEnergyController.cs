@@ -31,8 +31,6 @@ namespace MyIoTPlatform.API.Controllers
             {
                 return Unauthorized(new { message = "User not authenticated" });
             }
-            
-            // Check if user has access to this device
             var device = await _mongoDbService.GetDeviceByIdAsync(deviceId);
             if (device == null || !device.UserIds.Contains(userId))
             {
@@ -52,8 +50,6 @@ namespace MyIoTPlatform.API.Controllers
                 if (DateTime.TryParse(endDate, out var parsedEndDate))
                     endDateTime = parsedEndDate;
             }
-            
-            // If dates are not provided, set defaults based on time range
             if (!startDateTime.HasValue)
             {
                 switch (timeRange.ToLower())
@@ -80,8 +76,6 @@ namespace MyIoTPlatform.API.Controllers
             {
                 endDateTime = DateTime.UtcNow;
             }
-            
-            // Get energy consumption for this device
             var consumptionData = await _energyService.GetEnergyConsumptionByDeviceAsync(userId, deviceId, timeRange, startDateTime, endDateTime);
             
             if (consumptionData.Count == 0)
@@ -98,8 +92,6 @@ namespace MyIoTPlatform.API.Controllers
                     data = new List<object>()
                 });
             }
-            
-            // Calculate metrics
             double totalConsumption = 0;
             double avgConsumption = 0;
             double peakConsumption = 0;
@@ -110,14 +102,10 @@ namespace MyIoTPlatform.API.Controllers
                 avgConsumption = totalConsumption / consumptionData.Count;
                 peakConsumption = consumptionData.Max(c => c.Value);
             }
-            
-            // Estimate on duration in hours
             var onDuration = device.History
                 .Where(h => h.Status == "on" && h.Timestamp >= startDateTime && h.Timestamp <= endDateTime)
-                .Sum(h => h.Consumption > 0 ? 1 : 0); // Simplified estimate - 1 hour for each consumption data point
-            
-            // Calculate estimated cost
-            var costPerKwh = 0.15; // Default value - could be retrieved from user preferences
+                .Sum(h => h.Consumption > 0 ? 1 : 0);
+            var costPerKwh = 0.15;
             var costEstimate = totalConsumption * costPerKwh;
             
             return Ok(new
@@ -141,8 +129,6 @@ namespace MyIoTPlatform.API.Controllers
             {
                 return Unauthorized(new { message = "User not authenticated" });
             }
-            
-            // Check if user has access to this device
             var device = await _mongoDbService.GetDeviceByIdAsync(deviceId);
             if (device == null || !device.UserIds.Contains(userId))
             {
@@ -154,8 +140,6 @@ namespace MyIoTPlatform.API.Controllers
             {
                 targetDate = DateTime.UtcNow.Date;
             }
-            
-            // Get all user's devices' consumption for the day
             var allDevicesConsumption = new List<(string DeviceId, string DeviceName, double Consumption)>();
             var userDevices = await _mongoDbService.GetDevicesByUserIdAsync(userId);
             
@@ -172,8 +156,6 @@ namespace MyIoTPlatform.API.Controllers
                 
                 allDevicesConsumption.Add((userDevice.Id, userDevice.Name, totalConsumption));
             }
-            
-            // Calculate percentage for each device
             double totalConsumptionAll = allDevicesConsumption.Sum(d => d.Consumption);
             if (totalConsumptionAll <= 0)
             {
@@ -209,15 +191,11 @@ namespace MyIoTPlatform.API.Controllers
             {
                 return Unauthorized(new { message = "User not authenticated" });
             }
-            
-            // Check if user has access to this device
             var device = await _mongoDbService.GetDeviceByIdAsync(deviceId);
             if (device == null || !device.UserIds.Contains(userId))
             {
                 return NotFound(new { message = "Device not found or you don't have access to it" });
             }
-            
-            // Get today's consumption
             var today = DateTime.UtcNow.Date;
             var todayConsumption = await _energyService.GetEnergyConsumptionByDeviceAsync(
                 userId, deviceId, "day", today, today.AddDays(1).AddTicks(-1));
@@ -227,8 +205,6 @@ namespace MyIoTPlatform.API.Controllers
             {
                 todayTotal = todayConsumption.Sum(c => c.Value);
             }
-            
-            // Get yesterday's consumption
             var yesterday = today.AddDays(-1);
             var yesterdayConsumption = await _energyService.GetEnergyConsumptionByDeviceAsync(
                 userId, deviceId, "day", yesterday, yesterday.AddDays(1).AddTicks(-1));
@@ -238,8 +214,6 @@ namespace MyIoTPlatform.API.Controllers
             {
                 yesterdayTotal = yesterdayConsumption.Sum(c => c.Value);
             }
-            
-            // Get this month's consumption
             var thisMonth = new DateTime(today.Year, today.Month, 1);
             var thisMonthConsumption = await _energyService.GetEnergyConsumptionByDeviceAsync(
                 userId, deviceId, "month", thisMonth, thisMonth.AddMonths(1).AddTicks(-1));
@@ -249,15 +223,11 @@ namespace MyIoTPlatform.API.Controllers
             {
                 thisMonthTotal = thisMonthConsumption.Sum(c => c.Value);
             }
-            
-            // Calculate change percentages
             double dayChange = 0;
             if (yesterdayTotal > 0)
             {
                 dayChange = Math.Round(((todayTotal - yesterdayTotal) / yesterdayTotal) * 100, 1);
             }
-            
-            // Default cost per kWh
             double costPerKwh = 0.15;
             
             return Ok(new

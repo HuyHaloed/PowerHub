@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState} from 'react';
 import { 
   LineChart, 
   Line, 
@@ -23,22 +23,16 @@ const EnergyConsumptionChart = () => {
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split('T')[0]
   );
-  
-  // Get data with improved date handling in the hook
-  const { data, isLoading, error } = useEnergyConsumption(timeRange, selectedDate);
 
-  // Format the data for display
+  const { data, isLoading, error } = useEnergyConsumption(timeRange, selectedDate);
   const formatChartData = (data: { date: string; value: number }[]) => {
     if (!data || data.length === 0) return [];
-    
     if (timeRange === 'day') {
-      // Chỉ tạo mảng 24 điểm cho view day
+
       const hourlyData = Array.from({length: 24}, (_, hour) => ({
         time: `${hour}:00`,
         consumption: 0
       }));
-  
-      // Điền dữ liệu từ API
       data.forEach(item => {
         const hour = new Date(item.date).getHours();
         hourlyData[hour].consumption = item.value 
@@ -48,8 +42,6 @@ const EnergyConsumptionChart = () => {
   
       return hourlyData;
     }
-    
-    // Giữ nguyên logic cho các view khác
     return data.map(item => ({
       time: formatTime(item.date, timeRange),
       consumption: item.value ? parseFloat(item.value.toFixed(2)) : 0
@@ -163,7 +155,7 @@ const EnergyConsumptionChart = () => {
               <Line
                 type="monotone"
                 dataKey="consumption"
-                stroke="#4CAF50"
+                stroke="#FF0B55"
                 activeDot={{ r: 8 }}
                 name="Tiêu thụ điện"
               />
