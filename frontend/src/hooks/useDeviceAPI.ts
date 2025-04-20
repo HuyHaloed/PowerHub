@@ -1,6 +1,7 @@
 // src/hooks/useDeviceAPI.ts
 import { useState, useEffect, useCallback } from 'react';
 import { Device } from '@/types/dashboard.types';
+import authorizedAxiosInstance from '@/lib/axios';
 
 const API_URL = 'http://localhost:5000/api';
 
@@ -64,55 +65,41 @@ export function useDevices() {
   return { devices, isLoading, error, fetchDevices };
 }
 
-export function useDeviceControl() {
+export const useDeviceControl = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const { fetchDevices } = useDevices();
 
-  const toggleDevice = useCallback(async (deviceId: number, status: 'on' | 'off') => {
+  const toggleDevice = async (deviceId: number, newStatus: 'on' | 'off') => {
     setIsLoading(true);
+    setError(null);
+
     try {
-      const url = `${API_URL}/devices/${deviceId}/control`;
-      const token = sessionStorage.getItem('auth_token');
-      
-      const response = await fetch(url, {
-        method: 'PUT',
-        headers: {
-          'Authorization': token ? `Bearer ${token}` : '',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ status })
+      const response = await authorizedAxiosInstance.put(`/devices/${deviceId}/status`, {
+        status: newStatus
       });
-      
-      if (!response.ok) {
-        throw new Error(`Không thể thay đổi trạng thái thiết bị: ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      
-      // Refresh danh sách thiết bị sau khi cập nhật
-      await fetchDevices();
-      
-      setError(null);
-      return data;
+
+      // Publish MQTT message
+      await authorizedAxiosInstance.post('/mqtt/publish', {
+        topic: `devices/${deviceId}/status`,
+        payload: JSON.stringify({
+          deviceId: deviceId,
+          status: newStatus
+        }),
+        retain: false,
+        qosLevel: 1
+      });
+
+      return response.data;
     } catch (err) {
-      console.error(`Error toggling device ${deviceId}:`, err);
-      setError(err instanceof Error ? err : new Error('Đã xảy ra lỗi khi thay đổi trạng thái thiết bị'));
-      
-      // Mô phỏng kết quả thành công để UI vẫn hoạt động
-      // trong trường hợp lỗi kết nối đến API
-      return {
-        id: deviceId,
-        status: status,
-        message: `Đã cập nhật trạng thái thiết bị thành ${status}`
-      };
+      setError(err instanceof Error ? err : new Error('Lỗi không xác định'));
+      throw err;
     } finally {
       setIsLoading(false);
     }
-  }, [fetchDevices]);
+  };
 
   return { toggleDevice, isLoading, error };
-}
+};
 
 export function useActiveDevices() {
   const { devices } = useDevices();

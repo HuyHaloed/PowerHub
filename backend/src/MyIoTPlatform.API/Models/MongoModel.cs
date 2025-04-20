@@ -125,6 +125,8 @@ namespace MyIoTPlatform.API.Models
         public string Status { get; set; }
         public double Consumption { get; set; }
     }
+
+    
     #endregion
     #region EnergyConsumption
 

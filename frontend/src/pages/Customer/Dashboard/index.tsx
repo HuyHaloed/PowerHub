@@ -1,19 +1,20 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useOutletContext } from "react-router-dom";
 import { useDashboardData, useActiveDevices, useQuickStats } from '@/hooks/useDashboardIOTData';
+import { useEnergyConsumption, useEnergyDistribution } from '@/hooks/useEnergyData';
 import DashboardSidebar from '@/components/DashboardIOT/DashboardSidebar';
 import QuickStatCard from '@/components/DashboardIOT/QuickStatCard';
-import EnergyConsumptionChart from '@/components/DashboardIOT/EnergyConsumptionChart';
+import EnergyConsumptionChart from '@/components/DashboardIOT/EnergyTotalbyRangeTimeChart';
 import DeviceStatusCard from '@/components/DashboardIOT/DeviceStatusCard';
 import EnergyDistributionChart from '@/components/DashboardIOT/EnergyDistributionChart';
 import UserInfoCard from '@/components/DashboardIOT/UserInfoCard';
-import { Bell } from 'lucide-react';
+import { Bell, Zap, DollarSign, Calendar } from 'lucide-react';
 import DevicesView from '@/pages/Customer/Dashboard/DevicesView';
 import AnalyticsView from '@/pages/Customer/Dashboard/AnalyticsView';
 import SettingsView from '@/pages/Customer/Dashboard/SettingsView';
 import { Stat, Device } from '@/types/dashboard.types';
 
-// Custom Alert Component remains the same
+// Custom Alert Component
 const CustomAlert = ({ 
   title, 
   message, 
@@ -42,7 +43,6 @@ const CustomAlert = ({
     </div>
   );
 };
-
 // Define the type for context
 type LayoutContextType = {
   isMobile: boolean;
@@ -91,7 +91,7 @@ export default function Dashboard() {
     }
     
     // Unread alerts
-    const unreadAlerts = dashboardData.alerts.filter(alert => !alert.read);
+    const unreadAlerts = dashboardData.alerts?.filter(alert => !alert.read) || [];
     
     return (
       <div className="p-6">
@@ -101,6 +101,7 @@ export default function Dashboard() {
             <QuickStatCard key={stat.id} stat={stat} />
           ))}
         </div>
+        
         
         {/* Alerts */}
         {unreadAlerts.length > 0 && (

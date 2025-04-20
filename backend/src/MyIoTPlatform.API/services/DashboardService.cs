@@ -31,7 +31,7 @@ namespace MyIoTPlatform.API.Services
             
             stats.Add(new Stat
             {
-                Title = "Today's Consumption",
+                Title = "Mức tiêu thụ trong ngày",
                 Value = todayConsumption,
                 Unit = "kWh",
                 Change = todayChange,
@@ -50,7 +50,7 @@ namespace MyIoTPlatform.API.Services
             
             stats.Add(new Stat
             {
-                Title = "This Month's Consumption",
+                Title = "Mức tiêu thụ trong tháng",
                 Value = thisMonthConsumption,
                 Unit = "kWh",
                 Change = monthChange,
@@ -70,7 +70,7 @@ namespace MyIoTPlatform.API.Services
             
             stats.Add(new Stat
             {
-                Title = "Active Devices",
+                Title = "Số thiết bị hoạt động",
                 Value = activeDevices.Count,
                 Unit = "devices",
                 Change = deviceChange,
