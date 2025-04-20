@@ -100,9 +100,8 @@ namespace MyIoTPlatform.API.Services
         /// </summary>
         public async Task<List<User>> GetAllUsersAsync()
         {
-            // Since MongoDbService doesn't have GetAllUsersAsync, we'll implement a simple version here
-            // This is a workaround - ideally, the method would be added to MongoDbService
-            return new List<User>(); // Return empty list as a temporary solution
+            // Use the proper implementation from MongoDbService
+            return await _mongoDbService.GetAllUsersAsync();
         }
 
         /// <summary>

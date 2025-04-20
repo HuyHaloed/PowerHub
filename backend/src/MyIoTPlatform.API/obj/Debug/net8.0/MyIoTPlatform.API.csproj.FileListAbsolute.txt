@@ -401,3 +401,4 @@ D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.API\bin\Debu
 D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.API\bin\Debug\net8.0\Snappier.dll
 D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.API\bin\Debug\net8.0\ZstdSharp.dll
 D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.API\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.API\bin\Debug\net8.0\BCrypt.Net-Next.dll

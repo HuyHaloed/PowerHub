@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -72,7 +73,19 @@ builder.Services.AddSingleton<UserService>();
 builder.Services.AddSingleton<TokenService>();
 builder.Services.AddScoped<DashboardService>();
 builder.Services.AddScoped<EnergyService>();
+// builder.Services.AddTransient<MyIoTPlatform.API.Utilities.DatabaseInitializer>();
+// builder.Services.AddScoped<MyIoTPlatform.API.Utilities.DatabaseInitializer>();
+// builder.Services.AddTransient<MyIoTPlatform.API.Utilities.EnergyDataGenerator>();
+
 var app = builder.Build();
+// Initialize the database with sample data
+// dùng để tạo data giả
+// using (var scope = app.Services.CreateScope())
+// {
+//     var initializer = scope.ServiceProvider.GetRequiredService<MyIoTPlatform.API.Utilities.DatabaseInitializer>();
+//     await initializer.InitializeAsync();
+// }
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
