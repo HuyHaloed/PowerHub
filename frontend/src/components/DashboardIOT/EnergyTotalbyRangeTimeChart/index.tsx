@@ -31,31 +31,43 @@ const EnergyConsumptionChart = () => {
   const formatChartData = (data: { date: string; value: number }[]) => {
     if (!data || data.length === 0) return [];
     
-    // Sort the data by date first
-    const sortedData = [...data].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    if (timeRange === 'day') {
+      // Chỉ tạo mảng 24 điểm cho view day
+      const hourlyData = Array.from({length: 24}, (_, hour) => ({
+        time: `${hour}:00`,
+        consumption: 0
+      }));
+  
+      // Điền dữ liệu từ API
+      data.forEach(item => {
+        const hour = new Date(item.date).getHours();
+        hourlyData[hour].consumption = item.value 
+          ? parseFloat(item.value.toFixed(2)) 
+          : 0;
+      });
+  
+      return hourlyData;
+    }
     
-    return sortedData.map(item => ({
+    // Giữ nguyên logic cho các view khác
+    return data.map(item => ({
       time: formatTime(item.date, timeRange),
-      consumption: item.value ? parseFloat(item.value.toFixed(2)) : 0,
-      timestamp: new Date(item.date),
-      rawDate: item.date // Keep original date for debugging
+      consumption: item.value ? parseFloat(item.value.toFixed(2)) : 0
     }));
   };
-
+  
   const formatTime = (dateString: string, timeRange: string) => {
     const date = new Date(dateString);
     
     switch (timeRange) {
       case 'day':
-        return date.getHours() + ':00';
+        return `${date.getHours()}:00`;
       case 'week':
-        const days = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
-        return days[date.getDay()];
+        return ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'][date.getDay()];
       case 'month':
         return date.getDate() + '/' + (date.getMonth() + 1);
       case 'year':
-        const months = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'];
-        return months[date.getMonth()];
+        return ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'][date.getMonth()];
       default:
         return dateString;
     }
