@@ -348,4 +348,80 @@ namespace MyIoTPlatform.API.Models
         public string CVV { get; set; }
     }
     #endregion
+    #region EnvironmentData
+    public class EnvironmentData
+    {
+        [BsonId]
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string Id { get; set; }
+
+        public string UserId { get; set; }
+
+        public string DeviceId { get; set; }
+        
+        public string DeviceName { get; set; }
+
+        public double Temperature { get; set; }
+
+        public double Humidity { get; set; }
+
+        public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+        
+        public string Location { get; set; } = string.Empty;
+    }
+    
+    // Request model for posting environment data
+    public class EnvironmentDataRequest
+    {
+        public string DeviceId { get; set; }
+        
+        public double Temperature { get; set; }
+        
+        public double Humidity { get; set; }
+        
+        public string Location { get; set; } = string.Empty;
+    }
+    
+    // Response model for environment data
+    public class EnvironmentDataResponse
+    {
+        public string Id { get; set; }
+        
+        public string DeviceId { get; set; }
+        
+        public string DeviceName { get; set; }
+        
+        public double Temperature { get; set; }
+        
+        public double Humidity { get; set; }
+        
+        public DateTime Timestamp { get; set; }
+        
+        public string Location { get; set; }
+    }
+    
+    // Data transfer object for environment statistics
+    public class EnvironmentStatsDto
+    {
+        public double CurrentTemperature { get; set; }
+        
+        public double CurrentHumidity { get; set; }
+        
+        public double AvgTemperature { get; set; }
+        
+        public double AvgHumidity { get; set; }
+        
+        public double MaxTemperature { get; set; }
+        
+        public double MinTemperature { get; set; }
+        
+        public double MaxHumidity { get; set; }
+        
+        public double MinHumidity { get; set; }
+        
+        public DateTime LastUpdated { get; set; }
+        
+        public bool HasData { get; set; } = false;
+    }
+    #endregion
 }

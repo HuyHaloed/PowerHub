@@ -19,6 +19,7 @@ namespace MyIoTPlatform.API.Services
         private readonly IMongoCollection<Notification> _notificationsCollection;
         private readonly IMongoCollection<Session> _sessionsCollection;
         private readonly IMongoCollection<EnergyDistribution> _energyDistributionCollection;
+        private readonly IMongoCollection<EnvironmentData> _environmentDataCollection;
 
         public MongoDbService(IOptions<MongoDbSettings> mongoDbSettings)
         {
@@ -32,6 +33,7 @@ namespace MyIoTPlatform.API.Services
             _notificationsCollection = mongoDatabase.GetCollection<Notification>("Notifications");
             _sessionsCollection = mongoDatabase.GetCollection<Session>("Sessions");
             _energyDistributionCollection = mongoDatabase.GetCollection<EnergyDistribution>("EnergyDistribution");
+            _environmentDataCollection = mongoDatabase.GetCollection<EnvironmentData>("EnvironmentData");
         }
 
         #region User Operations
@@ -483,6 +485,104 @@ namespace MyIoTPlatform.API.Services
             await _sessionsCollection.DeleteOneAsync(s => s.Id == id);
         }
         #endregion
+        
+        #region Environment Data Operations
+        
+        public async Task<EnvironmentData> AddEnvironmentDataAsync(EnvironmentData data)
+        {
+            await _environmentDataCollection.InsertOneAsync(data);
+            return data;
+        }
+
+        public async Task<List<EnvironmentData>> GetEnvironmentDataForUserAsync(
+            string userId, 
+            DateTime? startDate = null, 
+            DateTime? endDate = null, 
+            string deviceId = null)
+        {
+            var builder = Builders<EnvironmentData>.Filter;
+            var filter = builder.Eq(e => e.UserId, userId);
+
+            if (startDate.HasValue)
+                filter &= builder.Gte(e => e.Timestamp, startDate.Value);
+
+            if (endDate.HasValue)
+                filter &= builder.Lte(e => e.Timestamp, endDate.Value);
+
+            if (!string.IsNullOrEmpty(deviceId))
+                filter &= builder.Eq(e => e.DeviceId, deviceId);
+
+            return await _environmentDataCollection
+                .Find(filter)
+                .SortByDescending(e => e.Timestamp)
+                .ToListAsync();
+        }
+
+        public async Task<EnvironmentData> GetLatestEnvironmentDataForUserAsync(string userId, string deviceId = null)
+        {
+            var builder = Builders<EnvironmentData>.Filter;
+            var filter = builder.Eq(e => e.UserId, userId);
+
+            if (!string.IsNullOrEmpty(deviceId))
+                filter &= builder.Eq(e => e.DeviceId, deviceId);
+
+            return await _environmentDataCollection
+                .Find(filter)
+                .SortByDescending(e => e.Timestamp)
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<EnvironmentStatsDto> GetEnvironmentStatsForUserAsync(
+            string userId, 
+            DateTime? startDate = null, 
+            DateTime? endDate = null)
+        {
+            var data = await GetEnvironmentDataForUserAsync(userId, startDate, endDate);
+            
+            if (data == null || !data.Any())
+            {
+                return new EnvironmentStatsDto 
+                { 
+                    HasData = false 
+                };
+            }
+
+            var latestData = data.OrderByDescending(d => d.Timestamp).First();
+            
+            return new EnvironmentStatsDto
+            {
+                CurrentTemperature = latestData.Temperature,
+                CurrentHumidity = latestData.Humidity,
+                AvgTemperature = data.Average(d => d.Temperature),
+                AvgHumidity = data.Average(d => d.Humidity),
+                MaxTemperature = data.Max(d => d.Temperature),
+                MinTemperature = data.Min(d => d.Temperature),
+                MaxHumidity = data.Max(d => d.Humidity),
+                MinHumidity = data.Min(d => d.Humidity),
+                LastUpdated = latestData.Timestamp,
+                HasData = true
+            };
+        }
+        
+        public async Task<bool> DeleteEnvironmentDataAsync(string id, string userId)
+        {
+            var filter = Builders<EnvironmentData>.Filter.Eq(e => e.Id, id) & 
+                         Builders<EnvironmentData>.Filter.Eq(e => e.UserId, userId);
+            
+            var result = await _environmentDataCollection.DeleteOneAsync(filter);
+            return result.DeletedCount > 0;
+        }
+        
+        public async Task<bool> HasEnvironmentDataSubscriptionAsync(string userId)
+        {
+            var user = await GetUserByIdAsync(userId);
+            
+            // Check if user has premium subscription or environmental monitoring add-on
+            // You might need to adjust this logic based on your subscription model
+            return user?.Subscription?.Plan == "premium" || 
+                   user?.Subscription?.Plan.Contains("environmental") == true;
+        }
+        #endregion
     }
 
     public class MongoDbSettings
@@ -490,6 +590,7 @@ namespace MyIoTPlatform.API.Services
         public string ConnectionString { get; set; } = string.Empty;
         public string DatabaseName { get; set; } = string.Empty;
     }
+    
     public class TokenService
     {
         private readonly IConfiguration _configuration;
@@ -525,8 +626,5 @@ namespace MyIoTPlatform.API.Services
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-        
-
-
     }
 }

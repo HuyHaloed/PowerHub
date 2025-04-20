@@ -96,7 +96,7 @@ const EnergyConsumptionChart = () => {
               className={`px-3 py-1 text-sm rounded ${
                 timeRange === option.id 
                   ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  : 'bg-gray-100 text-gray-600 hover:bg-[#F1EFEC] hover:text-black'
               }`}
               onClick={() => setTimeRange(option.id)}
             >

@@ -15,6 +15,7 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Đăng ký database initializer TRƯỚC KHI BUILD
 builder.Services.AddApplicationServices(); 
 builder.Services.AddInfrastructureServices(builder.Configuration); 
 builder.Services.AddControllers();
@@ -25,7 +26,7 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(
         policy =>
     {
-        policy.WithOrigins("http://localhost:5173") // URL của React app development server
+        policy.WithOrigins("http://localhost:5173")
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -65,27 +66,31 @@ builder.Services.AddSingleton<TokenService>();
 builder.Services.AddScoped<DashboardService>();
 builder.Services.AddScoped<EnergyService>();
 
-//Đăng ký tạo dữ liệu giả ở đây ( un comment để tạo dữ liệu giả )##################
-// builder.Services.AddTransient<MyIoTPlatform.API.Utilities.DatabaseInitializer>();
-// using (var scope = app.Services.CreateScope())
-// {
-//     var initializer = scope.ServiceProvider.GetRequiredService<MyIoTPlatform.API.Utilities.DatabaseInitializer>();
-//     await initializer.InitializeAsync();
-// }
-// ##############################################################
+// Đăng ký DatabaseInitializer TRƯỚC KHI BUILD
+builder.Services.AddTransient<MyIoTPlatform.API.Utilities.DatabaseInitializer>();
+builder.Services.AddTransient<MyIoTPlatform.API.Utilities.EnvironmentDataGenerator>();
 
+// Build app
 var app = builder.Build();
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+
+// // Sử dụng DatabaseInitializer SAU KHI BUILD
+// if (app.Environment.IsDevelopment())
+// {
+//     app.UseSwagger();
+//     app.UseSwaggerUI();
+    
+//     // Chỉ chạy initializer trong môi trường development
+//     using (var scope = app.Services.CreateScope())
+//     {
+//         var initializer = scope.ServiceProvider.GetRequiredService<MyIoTPlatform.API.Utilities.DatabaseInitializer>();
+//         await initializer.InitializeAsync();
+//     }
+// }
 
 app.UseHttpsRedirection();
-app.UseCors(); // Áp dụng policy CORS
+app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-

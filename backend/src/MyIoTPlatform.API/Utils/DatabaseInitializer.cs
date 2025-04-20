@@ -41,11 +41,16 @@ namespace MyIoTPlatform.API.Utilities
                     Console.WriteLine($"Processing user: {user.Name} ({user.Email})");
                 }
                 
-                var dataGenerator = new EnergyDataGenerator(mongoDbService);
+                var energyDataGenerator = new EnergyDataGenerator(mongoDbService);
+                var environmentDataGenerator = new EnvironmentDataGenerator(mongoDbService);
+                
                 foreach (var user in users)
                 {
                     await CreateSampleDevicesAsync(mongoDbService, user.Id);
-                    await dataGenerator.GenerateEnergyDataForUserAsync(user.Id, 30);
+                    await energyDataGenerator.GenerateEnergyDataForUserAsync(user.Id, 30);
+                    
+                    // Generate environment data for the user
+                    await environmentDataGenerator.GenerateEnvironmentDataForUserAsync(user.Id, 14);
                 }
                 
                 Console.WriteLine("Database initialization completed successfully.");
