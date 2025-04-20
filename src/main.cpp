@@ -24,10 +24,10 @@ PZEM004Tv30 pzem(PZEM_SERIAL, RXD2, TXD2);
 
 const char* ssid = "Bonjour";
 const char* password = "hellosine";
-// const char* TOKEN = "ZS9KjbmsPcXtniB8q9yP";
-// const char* THINGSBOARD_SERVER = "app.coreiot.io";
-const char * TOKEN = "wX9hDkeN0TiumJZlr9Yv";
-const char * THINGSBOARD_SERVER = "mqtt.thingsboard.cloud";
+const char* TOKEN = "ZS9KjbmsPcXtniB8q9yP";
+const char* THINGSBOARD_SERVER = "app.coreiot.io";
+// const char * TOKEN = "wX9hDkeN0TiumJZlr9Yv";
+// const char * THINGSBOARD_SERVER = "mqtt.thingsboard.cloud";
 const uint16_t THINGSBOARD_PORT = 1883;
 
 constexpr uint16_t MAX_MESSAGE_SIZE = 128U;
