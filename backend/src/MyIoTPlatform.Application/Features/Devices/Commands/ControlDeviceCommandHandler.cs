@@ -2,9 +2,8 @@ using MediatR;
 using MyIoTPlatform.Domain.Interfaces.Repositories;
 using MyIoTPlatform.Application.Features.Devices.DTOs;
 using MyIoTPlatform.Application.Interfaces.Communication; // IMqttClientService
-using MyIoTPlatform.Application.Interfaces.Persistence; // IUnitOfWork
 using System.Text.Json;
-
+using Microsoft.Extensions.Logging;
 namespace MyIoTPlatform.Application.Features.Devices.Commands;
 
 public class ControlDeviceCommandHandler : IRequestHandler<ControlDeviceCommand, ControlDeviceResponseDto?>
@@ -13,45 +12,42 @@ public class ControlDeviceCommandHandler : IRequestHandler<ControlDeviceCommand,
     private readonly IMqttClientService _mqttClientService;
     private readonly IUnitOfWork _unitOfWork;
     // Inject ILogger nếu cần log
+    private readonly ILogger<ControlDeviceCommandHandler> _logger;
 
-    public ControlDeviceCommandHandler(IDeviceRepository deviceRepository, IMqttClientService mqttClientService, IUnitOfWork unitOfWork)
+    public ControlDeviceCommandHandler(IDeviceRepository deviceRepository, IMqttClientService mqttClientService, IUnitOfWork unitOfWork, ILogger<ControlDeviceCommandHandler> logger)
     {
         _deviceRepository = deviceRepository;
         _mqttClientService = mqttClientService;
         _unitOfWork = unitOfWork;
+        _logger = logger;
     }
 
     public async Task<ControlDeviceResponseDto?> Handle(ControlDeviceCommand request, CancellationToken cancellationToken)
     {
         var device = await _deviceRepository.GetByIdAsync(request.Id, cancellationToken);
+        if (device == null) return null;
 
-        if (device == null)
-        {
-            return null; // Không tìm thấy thiết bị
-        }
-
-        // Kiểm tra status hợp lệ ("on" hoặc "off")
         var targetStatus = request.Status.ToLowerInvariant();
         if (targetStatus != "on" && targetStatus != "off")
         {
-            // Có thể throw ValidationException hoặc trả về lỗi
-            return new ControlDeviceResponseDto(device.Id, device.Name, device.Status, "Invalid target status.");
+            // Trả về lỗi hoặc thông báo không hợp lệ
+            return new ControlDeviceResponseDto(device.Id, device.Name, device.Status, "Invalid target status provided.");
         }
 
-        // Tạo payload gửi qua MQTT
         var controlPayload = JsonSerializer.Serialize(new { status = targetStatus });
-        var controlTopic = $"devices/{device.Id}/control/request"; // Ví dụ topic điều khiển
+        // !! Đảm bảo topic này khớp với topic thiết bị đang subscribe !!
+        var controlTopic = $"devices/{device.Id}/control/request";
 
-        // Gửi lệnh MQTT
-        await _mqttClientService.PublishAsync(controlTopic, controlPayload, false, qosLevel: 1); // Corrected QoS level argument
-
-        // Cập nhật trạng thái trong DB (Cách tiếp cận đơn giản: cập nhật ngay)
-        // Cách tốt hơn: Chờ phản hồi từ thiết bị qua MQTT rồi mới cập nhật DB
-        device.Status = targetStatus; // Cập nhật trạng thái mong muốn
-        // device.LastActivityAt = DateTime.UtcNow; // Có thể cập nhật thời gian
-        await _deviceRepository.UpdateAsync(device, cancellationToken); // Đánh dấu entity là Modified
-        await _unitOfWork.SaveChangesAsync(cancellationToken); // Lưu thay đổi
-
-        return new ControlDeviceResponseDto(device.Id, device.Name, targetStatus, "Control command sent successfully.");
+        try
+        {
+            await _mqttClientService.PublishAsync(controlTopic, controlPayload, false, 1);
+            return new ControlDeviceResponseDto(device.Id, device.Name, $"pending_{targetStatus}", "Control command sent successfully."); // Trạng thái có thể là pending
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to publish control command for device {DeviceId}", request.Id);
+            return new ControlDeviceResponseDto(device.Id, device.Name, device.Status, "Failed to send control command.");
+        }
+        // !! Không cập nhật device.Status và không SaveChanges ở đây nữa !!
     }
 }

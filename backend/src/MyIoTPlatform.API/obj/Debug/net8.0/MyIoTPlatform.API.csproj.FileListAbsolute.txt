@@ -402,3 +402,11 @@ D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.API\bin\Debu
 D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.API\bin\Debug\net8.0\ZstdSharp.dll
 D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.API\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
 D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.API\bin\Debug\net8.0\BCrypt.Net-Next.dll
+D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.API\bin\Debug\net8.0\BCrypt.Net-Next.dll
+D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.API\bin\Debug\net8.0\DnsClient.dll
+D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.API\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.API\bin\Debug\net8.0\MongoDB.Bson.dll
+D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.API\bin\Debug\net8.0\MongoDB.Driver.dll
+D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.API\bin\Debug\net8.0\SharpCompress.dll
+D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.API\bin\Debug\net8.0\Snappier.dll
+D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.API\bin\Debug\net8.0\ZstdSharp.dll
