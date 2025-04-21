@@ -21,87 +21,63 @@ namespace MyIoTPlatform.API.Utilities
         {
             Console.WriteLine($"Generating environment data for user {userId} for the past {days} days...");
             
-            // Lấy danh sách thiết bị của người dùng
-            var devices = await _mongoDbService.GetDevicesByUserIdAsync(userId);
-            if (devices.Count == 0)
+            // Kiểm tra xem người dùng có tồn tại không
+            var user = await _mongoDbService.GetUserByIdAsync(userId);
+            if (user == null)
             {
-                Console.WriteLine($"No devices found for user {userId}");
+                Console.WriteLine($"User with ID {userId} not found");
                 return;
             }
 
-            // Chọn một vài thiết bị để làm cảm biến môi trường (không phải tất cả thiết bị đều có cảm biến)
-            var sensorDevices = devices.Where(d => 
-                d.Type.Contains("Air Conditioner") || 
-                d.Type.Contains("Refrigerator") || 
-                d.Location.Contains("Living Room") || 
-                d.Location.Contains("Bedroom")).Take(3).ToList();
+            // Quyết định vị trí đo nhiệt độ và độ ẩm (mặc định là phòng khách)
+            string location = "Phòng khách";
 
-            if (sensorDevices.Count == 0)
-            {
-                Console.WriteLine($"No suitable devices found for environment sensors for user {userId}");
-                // Nếu không tìm thấy thiết bị phù hợp, hãy chọn ngẫu nhiên 2 thiết bị
-                sensorDevices = devices.OrderBy(x => Guid.NewGuid()).Take(2).ToList();
-            }
-
-            Console.WriteLine($"Selected {sensorDevices.Count} devices to generate environment data");
+            Console.WriteLine($"Generating environment data for location: {location}");
 
             // Tạo dữ liệu môi trường cho khoảng thời gian 'days' ngày gần đây
             var endDate = DateTime.UtcNow;
             var startDate = endDate.AddDays(-days);
 
-            // Tạo dữ liệu cho từng thiết bị
-            foreach (var device in sensorDevices)
-            {
-                await GenerateDeviceEnvironmentDataAsync(userId, device, startDate, endDate);
-            }
+            // Tạo dữ liệu môi trường
+            await GenerateLocationEnvironmentDataAsync(userId, location, startDate, endDate);
 
             Console.WriteLine($"Environment data generation completed for user {userId}");
         }
 
-        private async Task GenerateDeviceEnvironmentDataAsync(string userId, Device device, DateTime startDate, DateTime endDate)
+        private async Task GenerateLocationEnvironmentDataAsync(string userId, string location, DateTime startDate, DateTime endDate)
         {
-            Console.WriteLine($"Generating environment data for device: {device.Name} ({device.Id}) in {device.Location}");
+            Console.WriteLine($"Generating environment data for location: {location}");
             
             // Tạo các giá trị cơ sở tùy thuộc vào vị trí
-            var baseTemperature = GetBaseTemperatureForLocation(device.Location);
-            var baseHumidity = GetBaseHumidityForLocation(device.Location);
+            var baseTemperature = GetBaseTemperatureForLocation(location);
+            var baseHumidity = GetBaseHumidityForLocation(location);
             
             // Tạo dữ liệu theo từng ngày với nhiều bản ghi mỗi ngày
             var currentTime = startDate;
             while (currentTime <= endDate)
             {
-                // Tạo từ 4-12 bản ghi mỗi ngày, tùy thuộc vào loại thiết bị và ngẫu nhiên
-                int samplesPerDay = device.Type.Contains("Air Conditioner") ? 
-                    _random.Next(8, 13) : _random.Next(4, 9);
+                // Tạo 24 bản ghi mỗi ngày (cứ 1 giờ một bản ghi)
+                int samplesPerDay = 24;
                 
-                // Khoảng thời gian giữa các mẫu
-                var timeInterval = 24.0 / samplesPerDay;
-                
-                for (int i = 0; i < samplesPerDay; i++)
+                for (int hour = 0; hour < samplesPerDay; hour++)
                 {
                     // Tính toán thời điểm lấy mẫu
-                    var sampleTime = currentTime.Date.AddHours(i * timeInterval + _random.NextDouble() * 0.5);
+                    var sampleTime = currentTime.Date.AddHours(hour);
                     if (sampleTime > endDate) break;
                     
-                    // Tạo biến động nhiệt độ và độ ẩm dựa trên thời gian trong ngày
-                    var hourOfDay = sampleTime.Hour;
-                    
                     // Biến động nhiệt độ: Cao nhất vào buổi trưa, thấp nhất vào buổi đêm
-                    var temperatureVariation = GetTemperatureVariationByHour(hourOfDay);
+                    var temperatureVariation = GetTemperatureVariationByHour(hour);
                     
-                    // Biến động độ ẩm: Ngược lại với nhiệt độ - thấp nhất vào buổi trưa, cao nhất vào buổi đêm/sáng sớm
-                    var humidityVariation = GetHumidityVariationByHour(hourOfDay);
+                    // Biến động độ ẩm: Ngược lại với nhiệt độ
+                    var humidityVariation = GetHumidityVariationByHour(hour);
                     
                     // Tạo thêm một chút ngẫu nhiên
-                    var randomTempFactor = (_random.NextDouble() * 2 - 1) * 1.5; // -1.5 đến +1.5
-                    var randomHumidFactor = (_random.NextDouble() * 2 - 1) * 3;  // -3 đến +3
-                    
-                    // Thêm ảnh hưởng của thiết bị lên dữ liệu môi trường
-                    var deviceEffect = GetDeviceEnvironmentEffect(device.Type, device.Status);
+                    var randomTempFactor = (_random.NextDouble() * 2 - 1) * 1.0; // -1.0 đến +1.0
+                    var randomHumidFactor = (_random.NextDouble() * 2 - 1) * 2.0; // -2.0 đến +2.0
                     
                     // Tính giá trị cuối cùng
-                    var temperature = Math.Round(baseTemperature + temperatureVariation + randomTempFactor + deviceEffect.TemperatureEffect, 1);
-                    var humidity = Math.Round(baseHumidity + humidityVariation + randomHumidFactor + deviceEffect.HumidityEffect, 1);
+                    var temperature = Math.Round(baseTemperature + temperatureVariation + randomTempFactor, 1);
+                    var humidity = Math.Round(baseHumidity + humidityVariation + randomHumidFactor, 1);
                     
                     // Đảm bảo các giá trị nằm trong khoảng hợp lý
                     temperature = Math.Max(16, Math.Min(38, temperature));
@@ -111,12 +87,10 @@ namespace MyIoTPlatform.API.Utilities
                     var environmentData = new EnvironmentData
                     {
                         UserId = userId,
-                        DeviceId = device.Id,
-                        DeviceName = device.Name,
                         Temperature = temperature,
                         Humidity = humidity,
                         Timestamp = sampleTime,
-                        Location = device.Location
+                        Location = location
                     };
                     
                     await _mongoDbService.AddEnvironmentDataAsync(environmentData);
@@ -132,11 +106,11 @@ namespace MyIoTPlatform.API.Utilities
             // Nhiệt độ cơ sở tùy thuộc vào vị trí trong nhà
             return location.ToLower() switch
             {
-                var l when l.Contains("kitchen") => 26.0,
-                var l when l.Contains("bathroom") => 25.0,
-                var l when l.Contains("bedroom") => 24.0,
-                var l when l.Contains("living") => 25.0,
-                var l when l.Contains("office") => 24.0,
+                var l when l.Contains("bếp") || l.Contains("kitchen") => 26.0,
+                var l when l.Contains("tắm") || l.Contains("bathroom") => 25.0,
+                var l when l.Contains("ngủ") || l.Contains("bedroom") => 24.0,
+                var l when l.Contains("khách") || l.Contains("living") => 25.0,
+                var l when l.Contains("làm việc") || l.Contains("office") => 24.0,
                 _ => 25.0
             };
         }
@@ -146,11 +120,11 @@ namespace MyIoTPlatform.API.Utilities
             // Độ ẩm cơ sở tùy thuộc vào vị trí trong nhà
             return location.ToLower() switch
             {
-                var l when l.Contains("kitchen") => 60.0,
-                var l when l.Contains("bathroom") => 70.0,
-                var l when l.Contains("bedroom") => 55.0,
-                var l when l.Contains("living") => 50.0,
-                var l when l.Contains("office") => 45.0,
+                var l when l.Contains("bếp") || l.Contains("kitchen") => 60.0,
+                var l when l.Contains("tắm") || l.Contains("bathroom") => 70.0,
+                var l when l.Contains("ngủ") || l.Contains("bedroom") => 55.0,
+                var l when l.Contains("khách") || l.Contains("living") => 50.0,
+                var l when l.Contains("làm việc") || l.Contains("office") => 45.0,
                 _ => 55.0
             };
         }
@@ -158,7 +132,7 @@ namespace MyIoTPlatform.API.Utilities
         private double GetTemperatureVariationByHour(int hour)
         {
             // Biến động nhiệt độ theo giờ trong ngày
-            if (hour >= 6 && hour < 10) return 1.0;      // Sáng: Tăng nhẹ
+            if (hour >= 6 && hour < 10) return 1.0;       // Sáng: Tăng nhẹ
             else if (hour >= 10 && hour < 14) return 3.0; // Trưa: Đỉnh điểm
             else if (hour >= 14 && hour < 18) return 2.5; // Chiều: Giảm nhẹ
             else if (hour >= 18 && hour < 22) return 0.5; // Tối: Trung bình
@@ -173,24 +147,6 @@ namespace MyIoTPlatform.API.Utilities
             else if (hour >= 14 && hour < 18) return -3.0; // Chiều: Tăng dần
             else if (hour >= 18 && hour < 22) return 0.0;  // Tối: Trung bình
             else return 4.0;                               // Đêm: Cao nhất
-        }
-
-        private (double TemperatureEffect, double HumidityEffect) GetDeviceEnvironmentEffect(string deviceType, string deviceStatus)
-        {
-            // Thiết bị không hoạt động sẽ không ảnh hưởng đến môi trường
-            if (deviceStatus.ToLower() != "on")
-                return (0, 0);
-            
-            // Ảnh hưởng của thiết bị lên nhiệt độ và độ ẩm
-            return deviceType.ToLower() switch
-            {
-                var d when d.Contains("air conditioner") => (-3.0, -8.0),   // Máy lạnh: giảm nhiệt độ và độ ẩm
-                var d when d.Contains("refrigerator") => (-0.5, -1.0),      // Tủ lạnh: giảm nhẹ
-                var d when d.Contains("television") => (0.5, 0),             // TV: tăng nhiệt độ nhẹ
-                var d when d.Contains("washing machine") => (0.5, 5.0),      // Máy giặt: tăng độ ẩm đáng kể
-                var d when d.Contains("light") => (0.3, 0),                  // Đèn: tăng nhiệt độ rất nhẹ
-                _ => (0, 0)
-            };
         }
     }
 }

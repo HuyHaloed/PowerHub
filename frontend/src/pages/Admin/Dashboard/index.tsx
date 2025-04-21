@@ -55,10 +55,7 @@ export default function AdminDashboard() {
 
       {/* Tabs for different management sections */}
       <Tabs defaultValue="overview">
-        <TabsList className="grid w-full grid-cols-5 mb-4">
-          <TabsTrigger value="overview" className="flex items-center">
-            <Activity className="mr-2 h-4 w-4" /> Overview
-          </TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4 mb-4">
           <TabsTrigger value="users" className="flex items-center">
             <Users className="mr-2 h-4 w-4" /> Users
           </TabsTrigger>
@@ -73,20 +70,6 @@ export default function AdminDashboard() {
           </TabsTrigger>
         </TabsList>
 
-        {/* Overview Tab */}
-        <TabsContent value="overview">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Compact versions of tables or summary cards */}
-            <UserTable 
-              users={users.slice(0, 5)} 
-              onUpdateUserStatus={updateUserStatus} 
-            />
-            <DeviceTable 
-              devices={devices.slice(0, 5)} 
-              onUpdateDeviceStatus={updateDeviceStatus} 
-            />
-          </div>
-        </TabsContent>
 
         {/* Users Tab */}
         <TabsContent value="users">

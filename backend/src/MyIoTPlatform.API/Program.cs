@@ -73,7 +73,7 @@ builder.Services.AddTransient<MyIoTPlatform.API.Utilities.EnvironmentDataGenerat
 // Build app
 var app = builder.Build();
 
-// // Sử dụng DatabaseInitializer SAU KHI BUILD
+// Sử dụng DatabaseInitializer SAU KHI BUILD
 // if (app.Environment.IsDevelopment())
 // {
 //     app.UseSwagger();

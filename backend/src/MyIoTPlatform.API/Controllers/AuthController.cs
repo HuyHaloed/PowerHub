@@ -30,15 +30,12 @@ namespace MyIoTPlatform.API.Controllers
         {
             try
             {
-                // Xác thực người dùng
                 var user = await _userService.AuthenticateAsync(request.Email, request.Password);
                 if (user == null)
                     return Unauthorized(new { message = "Invalid email or password" });
 
-                // Tạo token
                 var token = _tokenService.GenerateJwtToken(user);
 
-                // Tạo response
                 var response = new AuthResponse
                 {
                     Token = token,
@@ -48,6 +45,7 @@ namespace MyIoTPlatform.API.Controllers
                         Name = user.Name,
                         Email = user.Email,
                         Avatar = user.Avatar,
+                        role = user.role,
                         Subscription = user.Subscription,
                         Preferences = user.Preferences
                     }
@@ -67,11 +65,15 @@ namespace MyIoTPlatform.API.Controllers
         /// <param name="request">The register request containing user details.</param>
         /// <returns>A success message if registration is successful.</returns>
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+        public async Task<IActionResult> Register([FromBody] RegisterRequest request, [FromQuery] bool isAdmin = false)
         {
             try
             {
-                var user = await _userService.CreateUserAsync(request);
+                // Nếu isAdmin = true, tạo tài khoản admin, ngược lại tạo tài khoản user thông thường
+                var user = isAdmin 
+                    ? await _userService.CreateAdminUserAsync(request)
+                    : await _userService.CreateUserAsync(request);
+
                 var token = _tokenService.GenerateJwtToken(user);
                 var response = new AuthResponse
                 {
@@ -82,6 +84,7 @@ namespace MyIoTPlatform.API.Controllers
                         Name = user.Name,
                         Email = user.Email,
                         Avatar = user.Avatar,
+                        role = user.role, 
                         Subscription = user.Subscription,
                         Preferences = user.Preferences
                     }
@@ -94,7 +97,6 @@ namespace MyIoTPlatform.API.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
-
         /// <summary>
         /// Logs out of the system.
         /// </summary>

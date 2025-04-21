@@ -1,18 +1,18 @@
 import React from 'react';
 import { useOutletContext } from "react-router-dom";
 import { useDashboardData, useActiveDevices, useQuickStats } from '@/hooks/useDashboardIOTData';
-import { useLatestEnvironmentData } from '@/hooks/useEnvironmentData';
 import DashboardSidebar from '@/components/DashboardIOT/DashboardSidebar';
 import QuickStatCard from '@/components/DashboardIOT/QuickStatCard';
 import EnergyConsumptionChart from '@/components/DashboardIOT/EnergyTotalbyRangeTimeChart';
 import DeviceStatusCard from '@/components/DashboardIOT/DeviceStatusCard';
 import EnergyDistributionChart from '@/components/DashboardIOT/EnergyDistributionChart';
 import UserInfoCard from '@/components/DashboardIOT/UserInfoCard';
-import { Bell, Thermometer, Droplets } from 'lucide-react';
+import { Bell } from 'lucide-react';
 import DevicesView from '@/pages/Customer/Dashboard/DevicesView';
 import AnalyticsView from '@/pages/Customer/Dashboard/AnalyticsView';
 import SettingsView from '@/pages/Customer/Dashboard/SettingsView';
 import { Stat, Device } from '@/types/dashboard.types';
+import { TemperatureCard, HumidityCard } from '@/components/DashboardIOT/EnvironmentDataCard';
 
 // Custom Alert Component
 const CustomAlert = ({ 
@@ -44,87 +44,10 @@ const CustomAlert = ({
   );
 };
 
-// New Environment Data Card Component
-const EnvironmentDataCard = ({ 
-  title, 
-  value = null, 
-  unit = "", 
-  icon,
-  isSubscribed = false,
-  lastUpdated = null
-}: { 
-  title: string, 
-  value: number | null, 
-  unit: string,
-  icon: React.ReactNode,
-  isSubscribed?: boolean,
-  lastUpdated?: string | null
-}) => {
-  return (
-    <div className="bg-white rounded-lg shadow p-6 h-full">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-medium">{title}</h3>
-        <div className="text-gray-500">
-          {icon}
-        </div>
-      </div>
-      
-      {isSubscribed ? (
-        <div className="mt-2">
-          <div className="flex items-baseline">
-            <span className="text-3xl font-bold">{value !== null ? value.toFixed(1) : '--'}</span>
-            <span className="ml-1 text-gray-500">{unit}</span>
-          </div>
-          <p className="text-sm text-gray-500 mt-1">
-            Cập nhật cuối: {lastUpdated ? new Date(lastUpdated).toLocaleString('vi-VN') : '--'}
-          </p>
-        </div>
-      ) : (
-        <div className="mt-4 text-center py-8 bg-gray-50 rounded-lg">
-          <p className="text-gray-400 font-medium">Không có dữ liệu</p>
-          <p className="text-sm text-gray-400 mt-2">Chưa đăng ký dịch vụ này</p>
-        </div>
-      )}
-    </div>
-  );
-};
-
 type LayoutContextType = {
   isMobile: boolean;
   isSidebarOpen: boolean;
   setSidebarOpen: (isOpen: boolean) => void;
-};
-
-// Temperature Card Component
-const TemperatureCard = () => {
-  const { data, isLoading, hasSubscription, hasData } = useLatestEnvironmentData();
-  
-  return (
-    <EnvironmentDataCard 
-      title="Nhiệt độ" 
-      value={hasData && data ? data.temperature : null} 
-      unit="°C" 
-      icon={<Thermometer className="h-6 w-6" />}
-      isSubscribed={hasSubscription && hasData}
-      lastUpdated={hasData && data ? data.timestamp : null}
-    />
-  );
-};
-
-// Humidity Card Component
-const HumidityCard = () => {
-  const { data, isLoading, hasSubscription, hasData } = useLatestEnvironmentData();
-  
-  return (
-    <EnvironmentDataCard 
-      title="Độ ẩm" 
-      value={hasData && data ? data.humidity : null} 
-      unit="%" 
-      icon={<Droplets className="h-6 w-6" />}
-      isSubscribed={hasSubscription && hasData}
-      lastUpdated={hasData && data ? data.timestamp : null}
-    />
-  );
 };
 
 export default function Dashboard() {
@@ -200,7 +123,6 @@ export default function Dashboard() {
             <EnergyDistributionChart />
           </div>
           
-          {/* Temperature and Humidity Cards - Side by side, directly below the pie chart */}
           <div>
             <TemperatureCard />
           </div>

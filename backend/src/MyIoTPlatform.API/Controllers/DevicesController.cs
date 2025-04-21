@@ -1,6 +1,6 @@
-using System;
+
 using System.Security.Claims;
-using System.Threading.Tasks;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyIoTPlatform.API.Models;
@@ -237,6 +237,17 @@ namespace MyIoTPlatform.API.Controllers
                 deviceId = device.Id,
                 sharedWithUserId = userToShareWith.Id 
             });
+        }
+        [HttpGet("device-statistics")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<DeviceStatisticsDto>> GetDeviceStatistics()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var deviceStatistics = await _mongoDbService.GetDeviceStatisticsAsync(userId);
+            return Ok(deviceStatistics);
         }
     }
 }

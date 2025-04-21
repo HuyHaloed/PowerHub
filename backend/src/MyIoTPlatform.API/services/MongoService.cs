@@ -103,6 +103,58 @@ namespace MyIoTPlatform.API.Services
         }
         #endregion
 
+        #region ADMIN
+        public async Task<DeviceStatisticsDto> GetDeviceStatisticsAsync(string userId)
+        {
+            // Get all devices for the user
+            var devices = await GetDevicesByUserIdAsync(userId);
+            
+            // Get active devices
+            var activeDevices = devices.Where(d => d.Status == "on").ToList();
+            
+            // Calculate device type distribution
+            var deviceTypeDistribution = devices
+                .GroupBy(d => d.Type)
+                .Select(g => new DeviceTypeDistributionItem
+                {
+                    Type = g.Key,
+                    Count = g.Count(),
+                    Percentage = Math.Round((double)g.Count() / devices.Count * 100, 1)
+                })
+                .ToList();
+
+            // Calculate total energy consumption (you might want to use EnergyService for more precise calculation)
+            double totalEnergyConsumption = devices.Sum(d => d.Consumption);
+
+            return new DeviceStatisticsDto
+            {
+                TotalDevices = devices.Count,
+                ActiveDevices = activeDevices.Count,
+                TotalEnergyConsumption = Math.Round(totalEnergyConsumption, 1),
+                AverageDeviceUptime = Math.Round(activeDevices.Count / (double)devices.Count * 100, 1),
+                DeviceTypeDistribution = deviceTypeDistribution
+            };
+        }
+
+        // DTOs to represent the response
+        public class DeviceStatisticsDto
+        {
+            public int TotalDevices { get; set; }
+            public int ActiveDevices { get; set; }
+            public double TotalEnergyConsumption { get; set; }
+            public double AverageDeviceUptime { get; set; }
+            public List<DeviceTypeDistributionItem> DeviceTypeDistribution { get; set; }
+        }
+
+        public class DeviceTypeDistributionItem
+        {
+            public string Type { get; set; }
+            public int Count { get; set; }
+            public double Percentage { get; set; }
+        }
+        #endregion
+
+
         #region Device Operations
         public async Task<List<Device>> GetAllDevicesAsync(string status = null, string location = null, string type = null, string search = null)
         {
@@ -497,7 +549,7 @@ namespace MyIoTPlatform.API.Services
         public async Task<List<EnvironmentData>> GetEnvironmentDataForUserAsync(
             string userId, 
             DateTime? startDate = null, 
-            DateTime? endDate = null, 
+            DateTime? endDate = null,
             string deviceId = null)
         {
             var builder = Builders<EnvironmentData>.Filter;
@@ -509,8 +561,8 @@ namespace MyIoTPlatform.API.Services
             if (endDate.HasValue)
                 filter &= builder.Lte(e => e.Timestamp, endDate.Value);
 
-            if (!string.IsNullOrEmpty(deviceId))
-                filter &= builder.Eq(e => e.DeviceId, deviceId);
+            // if (!string.IsNullOrEmpty(deviceId))
+            //     filter &= builder.Eq(e => e.DeviceId, deviceId);
 
             return await _environmentDataCollection
                 .Find(filter)
@@ -523,8 +575,8 @@ namespace MyIoTPlatform.API.Services
             var builder = Builders<EnvironmentData>.Filter;
             var filter = builder.Eq(e => e.UserId, userId);
 
-            if (!string.IsNullOrEmpty(deviceId))
-                filter &= builder.Eq(e => e.DeviceId, deviceId);
+            // if (!string.IsNullOrEmpty(deviceId))
+            //     filter &= builder.Eq(e => e.DeviceId, deviceId);
 
             return await _environmentDataCollection
                 .Find(filter)
@@ -532,12 +584,25 @@ namespace MyIoTPlatform.API.Services
                 .FirstOrDefaultAsync();
         }
 
+        public async Task<List<string>> GetEnvironmentDataLocationsAsync(string userId)
+        {
+            var data = await GetEnvironmentDataForUserAsync(userId);
+            return data.Select(d => d.Location).Distinct().ToList();
+        }
+
         public async Task<EnvironmentStatsDto> GetEnvironmentStatsForUserAsync(
             string userId, 
             DateTime? startDate = null, 
-            DateTime? endDate = null)
+            DateTime? endDate = null,
+            string location = null)
         {
             var data = await GetEnvironmentDataForUserAsync(userId, startDate, endDate);
+            
+            // Lọc theo vị trí nếu được chỉ định
+            if (!string.IsNullOrEmpty(location))
+            {
+                data = data.Where(d => d.Location.Equals(location, StringComparison.OrdinalIgnoreCase)).ToList();
+            }
             
             if (data == null || !data.Any())
             {
@@ -553,34 +618,33 @@ namespace MyIoTPlatform.API.Services
             {
                 CurrentTemperature = latestData.Temperature,
                 CurrentHumidity = latestData.Humidity,
-                AvgTemperature = data.Average(d => d.Temperature),
-                AvgHumidity = data.Average(d => d.Humidity),
-                MaxTemperature = data.Max(d => d.Temperature),
-                MinTemperature = data.Min(d => d.Temperature),
-                MaxHumidity = data.Max(d => d.Humidity),
-                MinHumidity = data.Min(d => d.Humidity),
+                AvgTemperature = Math.Round(data.Average(d => d.Temperature), 1),
+                AvgHumidity = Math.Round(data.Average(d => d.Humidity), 1),
+                MaxTemperature = Math.Round(data.Max(d => d.Temperature), 1),
+                MinTemperature = Math.Round(data.Min(d => d.Temperature), 1),
+                MaxHumidity = Math.Round(data.Max(d => d.Humidity), 1),
+                MinHumidity = Math.Round(data.Min(d => d.Humidity), 1),
                 LastUpdated = latestData.Timestamp,
+                Location = latestData.Location,
                 HasData = true
             };
         }
-        
+
         public async Task<bool> DeleteEnvironmentDataAsync(string id, string userId)
         {
             var filter = Builders<EnvironmentData>.Filter.Eq(e => e.Id, id) & 
-                         Builders<EnvironmentData>.Filter.Eq(e => e.UserId, userId);
+                        Builders<EnvironmentData>.Filter.Eq(e => e.UserId, userId);
             
             var result = await _environmentDataCollection.DeleteOneAsync(filter);
             return result.DeletedCount > 0;
         }
-        
+
         public async Task<bool> HasEnvironmentDataSubscriptionAsync(string userId)
         {
             var user = await GetUserByIdAsync(userId);
             
-            // Check if user has premium subscription or environmental monitoring add-on
-            // You might need to adjust this logic based on your subscription model
-            return user?.Subscription?.Plan == "premium" || 
-                   user?.Subscription?.Plan.Contains("environmental") == true;
+            // Mọi người dùng đều có thể sử dụng tính năng này trong ví dụ này
+            return user != null;
         }
         #endregion
     }
@@ -613,7 +677,8 @@ namespace MyIoTPlatform.API.Services
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(ClaimTypes.Name, user.Name)
+                new Claim(ClaimTypes.Name, user.Name),
+                new Claim(ClaimTypes.Role, user.role) // vướng r vs R mà mệt mỏi
             };
             claims.Add(new Claim("plan", user.Subscription.Plan));
             var token = new JwtSecurityToken(
@@ -626,5 +691,6 @@ namespace MyIoTPlatform.API.Services
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+        
     }
 }

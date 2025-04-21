@@ -32,17 +32,19 @@ namespace MyIoTPlatform.API.Services
         /// <summary>
         /// Creates a new user with the provided registration information
         /// </summary>
-        public async Task<User> CreateUserAsync(RegisterRequest request)
+        public async Task<User> CreateUserAsync(RegisterRequest request, string role = "User")
         {
             var existingUser = await _mongoDbService.GetUserByEmailAsync(request.Email);
             if (existingUser != null)
                 throw new Exception("Email is already registered");
+            
             var user = new User
             {
                 Name = request.Name,
                 Email = request.Email,
                 PasswordHash = HashPassword(request.Password),
                 Phone = request.Phone,
+                role = role, // Gán role được chỉ định
                 CreatedAt = DateTime.UtcNow,
                 LastLogin = DateTime.UtcNow,
                 IsActive = true,
@@ -65,6 +67,21 @@ namespace MyIoTPlatform.API.Services
             await _mongoDbService.CreateUserAsync(user);
             return user;
         }
+
+        /// <summary>
+        /// Tạo tài khoản admin
+        /// </summary>
+        public async Task<User> CreateAdminUserAsync(RegisterRequest request)
+        {
+            return await CreateUserAsync(request, "Admin");
+        }
+        
+        // Hàm để kiểm tra xem người dùng có phải là Admin không
+        public bool IsAdmin(User user)
+        {
+            return user != null && user.role == "Admin";
+        }
+
 
         /// <summary>
         /// Gets a user by their ID

@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import authorizedAxiosInstance from '../lib/axios';
 
 interface EnvironmentData {
   id: string;
-  deviceId: string;
-  deviceName: string;
+  deviceId: string | null;
+  deviceName: string | null;
   temperature: number;
   humidity: number;
   timestamp: string;
@@ -22,6 +22,7 @@ interface EnvironmentStats {
   minHumidity: number;
   lastUpdated: string;
   hasData: boolean;
+  location: string;
 }
 
 interface EnvironmentResponse {
@@ -30,8 +31,8 @@ interface EnvironmentResponse {
   data?: EnvironmentData | EnvironmentStats;
 }
 
-// Hook to get latest environment data
-export const useLatestEnvironmentData = (deviceId?: string) => {
+// Hook để lấy dữ liệu môi trường mới nhất
+export const useLatestEnvironmentData = (location?: string) => {
   const [data, setData] = useState<EnvironmentData | null>(null);
   const [hasSubscription, setHasSubscription] = useState<boolean>(false);
   const [hasData, setHasData] = useState<boolean>(false);
@@ -42,11 +43,11 @@ export const useLatestEnvironmentData = (deviceId?: string) => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const url = deviceId 
-          ? `/api/Environment/latest?deviceId=${deviceId}`
-          : `/api/Environment/latest`;
+        const url = location 
+          ? `/Environment/latest?location=${encodeURIComponent(location)}`
+          : `/Environment/latest`;
           
-        const response = await axios.get<EnvironmentResponse>(url);
+        const response = await authorizedAxiosInstance.get<EnvironmentResponse>(url);
         
         setHasSubscription(response.data.hasSubscription);
         
@@ -60,8 +61,8 @@ export const useLatestEnvironmentData = (deviceId?: string) => {
         
         setError(null);
       } catch (err) {
-        setError('Failed to fetch environment data');
-        console.error('Error fetching environment data:', err);
+        setError('Không thể tải dữ liệu môi trường');
+        console.error('Lỗi khi tải dữ liệu môi trường:', err);
       } finally {
         setIsLoading(false);
       }
@@ -69,19 +70,20 @@ export const useLatestEnvironmentData = (deviceId?: string) => {
 
     fetchData();
     
-    // Refresh data every minute
+    // Làm mới dữ liệu mỗi phút
     const intervalId = setInterval(fetchData, 60000);
     
     return () => clearInterval(intervalId);
-  }, [deviceId]);
+  }, [location]);
 
   return { data, isLoading, error, hasSubscription, hasData };
 };
 
-// Hook to get environment statistics
-export const useEnvironmentStats = (startDate?: Date, endDate?: Date) => {
+// Hook để lấy thống kê môi trường
+export const useEnvironmentStats = (startDate?: Date, endDate?: Date, location?: string) => {
   const [stats, setStats] = useState<EnvironmentStats | null>(null);
   const [hasSubscription, setHasSubscription] = useState<boolean>(false);
+  const [hasData, setHasData] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -89,7 +91,7 @@ export const useEnvironmentStats = (startDate?: Date, endDate?: Date) => {
     const fetchStats = async () => {
       setIsLoading(true);
       try {
-        let url = `/api/Environment/stats`;
+        let url = `/Environment/stats`;
         const params = [];
         
         if (startDate) {
@@ -100,42 +102,49 @@ export const useEnvironmentStats = (startDate?: Date, endDate?: Date) => {
           params.push(`endDate=${endDate.toISOString()}`);
         }
         
+        if (location) {
+          params.push(`location=${encodeURIComponent(location)}`);
+        }
+        
         if (params.length > 0) {
           url += `?${params.join('&')}`;
         }
         
-        const response = await axios.get<EnvironmentResponse>(url);
+        const response = await authorizedAxiosInstance.get<EnvironmentResponse>(url);
         
         setHasSubscription(response.data.hasSubscription);
         
-        if (response.data.hasSubscription) {
+        if (response.data.hasSubscription && response.data.hasData) {
           setStats(response.data.data as EnvironmentStats);
+          setHasData(true);
         } else {
           setStats(null);
+          setHasData(false);
         }
         
         setError(null);
       } catch (err) {
-        setError('Failed to fetch environment statistics');
-        console.error('Error fetching environment statistics:', err);
+        setError('Không thể tải thống kê môi trường');
+        console.error('Lỗi khi tải thống kê môi trường:', err);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchStats();
-  }, [startDate, endDate]);
+  }, [startDate, endDate, location]);
 
-  return { stats, isLoading, error, hasSubscription };
+  return { stats, isLoading, error, hasSubscription, hasData };
 };
 
-// Hook to get all environment data with pagination
+// Hook để lấy toàn bộ dữ liệu môi trường
 export const useEnvironmentData = (
-  deviceId?: string, 
   startDate?: Date, 
-  endDate?: Date
+  endDate?: Date,
+  location?: string
 ) => {
   const [data, setData] = useState<EnvironmentData[]>([]);
+  const [hasSubscription, setHasSubscription] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -143,12 +152,8 @@ export const useEnvironmentData = (
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        let url = '/api/Environment';
+        let url = '/Environment';
         const params = [];
-        
-        if (deviceId) {
-          params.push(`deviceId=${deviceId}`);
-        }
         
         if (startDate) {
           params.push(`startDate=${startDate.toISOString()}`);
@@ -158,23 +163,57 @@ export const useEnvironmentData = (
           params.push(`endDate=${endDate.toISOString()}`);
         }
         
+        if (location) {
+          params.push(`location=${encodeURIComponent(location)}`);
+        }
+        
         if (params.length > 0) {
           url += `?${params.join('&')}`;
         }
         
-        const response = await axios.get<EnvironmentData[]>(url);
-        setData(response.data);
+        const response = await authorizedAxiosInstance.get<{hasSubscription: boolean, data: EnvironmentData[]}>(url);
+        setHasSubscription(response.data.hasSubscription);
+        setData(response.data.hasSubscription ? response.data.data : []);
         setError(null);
       } catch (err) {
-        setError('Failed to fetch environment data');
-        console.error('Error fetching environment data:', err);
+        setError('Không thể tải dữ liệu môi trường');
+        console.error('Lỗi khi tải dữ liệu môi trường:', err);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchData();
-  }, [deviceId, startDate, endDate]);
+  }, [startDate, endDate, location]);
 
-  return { data, isLoading, error };
+  return { data, isLoading, error, hasSubscription };
+};
+
+// Hook để lấy danh sách các vị trí có dữ liệu môi trường
+export const useEnvironmentLocations = () => {
+  const [locations, setLocations] = useState<string[]>([]);
+  const [hasSubscription, setHasSubscription] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchLocations = async () => {
+      setIsLoading(true);
+      try {
+        const response = await authorizedAxiosInstance.get<{hasSubscription: boolean, data: string[]}>('/Environment/locations');
+        setHasSubscription(response.data.hasSubscription);
+        setLocations(response.data.hasSubscription ? response.data.data : []);
+        setError(null);
+      } catch (err) {
+        setError('Không thể tải danh sách vị trí');
+        console.error('Lỗi khi tải danh sách vị trí:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchLocations();
+  }, []);
+
+  return { locations, isLoading, error, hasSubscription };
 };

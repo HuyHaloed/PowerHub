@@ -66,7 +66,7 @@ export function AppSidebar() {
             </Avatar>
             <div className="space-y-2">
               <Link to={paths.Home}>
-                <p className="font-bold">Phòng khám Lavender</p>
+                <p className="font-bold">POWER HUB</p>
               </Link>
               <div className="flex items-center gap-2 flex-wrap">
                 <Badge

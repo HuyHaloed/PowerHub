@@ -1,3 +1,4 @@
+// Cập nhật trong pages/Login/index.tsx
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -17,7 +18,7 @@ import { paths } from "@/utils/path";
 import { login } from "@/action/login";
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import { Eye, EyeOff, Lock, Mail } from "lucide-react"; // Thêm các biểu tượng
+import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 
 const formSchema = z.object({
   email: z.string().refine(
@@ -59,7 +60,12 @@ export default function LoginPage() {
 
       if (response.success) {
         toast.success(response.message);
-        navigate(paths.Dashboard);
+        // Kiểm tra role của người dùng và chuyển hướng tương ứng
+        if (response.data?.user.role === 'Admin') {
+          navigate(paths.AdminDashboard);
+        } else {
+          navigate(paths.Dashboard);
+        }
       } else {
         toast.error(response.message);
       }
