@@ -39,6 +39,7 @@ public class MqttClientService : BackgroundService, IMqttClientService
     // Phương thức chính của BackgroundService, chạy khi ứng dụng khởi động
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        _logger.LogInformation("MQTT BackgroundService is starting ExecuteAsync...");
         var factory = new MqttFactory(); // Không truyền logger vào Factory
         _mqttClient = factory.CreateManagedMqttClient();
 
@@ -70,9 +71,13 @@ public class MqttClientService : BackgroundService, IMqttClientService
         // Có thể đăng ký thêm các handler khác nếu cần
 
         _logger.LogInformation("Starting MQTT client connection to {Host}:{Port}...", _mqttConfig.Host, _mqttConfig.Port);
+        _logger.LogInformation("MQTT Config: Host={Host}, Port={Port}, Topic={TelemetryTopic}", 
+        _mqttConfig.Host, _mqttConfig.Port, _mqttConfig.SubscribeTelemetryTopic);
+
         try
         {
             // Bắt đầu kết nối và duy trì kết nối
+            _logger.LogInformation("MQTT Service Starting");
             await _mqttClient.StartAsync(managedOptions);
         }
         catch (Exception ex)
