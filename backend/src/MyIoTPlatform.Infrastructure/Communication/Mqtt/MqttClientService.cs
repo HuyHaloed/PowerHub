@@ -4,11 +4,13 @@ using Microsoft.Extensions.Hosting; // Cần cho BackgroundService
 using Microsoft.Extensions.Logging; // Cần cho ILogger
 using Microsoft.Extensions.Options; // Cần cho IOptions<MqttConfig>
 using MQTTnet; // Import namespace gốc
+using MQTTnet.Packets;
 using MQTTnet.Client;
 using MQTTnet.Extensions.ManagedClient;
 using MQTTnet.Protocol; // Cần cho MqttQualityOfServiceLevel
 using MyIoTPlatform.Application.Features.Telemetry.Commands; // Command để xử lý telemetry
 using MyIoTPlatform.Application.Interfaces.Communication; // Interface IMqttClientService
+using MyIoTPlatform.Application.Features.Devices.Commands;
 using System;
 using System.Text;
 using System.Threading;
@@ -44,8 +46,7 @@ public class MqttClientService : BackgroundService, IMqttClientService
         var clientOptionsBuilder = new MqttClientOptionsBuilder()
             .WithClientId(_mqttConfig.ClientId ?? $"MyIoTBackend_{Guid.NewGuid()}")
             .WithTcpServer(_mqttConfig.Host, _mqttConfig.Port)
-            .WithCleanSession()
-            .WithKeepAlivePeriod(TimeSpan.FromSeconds(_mqttConfig.KeepAliveSeconds));
+            .WithCleanSession();
 
         // Thêm Credentials nếu có
         if (!string.IsNullOrEmpty(_mqttConfig.Username))
@@ -127,23 +128,26 @@ public class MqttClientService : BackgroundService, IMqttClientService
         _logger.LogInformation("Successfully connected to MQTT Broker.");
         if (_mqttClient == null) return;
 
-        // Subscribe vào topic sau khi kết nối thành công
-        var topic = _mqttConfig.SubscribeTopic ?? "devices/+/telemetry"; // Lấy từ config hoặc dùng mặc định
+        var topics = new List<MqttTopicFilter>();
+
+        // Lấy topic từ config hoặc dùng mặc định
+        var telemetryTopic = _mqttConfig.SubscribeTelemetryTopic ?? "devices/+/telemetry";
+        var stateTopic = _mqttConfig.SubscribeStateTopic ?? "devices/+/state";
+
+        topics.Add(new MqttTopicFilterBuilder().WithTopic(telemetryTopic).WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtMostOnce).Build());
+        topics.Add(new MqttTopicFilterBuilder().WithTopic(stateTopic).WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce).Build()); // State có thể cần QoS cao hơn
+
+        _logger.LogInformation("Subscribing to topics: {TelemetryTopic}, {StateTopic}", telemetryTopic, stateTopic);
+
         try
         {
-            _logger.LogInformation("Subscribing to topic: {Topic}", topic);
-            var topicFilter = new MqttTopicFilterBuilder()
-                .WithTopic(topic)
-                .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtMostOnce)
-                .Build();
-
-            await _mqttClient.SubscribeAsync(new[] { topicFilter }); // Directly call SubscribeAsync without assigning to a variable
-
-            _logger.LogInformation("Successfully subscribed to topic: {Topic}", topic); // Simplified logging for successful subscription
+            await _mqttClient.SubscribeAsync(topics);
+            // Log kết quả subscribe chi tiết hơn nếu cần...
+            _logger.LogInformation("Subscription results");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error subscribing to topic {Topic}", topic);
+            _logger.LogError(ex, "Error subscribing to topics");
         }
     }
 
@@ -157,57 +161,67 @@ public class MqttClientService : BackgroundService, IMqttClientService
 
     // --- Event Handler: Nhận được tin nhắn ---
     private async Task OnMessageReceivedAsync(MqttApplicationMessageReceivedEventArgs e)
+{
+    var topic = e.ApplicationMessage.Topic;
+    string payload;
+    try { payload = Encoding.UTF8.GetString(e.ApplicationMessage.PayloadSegment); }
+    catch (Exception ex) { /* Log và return */ return; }
+
+    _logger.LogDebug("Received message on topic '{Topic}': {Payload}", topic, payload);
+
+    using (var scope = _serviceProvider.CreateScope())
     {
-        var topic = e.ApplicationMessage.Topic;
-        string payload;
+        var sender = scope.ServiceProvider.GetRequiredService<ISender>();
+        var scopeLogger = scope.ServiceProvider.GetRequiredService<ILogger<MqttClientService>>();
+
         try
         {
-            payload = Encoding.UTF8.GetString(e.ApplicationMessage.PayloadSegment); // Parse payload thành string UTF8
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to decode payload for topic {Topic}. Payload might not be UTF8.", topic);
-            return; // Bỏ qua nếu không decode được
-        }
-
-        _logger.LogDebug("Received message on topic '{Topic}': {Payload}", topic, payload); // Dùng Debug level cho log chi tiết
-
-        // !!! QUAN TRỌNG: Tạo Scope để lấy Scoped Services !!!
-        using (var scope = _serviceProvider.CreateScope())
-        {
-            // Lấy ISender (MediatR) và Logger từ Scope mới
-            var sender = scope.ServiceProvider.GetRequiredService<ISender>();
-            var scopeLogger = scope.ServiceProvider.GetRequiredService<ILogger<MqttClientService>>(); // Có thể lấy logger từ scope
-
-            try
+            // --- Phân loại Topic ---
+            // Giả định topic có dạng "devices/{deviceId}/..."
+            var topicSegments = topic.Split('/');
+            if (topicSegments.Length >= 3 && topicSegments[0].Equals("devices", StringComparison.OrdinalIgnoreCase))
             {
-                // 1. Parse DeviceId từ Topic (Cần hàm helper riêng)
-                var deviceId = ParseDeviceIdFromTopic(topic);
-
-                if (deviceId != Guid.Empty)
+                if (Guid.TryParse(topicSegments[1], out var deviceId)) // Giả sử deviceId là Guid trong topic
                 {
-                    // 2. Tạo Command
-                    var command = new IngestTelemetryCommand(deviceId, payload);
+                    string messageType = topicSegments[2].ToLowerInvariant();
 
-                    // 3. Gửi Command đến Application Handler
-                    // Dùng CancellationToken.None vì việc xử lý message không nên bị hủy bởi stoppingToken của BackgroundService
-                    await sender.Send(command, CancellationToken.None);
+                    switch (messageType)
+                    {
+                        case "telemetry":
+                            var ingestCmd = new IngestTelemetryCommand(deviceId, payload);
+                            await sender.Send(ingestCmd, CancellationToken.None);
+                            scopeLogger.LogInformation("Processed telemetry from device {DeviceId}", deviceId);
+                            break;
 
-                    scopeLogger.LogInformation("Successfully processed message from device {DeviceId} on topic {Topic}", deviceId, topic);
+                        case "state":
+                            // Tạo Command mới để xử lý cập nhật trạng thái từ thiết bị
+                            var updateStateCmd = new UpdateDeviceStateCommand(deviceId, payload);
+                            await sender.Send(updateStateCmd, CancellationToken.None);
+                            scopeLogger.LogInformation("Processed state update from device {DeviceId}", deviceId);
+                            break;
+
+                         // Thêm các case khác nếu có loại topic khác (ví dụ: response, event...)
+                        default:
+                            scopeLogger.LogWarning("Unhandled message type '{MessageType}' on topic: {Topic}", messageType, topic);
+                            break;
+                    }
                 }
                 else
                 {
-                    scopeLogger.LogWarning("Could not parse DeviceId from topic: {Topic}", topic);
+                    scopeLogger.LogWarning("Could not parse Guid DeviceId from topic: {Topic}", topic);
                 }
             }
-            catch (Exception ex)
+            else
             {
-                // Log lỗi xảy ra trong quá trình xử lý (ví dụ: handler lỗi, parse lỗi...)
-                scopeLogger.LogError(ex, "Error processing message from topic {Topic}. Payload: {Payload}", topic, payload);
+                scopeLogger.LogWarning("Received message on unstandardized topic: {Topic}", topic);
             }
         }
-        // Scope sẽ tự động được dispose ở đây, giải phóng các dịch vụ Scoped
+        catch (Exception ex)
+        {
+            scopeLogger.LogError(ex, "Error processing message from topic {Topic}. Payload: {Payload}", topic, payload);
+        }
     }
+}
 
 
     // --- Triển khai phương thức Publish từ Interface IMqttClientService ---

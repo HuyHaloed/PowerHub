@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "D:\\DHBK242\\Đồ án đa ngành\\POWER HUB\\backend\\src\\MyIoTPlatform.Infrastructure\\MyIoTPlatform.Infrastructure.csproj": {}
+    "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Infrastructure\\MyIoTPlatform.Infrastructure.csproj": {}
   },
   "projects": {
-    "D:\\DHBK242\\Đồ án đa ngành\\POWER HUB\\backend\\src\\MyIoTPlatform.Application\\MyIoTPlatform.Application.csproj": {
+    "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Application\\MyIoTPlatform.Application.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\DHBK242\\Đồ án đa ngành\\POWER HUB\\backend\\src\\MyIoTPlatform.Application\\MyIoTPlatform.Application.csproj",
+        "projectUniqueName": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Application\\MyIoTPlatform.Application.csproj",
         "projectName": "MyIoTPlatform.Application",
-        "projectPath": "D:\\DHBK242\\Đồ án đa ngành\\POWER HUB\\backend\\src\\MyIoTPlatform.Application\\MyIoTPlatform.Application.csproj",
-        "packagesPath": "C:\\Users\\Lenovo\\.nuget\\packages\\",
-        "outputPath": "D:\\DHBK242\\Đồ án đa ngành\\POWER HUB\\backend\\src\\MyIoTPlatform.Application\\obj\\",
+        "projectPath": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Application\\MyIoTPlatform.Application.csproj",
+        "packagesPath": "C:\\Users\\BonBon\\.nuget\\packages\\",
+        "outputPath": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Application\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+          "D:\\Program Files\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\Lenovo\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\BonBon\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -32,8 +32,8 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "D:\\DHBK242\\Đồ án đa ngành\\POWER HUB\\backend\\src\\MyIoTPlatform.Domain\\MyIoTPlatform.Domain.csproj": {
-                "projectPath": "D:\\DHBK242\\Đồ án đa ngành\\POWER HUB\\backend\\src\\MyIoTPlatform.Domain\\MyIoTPlatform.Domain.csproj"
+              "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Domain\\MyIoTPlatform.Domain.csproj": {
+                "projectPath": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Domain\\MyIoTPlatform.Domain.csproj"
               }
             }
           }
@@ -46,9 +46,9 @@
         "restoreAuditProperties": {
           "enableAudit": "true",
           "auditLevel": "low",
-          "auditMode": "direct"
+          "auditMode": "all"
         },
-        "SdkAnalysisLevel": "9.0.200"
+        "SdkAnalysisLevel": "9.0.100"
       },
       "frameworks": {
         "net8.0": {
@@ -99,24 +99,24 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.201/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.100/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "D:\\DHBK242\\Đồ án đa ngành\\POWER HUB\\backend\\src\\MyIoTPlatform.Domain\\MyIoTPlatform.Domain.csproj": {
+    "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Domain\\MyIoTPlatform.Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\DHBK242\\Đồ án đa ngành\\POWER HUB\\backend\\src\\MyIoTPlatform.Domain\\MyIoTPlatform.Domain.csproj",
+        "projectUniqueName": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Domain\\MyIoTPlatform.Domain.csproj",
         "projectName": "MyIoTPlatform.Domain",
-        "projectPath": "D:\\DHBK242\\Đồ án đa ngành\\POWER HUB\\backend\\src\\MyIoTPlatform.Domain\\MyIoTPlatform.Domain.csproj",
-        "packagesPath": "C:\\Users\\Lenovo\\.nuget\\packages\\",
-        "outputPath": "D:\\DHBK242\\Đồ án đa ngành\\POWER HUB\\backend\\src\\MyIoTPlatform.Domain\\obj\\",
+        "projectPath": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Domain\\MyIoTPlatform.Domain.csproj",
+        "packagesPath": "C:\\Users\\BonBon\\.nuget\\packages\\",
+        "outputPath": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Domain\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+          "D:\\Program Files\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\Lenovo\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\BonBon\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -141,9 +141,9 @@
         "restoreAuditProperties": {
           "enableAudit": "true",
           "auditLevel": "low",
-          "auditMode": "direct"
+          "auditMode": "all"
         },
-        "SdkAnalysisLevel": "9.0.200"
+        "SdkAnalysisLevel": "9.0.100"
       },
       "frameworks": {
         "net8.0": {
@@ -190,24 +190,24 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.201/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.100/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "D:\\DHBK242\\Đồ án đa ngành\\POWER HUB\\backend\\src\\MyIoTPlatform.Infrastructure\\MyIoTPlatform.Infrastructure.csproj": {
+    "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Infrastructure\\MyIoTPlatform.Infrastructure.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\DHBK242\\Đồ án đa ngành\\POWER HUB\\backend\\src\\MyIoTPlatform.Infrastructure\\MyIoTPlatform.Infrastructure.csproj",
+        "projectUniqueName": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Infrastructure\\MyIoTPlatform.Infrastructure.csproj",
         "projectName": "MyIoTPlatform.Infrastructure",
-        "projectPath": "D:\\DHBK242\\Đồ án đa ngành\\POWER HUB\\backend\\src\\MyIoTPlatform.Infrastructure\\MyIoTPlatform.Infrastructure.csproj",
-        "packagesPath": "C:\\Users\\Lenovo\\.nuget\\packages\\",
-        "outputPath": "D:\\DHBK242\\Đồ án đa ngành\\POWER HUB\\backend\\src\\MyIoTPlatform.Infrastructure\\obj\\",
+        "projectPath": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Infrastructure\\MyIoTPlatform.Infrastructure.csproj",
+        "packagesPath": "C:\\Users\\BonBon\\.nuget\\packages\\",
+        "outputPath": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Infrastructure\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+          "D:\\Program Files\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\Lenovo\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\BonBon\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -222,8 +222,8 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "D:\\DHBK242\\Đồ án đa ngành\\POWER HUB\\backend\\src\\MyIoTPlatform.Application\\MyIoTPlatform.Application.csproj": {
-                "projectPath": "D:\\DHBK242\\Đồ án đa ngành\\POWER HUB\\backend\\src\\MyIoTPlatform.Application\\MyIoTPlatform.Application.csproj"
+              "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Application\\MyIoTPlatform.Application.csproj": {
+                "projectPath": "D:\\Bon Bon\\project 1\\git\\PowerHub\\backend\\src\\MyIoTPlatform.Application\\MyIoTPlatform.Application.csproj"
               }
             }
           }
@@ -236,9 +236,9 @@
         "restoreAuditProperties": {
           "enableAudit": "true",
           "auditLevel": "low",
-          "auditMode": "direct"
+          "auditMode": "all"
         },
-        "SdkAnalysisLevel": "9.0.200"
+        "SdkAnalysisLevel": "9.0.100"
       },
       "frameworks": {
         "net8.0": {
@@ -319,7 +319,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.201/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.100/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

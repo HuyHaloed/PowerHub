@@ -42,6 +42,8 @@ builder.Services.AddCors(options =>
 builder.Services.AddSignalR();
 
 // Đăng ký MQTT Client như một Hosted Service để nó tự chạy nền
+builder.Services.Configure<MqttConfig>(builder.Configuration.GetSection("Mqtt"));
+builder.Services.AddSingleton<IMqttClientService, MqttClientService>();
 builder.Services.AddHostedService<MqttClientService>();
 builder.Services.AddScoped<MyIoTPlatform.Application.Interfaces.Repositories.ITelemetryRepository, MyIoTPlatform.Infrastructure.Persistence.Repositories.TelemetryRepository>();
 builder.Services.AddTransient<IRealtimeNotifier, RealtimeNotifier>();
