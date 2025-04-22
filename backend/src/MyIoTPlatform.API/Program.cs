@@ -11,6 +11,8 @@ using MyIoTPlatform.API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using MyIoTPlatform.Application.Interfaces.Persistence;
+using MyIoTPlatform.Infrastructure.Persistence;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -54,8 +56,8 @@ builder.Services.AddScoped<MyIoTPlatform.Application.Interfaces.Persistence.IPre
 builder.Services.AddScoped<IUnitOfWork, MyIoTPlatform.Infrastructure.Persistence.UnitOfWork>();
 builder.Services.Configure<MongoDbSettings>(
     builder.Configuration.GetSection("MongoDB"));
-
-builder.Services.AddSingleton<MongoDbService>();
+builder.Services.AddSingleton<MyIoTPlatform.API.Services.MongoDbService>();
+builder.Services.AddSingleton<ITelemetryMongoService, MyIoTPlatform.Infrastructure.Persistence.MongoDbService>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options => 
     {

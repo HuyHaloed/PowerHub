@@ -2885,6 +2885,7 @@
           "Microsoft.Extensions.Hosting": "9.0.0",
           "Microsoft.Extensions.Http": "9.0.0",
           "Microsoft.Identity.Client": "4.61.3",
+          "MongoDB.Driver": "3.3.0",
           "MyIoTPlatform.Application": "1.0.0",
           "System.Formats.Asn1": "9.0.0"
         },

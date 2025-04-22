@@ -11,11 +11,7 @@ using MQTTnet.Protocol; // Cần cho MqttQualityOfServiceLevel
 using MyIoTPlatform.Application.Features.Telemetry.Commands; // Command để xử lý telemetry
 using MyIoTPlatform.Application.Interfaces.Communication; // Interface IMqttClientService
 using MyIoTPlatform.Application.Features.Devices.Commands;
-using System;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Collections.Generic; // Cần cho List hoặc Array
 
 namespace MyIoTPlatform.Infrastructure.Communication.Mqtt;
 
@@ -170,7 +166,7 @@ public class MqttClientService : BackgroundService, IMqttClientService
     var topic = e.ApplicationMessage.Topic;
     string payload;
     try { payload = Encoding.UTF8.GetString(e.ApplicationMessage.PayloadSegment); }
-    catch (Exception ex) { /* Log và return */ return; }
+    catch (Exception ex) { _logger.LogError(ex, "Error subscribing to topics"); return; }
 
     _logger.LogDebug("Received message on topic '{Topic}': {Payload}", topic, payload);
 

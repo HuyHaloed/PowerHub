@@ -298,6 +298,10 @@
               "target": "Package",
               "version": "[4.61.3, )"
             },
+            "MongoDB.Driver": {
+              "target": "Package",
+              "version": "[3.3.0, )"
+            },
             "System.Formats.Asn1": {
               "target": "Package",
               "version": "[9.0.0, )"
