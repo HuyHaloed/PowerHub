@@ -5,7 +5,6 @@ import { PublicPages } from "./pages/Public";
 import { AdminPages } from "./pages/Admin";
 import { ProtectedPages } from "./pages/Protected";
 import { CustomerPages } from "./pages/Customer";
-import path from "path";
 
 export const AuthRoutes = {
   layout: Layouts.AuthLayout,
@@ -18,6 +17,14 @@ export const AuthRoutes = {
       path: paths.Signup,
       element: AuthPages.SignupPage,
     },
+    {
+      path: paths.ForgotPassword,
+      element: AuthPages.ForgotPasswordPage,
+    },
+    {
+      path: paths.ResetPassword,
+      element: AuthPages.ResetPasswordPage,
+    }
   ],
 };
 
@@ -34,7 +41,6 @@ export const PublicRoutes = {
     },
   ],
 };
-
 export const ProtectedRoutes = {
   layout: Layouts.ProtectedLayout,
   routes: [

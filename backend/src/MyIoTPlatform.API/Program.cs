@@ -10,6 +10,7 @@ using MyIoTPlatform.Domain.Interfaces.Repositories;
 using MyIoTPlatform.API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authentication.Google;
 using System.Text;
 
 
@@ -58,17 +59,24 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key not configured")))
         };
     });
-builder.Services.AddSingleton<UserService>();
 builder.Services.AddSingleton<TokenService>();
 builder.Services.AddScoped<DashboardService>();
 builder.Services.AddScoped<EnergyService>();
-
+builder.Services.AddAuthentication()
+    .AddGoogle(options =>
+    {
+        options.ClientId = builder.Configuration["Authentication:Google:ClientId"] ?? throw new InvalidOperationException("Google ClientId not configured");
+        options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"] ?? throw new InvalidOperationException("Google ClientSecret not configured");
+    });
 // Đăng ký DatabaseInitializer TRƯỚC KHI BUILD
 builder.Services.AddTransient<MyIoTPlatform.API.Utilities.DatabaseInitializer>();
 builder.Services.AddTransient<MyIoTPlatform.API.Utilities.EnvironmentDataGenerator>();
+builder.Services.AddScoped<PasswordResetService>();
+builder.Services.AddScoped<IEmailService, SimpleEmailService>();
+builder.Services.AddScoped<UserService>();
 
 // Build app
 var app = builder.Build();

@@ -4,6 +4,8 @@ export const paths = {
   Login: "/sign-in",
   Signup: "/sign-up",
   Contact: "/contact",
+  ForgotPassword: "/forgot-password",
+  ResetPassword: "/reset-password",
 
   // Protected pages
   Profile: "/profile",

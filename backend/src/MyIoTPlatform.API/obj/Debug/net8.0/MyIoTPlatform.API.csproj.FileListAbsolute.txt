@@ -402,3 +402,11 @@ D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.API\bin\Debu
 D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.API\bin\Debug\net8.0\ZstdSharp.dll
 D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.API\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
 D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.API\bin\Debug\net8.0\BCrypt.Net-Next.dll
+D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.API\bin\Debug\net8.0\SendGrid.dll
+D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.API\bin\Debug\net8.0\StarkbankEcdsa.dll
+D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.API\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.Google.dll
+D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.API\bin\Debug\net8.0\Google.Apis.dll
+D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.API\bin\Debug\net8.0\Google.Apis.Auth.dll
+D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.API\bin\Debug\net8.0\Google.Apis.Core.dll
+D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.API\bin\Debug\net8.0\System.Management.dll
+D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.API\bin\Debug\net8.0\runtimes\win\lib\net7.0\System.Management.dll

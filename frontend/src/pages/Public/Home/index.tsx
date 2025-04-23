@@ -160,7 +160,7 @@ export default function HomePage() {
       </div>
     </div>
   );
-}// Data for features section
+}
 const features = [
   {
     icon: (

@@ -95,37 +95,35 @@ export default function Header() {
   };
 
   return (
-    <div className="p-1 border-primary flex flex-wrap items-center justify-between relative bg-[#F1F0E8] ">
-      <motion.div 
-      className=" border-primary flex items-center justify-between bg-[#F1F0E8]  relative"
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
-    >
-      <Link to="/" className="flex items-center group">
-        <motion.img 
-          src={logo} 
-          alt="logo" 
-          className="md:max-w-[75px] max-w-[100px] ml-10 group-hover:scale-110 transition-transform duration-300"
-          whileHover={{ scale: 1.1 }}
-        />
-        <motion.span 
-          className="ml-2 text-xl font-bold text-gray-800 group-hover:text-primary transition-colors duration-300"
-          whileHover={{ color: "#3B82F6" }}
-        >
-          POWER HUB
-        </motion.span>
-      </Link>
-    </motion.div>
-
-      {/* Nút mở nav */}
+    <div className="p-1 border-primary flex flex-wrap items-center justify-between relative bg-[#F1F0E8]">
+      <motion.div
+        className="flex items-center"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+      >
+        <Link to="/" className="flex items-center group">
+          <motion.img
+            src={logo}
+            alt="logo"
+            className="md:max-w-[75px] max-w-[100px] ml-10 group-hover:scale-110 transition-transform duration-300"
+            whileHover={{ scale: 1.1 }}
+          />
+          <motion.span
+            className="ml-2 text-xl font-bold text-gray-800 group-hover:text-primary transition-colors duration-300"
+            whileHover={{ color: "#3B82F6" }}
+          >
+            POWER HUB
+          </motion.span>
+        </Link>
+      </motion.div>
+  
       <AlignRight
         size={40}
         className="md:hidden cursor-pointer"
         onClick={() => setIsOpen(true)}
       />
-
-      {/* Nav chính cho màn hình lớn */}
+  
       <div className="md:flex items-center gap-5 hidden">
         {items.map((item, index) => (
           <Link
@@ -133,15 +131,15 @@ export default function Header() {
             to={item.path}
             className={cn(
               "text-xl",
-              location.pathname === item.path ? "text-primary font-bold" : "",
+              location.pathname === item.path ? "text-primary font-bold" : ""
             )}
           >
             {item.name}
           </Link>
         ))}
       </div>
-
-      <div className="md:flex items-center gap-5 hidden">
+  
+      <div className="md:flex items-center gap-5 hidden mr-4">
         {isLoading ? (
           <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse" />
         ) : user?.email ? (
@@ -191,8 +189,8 @@ export default function Header() {
                               notif.type === "appointment"
                                 ? "bg-green-100"
                                 : notif.type === "system"
-                                  ? "bg-blue-100"
-                                  : "bg-yellow-100"
+                                ? "bg-blue-100"
+                                : "bg-yellow-100"
                             }`}
                           >
                             {notif.type === "appointment" ? (
@@ -240,15 +238,9 @@ export default function Header() {
                             )}
                           </div>
                           <div className="flex-1">
-                            <h4 className="text-sm font-medium">
-                              {notif.title}
-                            </h4>
-                            <p className="text-sm text-gray-600 mt-1">
-                              {notif.message}
-                            </p>
-                            <span className="text-xs text-gray-400 mt-2 block">
-                              {notif.time}
-                            </span>
+                            <h4 className="text-sm font-medium">{notif.title}</h4>
+                            <p className="text-sm text-gray-600 mt-1">{notif.message}</p>
+                            <span className="text-xs text-gray-400 mt-2 block">{notif.time}</span>
                           </div>
                           {!notif.isRead && (
                             <div className="w-2 h-2 bg-blue-600 rounded-full mt-2" />
@@ -272,7 +264,7 @@ export default function Header() {
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
-
+  
             <DropdownMenu>
               <DropdownMenuTrigger className="focus:outline-none">
                 <div className="flex items-center gap-2 hover:bg-gray-100 p-2 rounded-full transition-colors">
@@ -373,20 +365,20 @@ export default function Header() {
           </>
         ) : (
           <Link to="/sign-in" className="text-xl">
-            <Button 
-              className="bg-[var(--primary-ground)] hover:bg-[var(--primary-ground)]/90 text-white transition-all duration-300 transform hover:scale-105 hover:shadow-lg flex items-center gap-2 px-6 py-2 rounded-full" 
+            <Button
+              className="bg-[var(--primary-ground)] hover:bg-[var(--primary-ground)]/90 text-white transition-all duration-300 transform hover:scale-105 hover:shadow-lg flex items-center gap-2 px-6 py-2 rounded-full"
             >
-              <svg 
-                className="w-5 h-5 transition-transform duration-300 group-hover:rotate-12" 
-                fill="none" 
-                stroke="currentColor" 
+              <svg
+                className="w-5 h-5 transition-transform duration-300 group-hover:rotate-12"
+                fill="none"
+                stroke="currentColor"
                 viewBox="0 0 24 24"
               >
-                <path 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  strokeWidth="2" 
-                  d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" 
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
                 />
               </svg>
               <span className="relative">
@@ -397,21 +389,16 @@ export default function Header() {
           </Link>
         )}
       </div>
-
-      {/* Sidebar Nav */}
+  
       <div
         className={cn(
           "fixed top-0 left-0 h-full w-64 bg-white shadow-lg transform transition-transform duration-300 z-50",
-          isOpen ? "translate-x-0" : "-translate-x-full",
+          isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
         <div className="p-4 flex justify-between items-center border-b">
           <span className="text-xl font-bold">Menu</span>
-          <X
-            size={30}
-            className="cursor-pointer"
-            onClick={() => setIsOpen(false)}
-          />
+          <X size={30} className="cursor-pointer" onClick={() => setIsOpen(false)} />
         </div>
         <div className="flex flex-col p-4 gap-4">
           {items.map((item, index) => (
@@ -424,16 +411,12 @@ export default function Header() {
               {item.name}
             </Link>
           ))}
-          <Link
-            to="/sign-in"
-            className="text-lg text-gray-700 hover:text-primary"
-          >
+          <Link to="/sign-in" className="text-lg text-gray-700 hover:text-primary">
             <Button className="w-full mt-4">Đăng nhập</Button>
           </Link>
         </div>
       </div>
-
-      {/* Overlay để đóng nav */}
+  
       {isOpen && (
         <div
           className="fixed inset-0 bg-black opacity-50 z-40"

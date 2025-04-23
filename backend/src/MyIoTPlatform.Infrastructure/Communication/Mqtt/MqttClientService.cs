@@ -45,7 +45,7 @@ public class MqttClientService : BackgroundService, IMqttClientService
             .WithClientId(_mqttConfig.ClientId ?? $"MyIoTBackend_{Guid.NewGuid()}")
             .WithTcpServer(_mqttConfig.Host, _mqttConfig.Port)
             .WithCleanSession()
-            .WithKeepAlivePeriod(TimeSpan.FromSeconds(_mqttConfig.KeepAliveSeconds));
+            .WithKeepAlivePeriod(TimeSpan.FromSeconds(60)); // Giá trị mặc định 60 giây
 
         // Thêm Credentials nếu có
         if (!string.IsNullOrEmpty(_mqttConfig.Username))
@@ -87,11 +87,16 @@ public class MqttClientService : BackgroundService, IMqttClientService
         while (!stoppingToken.IsCancellationRequested)
         {
             // Có thể thêm logic kiểm tra trạng thái kết nối định kỳ ở đây nếu cần
-            // Ví dụ: if(!_mqttClient.IsConnected) { _logger.LogWarning("MQTT Client is not connected!"); }
             try
             {
-                // Chờ vô hạn cho đến khi có yêu cầu dừng
-                await Task.Delay(Timeout.Infinite, stoppingToken);
+                // Chờ một khoảng thời gian ngắn thay vì vô hạn
+                await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken);
+                
+                // Kiểm tra trạng thái kết nối định kỳ
+                if (_mqttClient != null && !_mqttClient.IsConnected)
+                {
+                    _logger.LogWarning("MQTT client is not connected. Waiting for auto-reconnect...");
+                }
             }
             catch (TaskCanceledException)
             {
@@ -127,23 +132,33 @@ public class MqttClientService : BackgroundService, IMqttClientService
         _logger.LogInformation("Successfully connected to MQTT Broker.");
         if (_mqttClient == null) return;
 
-        // Subscribe vào topic sau khi kết nối thành công
-        var topic = _mqttConfig.SubscribeTopic ?? "devices/+/telemetry"; // Lấy từ config hoặc dùng mặc định
         try
         {
-            _logger.LogInformation("Subscribing to topic: {Topic}", topic);
-            var topicFilter = new MqttTopicFilterBuilder()
-                .WithTopic(topic)
-                .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtMostOnce)
-                .Build();
-
-            await _mqttClient.SubscribeAsync(new[] { topicFilter }); // Directly call SubscribeAsync without assigning to a variable
-
-            _logger.LogInformation("Successfully subscribed to topic: {Topic}", topic); // Simplified logging for successful subscription
+            // Subscribe vào topic telemetry và state
+            var telemetryTopic = "devices/+/telemetry";
+            var stateTopic = "devices/+/state";
+            
+            _logger.LogInformation("Subscribing to topics: {TelemetryTopic}, {StateTopic}", telemetryTopic, stateTopic);
+            
+            var topicFilters = new[]
+            {
+                new MqttTopicFilterBuilder()
+                    .WithTopic(telemetryTopic)
+                    .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce)
+                    .Build(),
+                new MqttTopicFilterBuilder()
+                    .WithTopic(stateTopic)
+                    .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce)
+                    .Build()
+            };
+            
+            await _mqttClient.SubscribeAsync(topicFilters);
+            
+            _logger.LogInformation("Successfully subscribed to topics");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error subscribing to topic {Topic}", topic);
+            _logger.LogError(ex, "Error subscribing to topics");
         }
     }
 
@@ -151,7 +166,7 @@ public class MqttClientService : BackgroundService, IMqttClientService
     private Task OnDisconnectedAsync(MqttClientDisconnectedEventArgs e)
     {
         // Managed Client sẽ tự động thử kết nối lại
-        _logger.LogWarning(e.Exception, "Disconnected from MQTT Broker. Reason: {Reason}. Will try to reconnect.", e.Reason);
+        _logger.LogWarning("Disconnected from MQTT Broker. Reason: {Reason}. Will try to reconnect.", e.Reason);
         return Task.CompletedTask;
     }
 
@@ -159,80 +174,133 @@ public class MqttClientService : BackgroundService, IMqttClientService
     private async Task OnMessageReceivedAsync(MqttApplicationMessageReceivedEventArgs e)
     {
         var topic = e.ApplicationMessage.Topic;
-        string payload;
+        string? payload = null;
+        
+        // === Log chi tiết khi nhận tin nhắn ===
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine("\n==================================================");
+        Console.WriteLine($"🔔 TIN NHẮN MQTT NHẬN ĐƯỢC - TOPIC: {topic}");
+        Console.WriteLine("==================================================");
+        
         try
         {
-            payload = Encoding.UTF8.GetString(e.ApplicationMessage.PayloadSegment); // Parse payload thành string UTF8
+            // Lấy nội dung tin nhắn
+            payload = Encoding.UTF8.GetString(e.ApplicationMessage.PayloadSegment);
+            
+            // Hiển thị payload
+            Console.WriteLine($"📄 PAYLOAD: {payload}");
+            
+            // Hiển thị hexdump để debug
+            var hexPayload = BitConverter.ToString(e.ApplicationMessage.PayloadSegment.ToArray());
+            Console.WriteLine($"🔍 HEX: {hexPayload}");
+            
+            // Thông tin QoS và Retain
+            Console.WriteLine($"📊 QoS: {e.ApplicationMessage.QualityOfServiceLevel}, Retain: {e.ApplicationMessage.Retain}");
+            
+            // Đặt lại màu console
+            Console.ResetColor();
+            
+            // Log thông thường
+            _logger.LogInformation("Received message on topic '{Topic}': {Payload}", topic, payload);
+            
+            // Validate JSON format
+            if (string.IsNullOrEmpty(payload) || payload.Trim().Length == 0)
+            {
+                _logger.LogWarning("Empty payload received for topic {Topic}", topic);
+                return;
+            }
+            
+            // Kiểm tra payload có phải là JSON hợp lệ không
+            try
+            {
+                System.Text.Json.JsonDocument.Parse(payload);
+                Console.WriteLine("✅ JSON hợp lệ!");
+            }
+            catch (System.Text.Json.JsonException jsonEx)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"❌ JSON không hợp lệ: {jsonEx.Message}");
+                Console.ResetColor();
+                _logger.LogWarning("Invalid JSON payload received for topic {Topic}: {Error}", topic, jsonEx.Message);
+                _logger.LogDebug("Invalid payload content: {Payload}", payload);
+                return;
+            }
+
+            // !!! QUAN TRỌNG: Tạo Scope để lấy Scoped Services !!!
+            using (var scope = _serviceProvider.CreateScope())
+            {
+                // Lấy ISender (MediatR) từ Scope mới
+                var sender = scope.ServiceProvider.GetRequiredService<ISender>();
+
+                try
+                {
+                    // 1. Parse DeviceId từ Topic
+                    var deviceId = ParseDeviceIdFromTopic(topic);
+                    Console.WriteLine($"📱 Device ID: {deviceId}");
+
+                    if (deviceId != Guid.Empty)
+                    {
+                        // 2. Tạo Command
+                        var command = new IngestTelemetryCommand(deviceId, payload);
+
+                        // 3. Gửi Command đến Application Handler
+                        Console.WriteLine("🚀 Gửi lệnh xử lý đến application handler...");
+                        await sender.Send(command, CancellationToken.None);
+
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.WriteLine($"✅ Xử lý thành công tin nhắn từ thiết bị {deviceId} trên topic {topic}");
+                        Console.ResetColor();
+                        _logger.LogInformation("Successfully processed message from device {DeviceId} on topic {Topic}", deviceId, topic);
+                    }
+                    else
+                    {
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        Console.WriteLine("⚠️ Không thể phân tích Device ID từ topic");
+                        Console.ResetColor();
+                        _logger.LogWarning("Could not parse DeviceId from topic: {Topic}", topic);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"❌ Lỗi xử lý tin nhắn: {ex.Message}");
+                    Console.WriteLine(ex.StackTrace);
+                    Console.ResetColor();
+                    _logger.LogError(ex, "Error processing message from topic {Topic}. Payload: {Payload}", topic, payload);
+                }
+            }
+            
+            Console.WriteLine("==================================================\n");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to decode payload for topic {Topic}. Payload might not be UTF8.", topic);
-            return; // Bỏ qua nếu không decode được
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"❌ LỖI NGHIÊM TRỌNG khi xử lý tin nhắn: {ex.Message}");
+            Console.WriteLine(ex.StackTrace);
+            Console.ResetColor();
+            _logger.LogError(ex, "Critical error during message processing from topic {Topic}", topic);
         }
-
-        _logger.LogDebug("Received message on topic '{Topic}': {Payload}", topic, payload); // Dùng Debug level cho log chi tiết
-
-        // !!! QUAN TRỌNG: Tạo Scope để lấy Scoped Services !!!
-        using (var scope = _serviceProvider.CreateScope())
-        {
-            // Lấy ISender (MediatR) và Logger từ Scope mới
-            var sender = scope.ServiceProvider.GetRequiredService<ISender>();
-            var scopeLogger = scope.ServiceProvider.GetRequiredService<ILogger<MqttClientService>>(); // Có thể lấy logger từ scope
-
-            try
-            {
-                // 1. Parse DeviceId từ Topic (Cần hàm helper riêng)
-                var deviceId = ParseDeviceIdFromTopic(topic);
-
-                if (deviceId != Guid.Empty)
-                {
-                    // 2. Tạo Command
-                    var command = new IngestTelemetryCommand(deviceId, payload);
-
-                    // 3. Gửi Command đến Application Handler
-                    // Dùng CancellationToken.None vì việc xử lý message không nên bị hủy bởi stoppingToken của BackgroundService
-                    await sender.Send(command, CancellationToken.None);
-
-                    scopeLogger.LogInformation("Successfully processed message from device {DeviceId} on topic {Topic}", deviceId, topic);
-                }
-                else
-                {
-                    scopeLogger.LogWarning("Could not parse DeviceId from topic: {Topic}", topic);
-                }
-            }
-            catch (Exception ex)
-            {
-                // Log lỗi xảy ra trong quá trình xử lý (ví dụ: handler lỗi, parse lỗi...)
-                scopeLogger.LogError(ex, "Error processing message from topic {Topic}. Payload: {Payload}", topic, payload);
-            }
-        }
-        // Scope sẽ tự động được dispose ở đây, giải phóng các dịch vụ Scoped
     }
-
 
     // --- Triển khai phương thức Publish từ Interface IMqttClientService ---
     public async Task PublishAsync(string topic, string payload)
     {
-        if (_mqttClient == null || !_mqttClient.IsStarted) // Kiểm tra cả IsStarted
+        if (_mqttClient == null || !_mqttClient.IsStarted)
         {
             _logger.LogWarning("MQTT client not started, cannot publish to topic {Topic}", topic);
             return;
         }
-        // Có thể thêm kiểm tra _mqttClient.IsConnected nếu muốn chắc chắn hơn,
-        // nhưng ManagedClient sẽ tự enqueue và gửi khi kết nối lại.
-
-        var message = new MqttApplicationMessageBuilder()
-            .WithTopic(topic)
-            .WithPayload(payload)
-            .WithRetainFlag(false) // Giá trị mặc định
-            .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce) // Chọn QoS phù hợp khi gửi lệnh
-            .Build();
 
         try
         {
-            if (_mqttClient == null) return; // Added null check
-            await _mqttClient.EnqueueAsync(message); // Corrected to directly await the method
+            var message = new MqttApplicationMessageBuilder()
+                .WithTopic(topic)
+                .WithPayload(payload)
+                .WithRetainFlag(false)
+                .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce)
+                .Build();
 
+            await _mqttClient.EnqueueAsync(message);
             _logger.LogInformation("Successfully enqueued message to topic {Topic}", topic);
         }
         catch (Exception ex)
@@ -243,43 +311,50 @@ public class MqttClientService : BackgroundService, IMqttClientService
 
     public async Task PublishAsync(string topic, string payload, bool retain, int qosLevel)
     {
-        if (_mqttClient == null || !_mqttClient.IsStarted) // Added null and IsStarted check
+        if (_mqttClient == null || !_mqttClient.IsStarted)
         {
             _logger.LogWarning("MQTT client is not started or null. Cannot proceed.");
             return;
         }
 
-        var message = new MqttApplicationMessageBuilder()
-            .WithTopic(topic)
-            .WithPayload(payload)
-            .WithRetainFlag(retain)
-            .WithQualityOfServiceLevel((MQTTnet.Protocol.MqttQualityOfServiceLevel)qosLevel)
-            .Build();
-
         try
         {
-            await _mqttClient.EnqueueAsync(message); // Corrected to use EnqueueAsync
-            _logger.LogInformation("Message enqueued successfully to topic {Topic}", topic); // Corrected logging template
+            // Kiểm tra và giới hạn giá trị qosLevel hợp lệ (0-2)
+            qosLevel = Math.Max(0, Math.Min(2, qosLevel));
+            
+            var message = new MqttApplicationMessageBuilder()
+                .WithTopic(topic)
+                .WithPayload(payload)
+                .WithRetainFlag(retain)
+                .WithQualityOfServiceLevel((MqttQualityOfServiceLevel)qosLevel)
+                .Build();
+
+            await _mqttClient.EnqueueAsync(message);
+            _logger.LogInformation("Message enqueued successfully to topic {Topic}", topic);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to enqueue message to topic {Topic}", topic); // Corrected logging template
+            _logger.LogError(ex, "Failed to enqueue message to topic {Topic}", topic);
         }
     }
 
-    // --- Hàm Helper để Parse DeviceId (Ví dụ) ---
+    // --- Hàm Helper để Parse DeviceId ---
     private Guid ParseDeviceIdFromTopic(string topic)
     {
-        // Giả sử topic có dạng "devices/{deviceId}/telemetry"
+        // Giả sử topic có dạng "devices/{deviceId}/telemetry" hoặc "devices/{deviceId}/state"
         try
         {
             var parts = topic.Split('/');
-            if (parts.Length >= 2 && parts[0].Equals("devices", StringComparison.OrdinalIgnoreCase))
+            if (parts.Length >= 3 && parts[0].Equals("devices", StringComparison.OrdinalIgnoreCase))
             {
-                if (Guid.TryParse(parts[1], out var deviceId))
+                // Nếu deviceId không phải là Guid, thử tạo một Guid từ string
+                if (!Guid.TryParse(parts[1], out var deviceId))
                 {
-                    return deviceId;
+                    // Nếu không phải Guid, tạo Guid dựa trên hash của string
+                    deviceId = CreateDeterministicGuid(parts[1]);
+                    _logger.LogDebug("Created deterministic GUID {Guid} for device identifier {DeviceId}", deviceId, parts[1]);
                 }
+                return deviceId;
             }
         }
         catch (Exception ex)
@@ -288,19 +363,42 @@ public class MqttClientService : BackgroundService, IMqttClientService
         }
         return Guid.Empty; // Trả về Empty nếu không parse được
     }
+    
+    // Tạo Guid từ string để xử lý trường hợp identifier không phải Guid
+    private Guid CreateDeterministicGuid(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+            return Guid.Empty;
+            
+        // Tạo hash từ input
+        using var md5 = System.Security.Cryptography.MD5.Create();
+        var hash = md5.ComputeHash(Encoding.UTF8.GetBytes(input));
+        
+        // Chuyển hash thành Guid (version 3 - MD5)
+        var guid = new Guid(hash);
+        return guid;
+    }
 
     public async Task SubscribeAsync(string topic)
     {
-        if (_mqttClient == null || !_mqttClient.IsStarted || !_mqttClient.IsConnected)
+        if (_mqttClient == null)
         {
-            _logger.LogWarning("MQTT client not connected, cannot subscribe to topic {Topic} explicitly.", topic);
+            _logger.LogWarning("MQTT client is null, cannot subscribe to topic {Topic}", topic);
             return;
         }
+
         try
         {
             _logger.LogInformation("Explicitly subscribing to topic: {Topic}", topic);
-            await _mqttClient.SubscribeAsync(topic, MqttQualityOfServiceLevel.AtMostOnce);
-            // Có thể thêm log chi tiết kết quả subscribe như trong OnConnectedAsync nếu cần
+            
+            var topicFilter = new MqttTopicFilterBuilder()
+                .WithTopic(topic)
+                .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce)
+                .Build();
+                
+            await _mqttClient.SubscribeAsync(new[] { topicFilter });
+                
+            _logger.LogInformation("Successfully subscribed to topic: {Topic}", topic);
         }
         catch (Exception ex)
         {

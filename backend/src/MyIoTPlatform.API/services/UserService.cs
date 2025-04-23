@@ -1,6 +1,11 @@
 using MyIoTPlatform.API.Models;
 using System.Security.Cryptography;
 using System.Text;
+using System.Net.Mail;
+using System.Net;
+using System.Collections.Concurrent;
+using Google.Apis.Auth;
+using MongoDB.Driver;
 namespace MyIoTPlatform.API.Services
 {
     public class UserService
@@ -408,7 +413,232 @@ namespace MyIoTPlatform.API.Services
             }
         }
         #endregion
+
+
+
+        
     }
+
+     public interface IEmailService
+    {
+        /// <summary>
+        /// Gửi email đặt lại mật khẩu
+        /// </summary>
+        /// <param name="email">Địa chỉ email người nhận</param>
+        /// <param name="resetLink">Liên kết đặt lại mật khẩu</param>
+        /// <returns>Tác vụ không đồng bộ</returns>
+        Task SendPasswordResetEmailAsync(string email, string resetLink);
+    }
+
+    public class SimpleEmailService : IEmailService
+    {
+        private readonly IConfiguration _configuration;
+        private readonly ILogger<SimpleEmailService> _logger;
+
+        public SimpleEmailService(
+            IConfiguration configuration, 
+            ILogger<SimpleEmailService> logger)
+        {
+            _configuration = configuration;
+            _logger = logger;
+        }
+
+        public async Task SendPasswordResetEmailAsync(string email, string resetLink)
+        {
+            try 
+            {
+                // Lấy cấu hình SMTP từ appsettings
+                var smtpHost = _configuration["Smtp:Host"];
+                var smtpPort = int.Parse(_configuration["Smtp:Port"]);
+                var smtpUsername = _configuration["Smtp:Username"];
+                var smtpPassword = _configuration["Smtp:Password"];
+                var smtpSenderEmail = _configuration["Smtp:SenderEmail"];
+
+                using (var client = new SmtpClient(smtpHost, smtpPort)
+                {
+                    EnableSsl = true,
+                    Credentials = new NetworkCredential(smtpUsername, smtpPassword)
+                })
+                {
+                    var mailMessage = new MailMessage
+                    {
+                        From = new MailAddress(smtpSenderEmail, "Power Hub Support"),
+                        Subject = "Đặt lại mật khẩu Power Hub",
+                        Body = $@"
+                            <h1>Đặt lại mật khẩu</h1>
+                            <p>Bạn đã yêu cầu đặt lại mật khẩu cho tài khoản Power Hub.</p>
+                            <p>Nhấp vào liên kết sau để đặt lại mật khẩu:</p>
+                            <a href='{resetLink}'>Đặt lại mật khẩu</a>
+                            <p>Liên kết này sẽ hết hạn sau 1 giờ.</p>
+                            <p>Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.</p>
+                        ",
+                        IsBodyHtml = true
+                    };
+                    mailMessage.To.Add(email);
+
+                    await client.SendMailAsync(mailMessage);
+                }
+
+                _logger.LogInformation($"Password reset email sent to {email}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error sending password reset email: {ex.Message}");
+                throw;
+            }
+        }
+    }
+
+    public class PasswordResetService
+    {
+        private readonly UserService _userService;
+        private readonly IEmailService _emailService;
+        private readonly IConfiguration _configuration;
+        private readonly ILogger<PasswordResetService> _logger;
+        
+
+        // Lưu trữ các token đặt lại mật khẩu tạm thời
+        private static ConcurrentDictionary<string, PasswordResetToken> _resetTokens 
+            = new ConcurrentDictionary<string, PasswordResetToken>();
+
+        public class PasswordResetToken
+        {
+            public string Token { get; set; }
+            public DateTime ExpiresAt { get; set; }
+            public string Email { get; set; }
+        }
+
+        public PasswordResetService(
+            UserService userService, 
+            IEmailService emailService,
+            IConfiguration configuration,
+            ILogger<PasswordResetService> logger)
+        {
+            _userService = userService;
+            _emailService = emailService;
+            _configuration = configuration;
+            _logger = logger;
+        }
+
+        public async Task<bool> RequestPasswordResetAsync(string email)
+        {
+            // Kiểm tra xem email có tồn tại không
+            var user = await _userService.GetUserByEmailAsync(email);
+            if (user == null)
+                return false;
+
+            // Tạo token đặt lại mật khẩu
+            var token = GeneratePasswordResetToken();
+            var resetToken = new PasswordResetToken
+            {
+                Token = token,
+                Email = email,
+                ExpiresAt = DateTime.UtcNow.AddHours(1) // Token hết hạn sau 1 giờ
+            };
+
+            // Lưu token
+            _resetTokens[token] = resetToken;
+
+            // Tạo đường link đặt lại mật khẩu
+            var resetLink = $"{_configuration["FrontendUrl"]}/reset-password?token={token}";
+
+            // Gửi email
+            await _emailService.SendPasswordResetEmailAsync(email, resetLink);
+
+            return true;
+        }
+
+        public async Task<bool> ResetPasswordAsync(string token, string newPassword)
+        {
+            // Kiểm tra token
+            if (!_resetTokens.TryGetValue(token, out var resetToken))
+                return false;
+
+            // Kiểm tra token hết hạn
+            if (resetToken.ExpiresAt < DateTime.UtcNow)
+            {
+                _resetTokens.TryRemove(token, out _);
+                return false;
+            }
+
+            // Đặt lại mật khẩu
+            var result = await _userService.ResetPasswordAsync(resetToken.Email, token, newPassword);
+
+            // Xóa token sau khi sử dụng
+            _resetTokens.TryRemove(token, out _);
+
+            return result;
+        }
+
+        private string GeneratePasswordResetToken()
+        {
+            return Guid.NewGuid().ToString("N");
+        }
+
+        public async Task<User> GetOrCreateUserFromGoogle(string email, string name)
+        {
+            var user = await _userService.GetUserByEmailAsync(email);
+            if (user != null) return user;
+
+            // Tạo user mới
+            var newUser = new User
+            {
+                Email = email,
+                Name = name,
+                Avatar = "", // có thể lấy thêm từ Google payload nếu muốn
+                role = "User",
+                CreatedAt = DateTime.UtcNow,
+                LastLogin = DateTime.UtcNow,
+                IsActive = true,
+                Subscription = new UserSubscription
+                {
+                    Plan = "basic",
+                    ValidUntil = DateTime.UtcNow.AddYears(1)
+                },
+                Preferences = new UserPreferences
+                {
+                    Theme = "light",
+                    Notifications = true,
+                    EnergyGoal = 1000,
+                    Language = "vi",
+                    Currency = "VND"
+                }
+            };
+
+            // Sử dụng phương thức CreateUserAsync của UserService
+            await _userService.CreateUserAsync(new RegisterRequest 
+            { 
+                Name = name, 
+                Email = email, 
+                Password = Guid.NewGuid().ToString() // Tạo mật khẩu ngẫu nhiên
+            });
+
+            return newUser;
+        }
+        
+        public async Task<GoogleJsonWebSignature.Payload> VerifyGoogleToken(string idToken)
+        {
+            try
+            {
+                var settings = new GoogleJsonWebSignature.ValidationSettings
+                {
+                    Audience = new[] { "826167927483-2bhtrsp46k156uac4osefaa7gdamirnk.apps.googleusercontent.com" } // Client ID from Google Cloud Console
+                };
+
+                //chổ này phải fix lại để thử demo thoiiii
+                var payload = await GoogleJsonWebSignature.ValidateAsync(idToken, settings);
+                return payload;
+            }
+            catch (InvalidJwtException ex)
+            {
+                throw new Exception("Invalid Google token", ex);
+            }
+        }
+    }
+
+    
+
+    
 
     /// <summary>
     /// Request model for updating a user
