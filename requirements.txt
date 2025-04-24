@@ -1,12 +1,10 @@
-# requirements.txt
 SpeechRecognition
 PyAudio
-vosk 
 thefuzz
 python-Levenshtein
 xgboost
 pandas
 numpy
 scikit-learn
-pymongo
-paho-mqtt 
+paho-mqtt
+requests
