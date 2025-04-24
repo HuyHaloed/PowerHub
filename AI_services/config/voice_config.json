@@ -1,27 +1,49 @@
 {
     "TURN_ON_LIGHT": {
-        "templates": ["turn on light", "switch on the light", "activate light", "turn on the lamp", "lights on"],
-        "regex": "(turn|switch|activate|enable)\\s+(the\\s+)?(?P<device>light|lamp)s?(\\s+on)?",
-        "payload": {"method": "setValue", "params": {"light": true}}
+      "templates": [
+        "turn on the light", "switch on the lamp", "light on",
+        "activate light", "enable the light", "turn the lamp on", "power on light"
+      ],
+      "regex": "(?:turn|switch|activate|enable|power)\\s+(?:on\\s+)?(?:the\\s+)?(?P<device>light|lamp)s?",
+      "payload": { "method": "setValue", "params": { "light": true } }
     },
     "TURN_OFF_LIGHT": {
-        "templates": ["turn off light", "switch off the light", "deactivate light", "turn off the lamp", "lights off"],
-        "regex": "(turn|switch|deactivate|disable)\\s+(the\\s+)?(?P<device>light|lamp)s?(\\s+off)?",
-        "payload": {"method": "setValue", "params": {"light": false}}
+      "templates": [
+        "turn off the light", "switch off the lamp", "light off",
+        "deactivate light", "disable the light", "turn the lamp off", "power off light"
+      ],
+      "regex": "(?:turn|switch|deactivate|disable|power)\\s+(?:off\\s+)?(?:the\\s+)?(?P<device>light|lamp)s?",
+      "payload": { "method": "setValue", "params": { "light": false } }
     },
     "TURN_ON_FAN": {
-        "templates": ["turn on fan", "switch on the fan", "activate fan", "fan on"],
-        "regex": "(turn|switch|activate|enable)\\s+(the\\s+)?(?P<device>fan)(\\s+on)?",
-        "payload": {"method": "setValue", "params": {"fan": true}}
+      "templates": [
+        "turn on the fan", "switch on fan", "fan on",
+        "activate fan", "enable the fan", "start the fan", "turn on ac", "start ac"
+      ],
+      "regex": "(?:turn|switch|activate|enable|start)\\s+(?:on\\s+)?(?:the\\s+)?(?P<device>fan|ac|air conditioner)s?",
+      "payload": { "method": "setValue", "params": { "fan": true } }
     },
     "TURN_OFF_FAN": {
-         "templates": ["turn off fan", "switch off the fan", "deactivate fan", "fan off"],
-         "regex": "(turn|switch|deactivate|disable)\\s+(the\\s+)?(?P<device>fan)(\\s+off)?",
-         "payload": {"method": "setValue", "params": {"fan": false}}
+      "templates": [
+        "turn off the fan", "switch off fan", "fan off",
+        "deactivate fan", "disable the fan", "stop the fan", "turn off ac", "stop ac"
+      ],
+      "regex": "(?:turn|switch|deactivate|disable|stop)\\s+(?:off\\s+)?(?:the\\s+)?(?P<device>fan|ac|air conditioner)s?",
+      "payload": { "method": "setValue", "params": { "fan": false } }
+    },
+    "TURN_OFF_ALL": {
+      "templates": [
+        "turn off everything", "shut down all devices", "power down all", "everything off", "disable all"
+      ],
+      "regex": "(?:turn|switch|shut|power)\\s+(?:off|down)\\s+(everything|all|devices)",
+      "payload": { "method": "shutdown", "params": {} }
     },
     "STOP": {
-        "templates": ["stop", "stop listening", "terminate", "exit", "goodbye", "shut down"],
-        "regex": "(stop|stop listening|terminate|exit|goodbye|shut down)",
-        "payload": null
+      "templates": [
+        "stop", "stop listening", "terminate", "exit", "goodbye", "shut down"
+      ],
+      "regex": "(stop|stop listening|terminate|exit|goodbye|shut down)",
+      "payload": null
     }
-}
+  }
+  
