@@ -44,6 +44,14 @@ builder.Services.AddCors(options =>
 builder.Services.AddSignalR();
 
 // Đăng ký MQTT Client như một Hosted Service để nó tự chạy nền
+builder.Services.Configure<MyIoTPlatform.API.Services.MongoDbSettings>(
+    builder.Configuration.GetSection("MongoDbAPI"));
+
+builder.Services.Configure<MyIoTPlatform.Infrastructure.Persistence.Settings.MongoDbSettings>(
+    builder.Configuration.GetSection("MongoDbInfra"));
+builder.Services.AddSingleton<ITelemetryMongoService, MyIoTPlatform.Infrastructure.Persistence.MongoDbService>();
+builder.Services.AddSingleton<MyIoTPlatform.API.Services.MongoDbService>();
+
 builder.Services.Configure<MqttConfig>(builder.Configuration.GetSection("Mqtt"));
 builder.Services.AddSingleton<IMqttClientService, MqttClientService>();
 builder.Services.AddHostedService<MqttClientService>();
@@ -51,13 +59,12 @@ builder.Services.AddScoped<MyIoTPlatform.Application.Interfaces.Repositories.ITe
 builder.Services.AddTransient<IRealtimeNotifier, RealtimeNotifier>();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+
 builder.Services.AddScoped<MyIoTPlatform.Domain.Interfaces.Services.IMachineLearningService, MyIoTPlatform.Infrastructure.MachineLearning.LocalAIService>();
 builder.Services.AddScoped<MyIoTPlatform.Application.Interfaces.Persistence.IPredictionRepository, MyIoTPlatform.Infrastructure.Persistence.Repositories.PredictionRepository>();
 builder.Services.AddScoped<IUnitOfWork, MyIoTPlatform.Infrastructure.Persistence.UnitOfWork>();
-builder.Services.Configure<MongoDbSettings>(
-    builder.Configuration.GetSection("MongoDB"));
-builder.Services.AddSingleton<MyIoTPlatform.API.Services.MongoDbService>();
-builder.Services.AddSingleton<ITelemetryMongoService, MyIoTPlatform.Infrastructure.Persistence.MongoDbService>();
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options => 
     {
