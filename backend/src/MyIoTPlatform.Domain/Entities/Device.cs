@@ -35,11 +35,6 @@ public class Device
         Status = status;
         CreatedAt = DateTime.UtcNow;
     }
-
-    /// <summary>
-    /// Validates the device entity to ensure all required fields are set.
-    /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if validation fails.</exception>
     public void Validate()
     {
         if (string.IsNullOrWhiteSpace(Name))
