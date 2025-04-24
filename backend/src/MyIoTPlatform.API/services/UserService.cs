@@ -364,6 +364,7 @@ namespace MyIoTPlatform.API.Services
         /// <summary>
         /// Generates a secret key for two-factor authentication
         /// </summary>
+        /// 
         private string GenerateSecretKey()
         {
             var bytes = new byte[20];
@@ -675,4 +676,7 @@ namespace MyIoTPlatform.API.Services
         public UserSubscription Subscription { get; set; }
         public UserPreferences Preferences { get; set; }
     }
+
+    
+    
 }

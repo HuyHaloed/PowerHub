@@ -6,7 +6,6 @@ D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.API\obj\Debu
 D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.API\obj\Debug\net8.0\MyIoTPlatform.API.MvcApplicationPartsAssemblyInfo.cs
 D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.API\obj\Debug\net8.0\MyIoTPlatform.API.MvcApplicationPartsAssemblyInfo.cache
 D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.API\obj\Debug\net8.0\MyIoTPlatform.API.sourcelink.json
-D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.API\bin\Debug\net8.0\appsettings.Development.json
 D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.API\bin\Debug\net8.0\appsettings.json
 D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.API\bin\Debug\net8.0\MyIoTPlatform.API.staticwebassets.endpoints.json
 D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.API\bin\Debug\net8.0\MyIoTPlatform.API.exe
@@ -210,3 +209,4 @@ D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.API\obj\Debu
 D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.API\obj\Debug\net8.0\MyIoTPlatform.API.pdb
 D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.API\obj\Debug\net8.0\MyIoTPlatform.API.genruntimeconfig.cache
 D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.API\obj\Debug\net8.0\ref\MyIoTPlatform.API.dll
+D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.API\bin\Debug\net8.0\appsettings.Development.json

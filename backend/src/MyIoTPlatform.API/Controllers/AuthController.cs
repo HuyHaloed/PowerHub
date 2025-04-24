@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using MyIoTPlatform.API.Models;
 using MyIoTPlatform.API.Services;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 
 namespace MyIoTPlatform.API.Controllers
@@ -15,17 +17,20 @@ namespace MyIoTPlatform.API.Controllers
         private readonly UserService _userService;
         private readonly TokenService _tokenService;
         private readonly PasswordResetService _passwordResetService;
+        private readonly MongoDbService _mongoDbService;
         private readonly ILogger<AuthController> _logger;
 
         public AuthController(
             UserService userService, 
             TokenService tokenService,
             PasswordResetService passwordResetService,
+            MongoDbService mongoDbService,
             ILogger<AuthController> logger)
         {
             _userService = userService;
             _tokenService = tokenService;
             _passwordResetService = passwordResetService;
+            _mongoDbService = mongoDbService;
             _logger = logger;
         }
 
@@ -311,12 +316,142 @@ namespace MyIoTPlatform.API.Controllers
                 return Unauthorized(new { message = "Google login failed" });
             }
         }
+        
+        // Add these methods to the existing AuthController
 
-        // Request model
-        public class GoogleLoginRequest
+        [HttpPut("profile")]
+        public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequest request)
         {
-            public string Token { get; set; }
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { message = "User not authenticated" });
+            }
+
+            try 
+            {
+                var user = await _userService.GetUserByIdAsync(userId);
+                if (user == null)
+                    return NotFound(new { message = "User not found" });
+
+                // Update basic profile information
+                user.Name = request.Name;
+                user.Phone = request.Phone;
+
+                // Update user preferences if language is provided
+                if (!string.IsNullOrEmpty(request.Language))
+                {
+                    user.Preferences.Language = request.Language;
+                }
+
+                await _mongoDbService.UpdateUserAsync(userId, user);
+
+                // Return updated user DTO
+                return Ok(new UserDto 
+                {
+                    Id = user.Id,
+                    Name = user.Name,
+                    Email = user.Email,
+                    Phone = user.Phone,
+                    Preferences = user.Preferences
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
+
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { message = "User not authenticated" });
+            }
+
+            try 
+            {
+                // Validate password strength
+                if (request.NewPassword.Length < 8)
+                {
+                    return BadRequest(new { 
+                        success = false, 
+                        message = "Mật khẩu phải có ít nhất 8 ký tự" 
+                    });
+                }
+
+                var result = await _userService.UpdatePasswordAsync(userId, request.CurrentPassword, request.NewPassword);
+                
+                if (result)
+                {
+                    return Ok(new { 
+                        success = true, 
+                        message = "Đổi mật khẩu thành công" 
+                    });
+                }
+                else 
+                {
+                    return BadRequest(new { 
+                        success = false, 
+                        message = "Mật khẩu hiện tại không đúng" 
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("delete-account")]
+        [Authorize]
+        public async Task<IActionResult> DeleteAccount([FromBody] DeleteAccountRequest request)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { message = "User not authenticated" });
+            }
+
+            try 
+            {
+                // Verify current password
+                var user = await _userService.GetUserByIdAsync(userId);
+                if (user == null)
+                    return NotFound(new { message = "User not found" });
+
+                // Use existing password verification method
+                if (!_userService.UpdatePasswordAsync(userId, request.Password, Guid.NewGuid().ToString()).Result)
+                {
+                    return BadRequest(new { 
+                        success = false, 
+                        message = "Mật khẩu không đúng" 
+                    });
+                }
+
+                // Deactivate user account
+                await _userService.DeactivateUserAsync(userId);
+
+                return Ok(new { 
+                    success = true, 
+                    message = "Tài khoản đã được xóa" 
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message  });
+            }
+        }
+
+        
+    }
+
+    // Request model
+    public class GoogleLoginRequest
+    {
+        public string Token { get; set; }
     }
 
     // Request models
@@ -329,5 +464,24 @@ namespace MyIoTPlatform.API.Controllers
     {
         public string Token { get; set; }
         public string NewPassword { get; set; }
+    }
+
+        // Add these request models to the file
+    public class UpdateProfileRequest
+    {
+        public string Name { get; set; }
+        public string Phone { get; set; }
+        public string Language { get; set; }
+    }
+
+    public class ChangePasswordRequest
+    {
+        public string CurrentPassword { get; set; }
+        public string NewPassword { get; set; }
+    }
+
+    public class DeleteAccountRequest
+    {
+        public string Password { get; set; }
     }
 }
