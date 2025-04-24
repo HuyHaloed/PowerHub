@@ -1,7 +1,7 @@
 {
     "voice_control": {
         "enabled": true,
-        "vosk_model_path": "models/vosk-model-en-us",
+        "vosk_model_path": "models/vosk-model-en-us-0.22",
         "mic_sample_rate": 16000,
         "fuzzy_match_threshold": 75,
         "config_file": "config/voice_config.json",
