@@ -6,6 +6,8 @@
 
   <ItemGroup>
     <PackageReference Include="Ardalis.GuardClauses" Version="5.0.0" />
+    <PackageReference Include="Google.Apis.Auth" Version="1.69.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="8.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.4" />
@@ -18,11 +20,12 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.0" />
     <PackageReference Include="MongoDB.Driver" Version="3.3.0" />
-    <PackageReference Include="MQTTnet" Version="3.1.5" />
+    <PackageReference Include="MQTTnet" Version="4.3.7.1207" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
     <PackageReference Include="Azure.Identity" Version="1.12.0" />
     <PackageReference Include="Microsoft.Identity.Client" Version="4.61.3" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="8.1.1" />
+
     <PackageReference Include="System.Formats.Asn1" Version="9.0.4" />
     <ProjectReference Include="..\MyIoTPlatform.Domain\MyIoTPlatform.Domain.csproj" />
     <ProjectReference Include="..\MyIoTPlatform.Infrastructure\MyIoTPlatform.Infrastructure.csproj" />

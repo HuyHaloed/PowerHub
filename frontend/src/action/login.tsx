@@ -1,7 +1,6 @@
 import authorizedAxiosInstance from "@/lib/axios";
 import { LoginRequest, LoginResponse, User } from "@/types/auth";
 
-// Quản lý token và user trong sessionStorage
 export const AuthStorage = {
   // Lưu token
   setToken(token: string) {
@@ -18,26 +17,30 @@ export const AuthStorage = {
     sessionStorage.removeItem("auth_token");
   },
 
-  // Lưu thông tin user
-  setUser(user: User) {
-    sessionStorage.setItem("user_data", JSON.stringify(user));
+  // Lưu role nếu là admin
+  setRole(role: string) {
+    if (role === "Admin") {
+      sessionStorage.setItem("user_role", "Admin");
+    }
   },
 
-  // Lấy thông tin user
-  getUser(): User | null {
-    const userData = sessionStorage.getItem("user_data");
-    return userData ? JSON.parse(userData) : null;
+  getRole(): string | null {
+    return sessionStorage.getItem("user_role");
   },
 
-  // Xóa thông tin user
-  removeUser() {
-    sessionStorage.removeItem("user_data");
+  removeRole() {
+    sessionStorage.removeItem("user_role");
+  },
+
+  // Kiểm tra xem người dùng có phải admin không
+  isAdmin(): boolean {
+    return this.getRole() === "Admin";
   },
 
   // Xóa toàn bộ thông tin auth
   clear() {
     this.removeToken();
-    this.removeUser();
+    this.removeRole();
   }
 };
 
@@ -49,22 +52,26 @@ export async function login(values: LoginRequest): Promise<LoginResponse> {
     });
 
     if (response.data && response.data.token) {
-      // Lưu token vào sessionStorage
+      const user = response.data.user;
+      
+      // Lưu token
       AuthStorage.setToken(response.data.token);
 
-      // Lưu thông tin user
+      // Nếu là admin, lưu thêm role
+      if (user.role === "Admin") {
+        AuthStorage.setRole("Admin");
+      }
+
       const userData: User = {
-        id: response.data.user.id,
-        name: response.data.user.name,
-        email: response.data.user.email,
-        avatar: response.data.user.avatar || undefined,
-        subscription: response.data.user.subscription,
-        preferences: response.data.user.preferences
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        avatar: user.avatar || undefined,
+        subscription: user.subscription,
+        preferences: user.preferences
       };
-      
-      // // Lưu user data vào sessionStorage
-      // AuthStorage.setUser(userData);
-      // nào ai muốn coi thông tin user thì bật cái trên lên nhe
+
       return {
         success: true,
         message: "Đăng nhập thành công",
@@ -91,16 +98,15 @@ export async function login(values: LoginRequest): Promise<LoginResponse> {
   }
 }
 
-// Hàm logout
 export function logout() {
   try {
     // Gọi API logout nếu cần
     authorizedAxiosInstance.post("/auth/logout");
-    
-    // Xóa thông tin auth khỏi sessionStorage
+
+    // Xóa session
     AuthStorage.clear();
 
-    // Chuyển hướng đến trang login nếu cần
+    // Chuyển hướng
     window.location.href = "/login";
   } catch (error) {
     console.error("Logout error:", error);

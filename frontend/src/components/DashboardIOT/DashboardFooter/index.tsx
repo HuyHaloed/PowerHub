@@ -6,7 +6,7 @@ export default function DashboardFooter() {
     <footer className="bg-white border-t p-4 text-sm text-gray-600">
       <div className="container mx-auto flex justify-between items-center">
         <div>
-          © 2025 POWER HUB. All rights reserved.
+          © 2025 POWER HUB. All rights reserved. Code by Haloed's Team
         </div>
         <div className="flex space-x-4">
           <Link to="/privacy" className="hover:text-primary">

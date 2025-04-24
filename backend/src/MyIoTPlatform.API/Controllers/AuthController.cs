@@ -1,11 +1,12 @@
-// Controllers/AuthController.cs
 using Microsoft.AspNetCore.Mvc;
 using MyIoTPlatform.API.Models;
 using MyIoTPlatform.API.Services;
+
+
 namespace MyIoTPlatform.API.Controllers
 {
     /// <summary>
-    /// Handles user authentication and authorization.
+    /// Handles user authentication, authorization, and password reset operations.
     /// </summary>
     [ApiController]
     [Route("api/auth")]
@@ -13,11 +14,19 @@ namespace MyIoTPlatform.API.Controllers
     {
         private readonly UserService _userService;
         private readonly TokenService _tokenService;
+        private readonly PasswordResetService _passwordResetService;
+        private readonly ILogger<AuthController> _logger;
 
-        public AuthController(UserService userService, TokenService tokenService)
+        public AuthController(
+            UserService userService, 
+            TokenService tokenService,
+            PasswordResetService passwordResetService,
+            ILogger<AuthController> logger)
         {
             _userService = userService;
             _tokenService = tokenService;
+            _passwordResetService = passwordResetService;
+            _logger = logger;
         }
 
         /// <summary>
@@ -30,15 +39,12 @@ namespace MyIoTPlatform.API.Controllers
         {
             try
             {
-                // Xác thực người dùng
                 var user = await _userService.AuthenticateAsync(request.Email, request.Password);
                 if (user == null)
                     return Unauthorized(new { message = "Invalid email or password" });
 
-                // Tạo token
                 var token = _tokenService.GenerateJwtToken(user);
 
-                // Tạo response
                 var response = new AuthResponse
                 {
                     Token = token,
@@ -48,6 +54,7 @@ namespace MyIoTPlatform.API.Controllers
                         Name = user.Name,
                         Email = user.Email,
                         Avatar = user.Avatar,
+                        role = user.role,
                         Subscription = user.Subscription,
                         Preferences = user.Preferences
                     }
@@ -67,17 +74,16 @@ namespace MyIoTPlatform.API.Controllers
         /// <param name="request">The register request containing user details.</param>
         /// <returns>A success message if registration is successful.</returns>
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+        public async Task<IActionResult> Register([FromBody] RegisterRequest request, [FromQuery] bool isAdmin = false)
         {
             try
             {
-                // Tạo người dùng mới
-                var user = await _userService.CreateUserAsync(request);
+                // Nếu isAdmin = true, tạo tài khoản admin, ngược lại tạo tài khoản user thông thường
+                var user = isAdmin 
+                    ? await _userService.CreateAdminUserAsync(request)
+                    : await _userService.CreateUserAsync(request);
 
-                // Tạo token
                 var token = _tokenService.GenerateJwtToken(user);
-
-                // Tạo response
                 var response = new AuthResponse
                 {
                     Token = token,
@@ -87,6 +93,7 @@ namespace MyIoTPlatform.API.Controllers
                         Name = user.Name,
                         Email = user.Email,
                         Avatar = user.Avatar,
+                        role = user.role, 
                         Subscription = user.Subscription,
                         Preferences = user.Preferences
                     }
@@ -179,5 +186,148 @@ namespace MyIoTPlatform.API.Controllers
             }
         }
 
+        /// <summary>
+        /// Endpoint yêu cầu đặt lại mật khẩu
+        /// </summary>
+        /// <param name="request">Thông tin email</param>
+        /// <returns>Kết quả yêu cầu đặt lại mật khẩu</returns>
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
+        {
+            try 
+            {
+                // Validate email
+                if (string.IsNullOrEmpty(request.Email))
+                    return BadRequest(new { 
+                        success = false, 
+                        message = "Email không được để trống" 
+                    });
+
+                // Gửi email đặt lại mật khẩu
+                var result = await _passwordResetService.RequestPasswordResetAsync(request.Email);
+
+                if (result)
+                {
+                    _logger.LogInformation($"Password reset requested for email: {request.Email}");
+                    return Ok(new { 
+                        success = true, 
+                        message = "Đã gửi email đặt lại mật khẩu" 
+                    });
+                }
+                else 
+                {
+                    return BadRequest(new { 
+                        success = false, 
+                        message = "Không tìm thấy tài khoản với email này" 
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error in forgot password for email: {request.Email}");
+                return StatusCode(500, new { 
+                    success = false, 
+                    message = "Đã xảy ra lỗi. Vui lòng thử lại sau." 
+                });
+            }
+        }
+
+        /// <summary>
+        /// Endpoint xác nhận đặt lại mật khẩu
+        /// </summary>
+        /// <param name="request">Thông tin đặt lại mật khẩu</param>
+        /// <returns>Kết quả đặt lại mật khẩu</returns>
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+        {
+            try 
+            {
+                // Validate input
+                if (string.IsNullOrEmpty(request.Token) || 
+                    string.IsNullOrEmpty(request.NewPassword))
+                    return BadRequest(new { 
+                        success = false, 
+                        message = "Token và mật khẩu mới không được để trống" 
+                    });
+
+                // Validate password strength
+                if (request.NewPassword.Length < 8)
+                    return BadRequest(new { 
+                        success = false, 
+                        message = "Mật khẩu phải có ít nhất 8 ký tự" 
+                    });
+
+                // Đặt lại mật khẩu
+                var result = await _passwordResetService.ResetPasswordAsync(
+                    request.Token, 
+                    request.NewPassword
+                );
+
+                if (result)
+                {
+                    _logger.LogInformation("Password reset successful");
+                    return Ok(new { 
+                        success = true, 
+                        message = "Đặt lại mật khẩu thành công" 
+                    });
+                }
+                else 
+                {
+                    return BadRequest(new { 
+                        success = false, 
+                        message = "Token đặt lại mật khẩu không hợp lệ hoặc đã hết hạn" 
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in reset password");
+                return StatusCode(500, new { 
+                    success = false, 
+                    message = "Đã xảy ra lỗi. Vui lòng thử lại sau." 
+                });
+            }
+        }
+
+
+        [HttpPost("google-login")]
+        public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequest request)
+        {
+            try 
+            {
+                // Xác thực token Google
+                var payload = await _passwordResetService.VerifyGoogleToken(request.Token);
+                
+                // Tạo hoặc lấy user
+                var user = await _passwordResetService.GetOrCreateUserFromGoogle(payload.Email, payload.Name);
+                
+                // Tạo JWT token
+                var token = _tokenService.GenerateJwtToken(user);
+                
+                return Ok(new { token, user });
+            }
+            catch (Exception ex)
+            {
+                return Unauthorized(new { message = "Google login failed" });
+            }
+        }
+
+        // Request model
+        public class GoogleLoginRequest
+        {
+            public string Token { get; set; }
+        }
+    }
+
+    // Request models
+    public class ForgotPasswordRequest
+    {
+        public string Email { get; set; }
+    }
+
+    public class ResetPasswordRequest
+    {
+        public string Token { get; set; }
+        public string NewPassword { get; set; }
     }
 }

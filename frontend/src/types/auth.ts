@@ -1,9 +1,44 @@
 
-export interface SignupRequest {
+export interface User {
+  id: string;
   name: string;
   email: string;
-  password: string;
-  phone: string;
+  role: string; 
+  avatar?: string;
+  subscription?: UserSubscription;
+  preferences?: UserPreferences;
+}
+
+// Các interface khác giữ nguyên
+
+export interface UserSubscription {
+  plan: string;
+  validUntil: string;
+  paymentHistory?: PaymentHistory[];
+  paymentMethod?: PaymentMethod;
+}
+
+export interface PaymentHistory {
+  id: string;
+  date: string;
+  amount: number;
+  description: string;
+  status: string;
+}
+
+export interface PaymentMethod {
+  type: string;
+  lastFour: string;
+  expiryDate: string;
+  cardholderName: string;
+}
+
+export interface UserPreferences {
+  theme: string;
+  notifications: boolean;
+  energyGoal: number;
+  language: string;
+  currency: string;
 }
 
 export interface LoginRequest {
@@ -11,34 +46,23 @@ export interface LoginRequest {
   password: string;
 }
 
-// User type
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  avatar?: string;
-  subscription?: {
-    plan: string;
-    validUntil: string;
-  };
-  preferences?: {
-    theme: string;
-    notifications: boolean;
-    energyGoal: number;
-  };
-}
-
-// Response types
-export interface SignupResponse {
+export interface LoginResponse {
   success: boolean;
   message: string;
   data?: {
-    token?: string;
-    user?: User;
+    token: string;
+    user: User;
   };
 }
 
-export interface LoginResponse {
+export interface SignupRequest {
+  name: string;
+  email: string;
+  password: string;
+  phone: string;
+}
+
+export interface SignupResponse {
   success: boolean;
   message: string;
   data?: {

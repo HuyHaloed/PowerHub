@@ -13,9 +13,6 @@ import {
 import { paths } from "@/utils/path";
 import { Link, useLocation } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
-import { title } from "process";
-
-// Menu items
 const items = [
   {
     title: "Dashboard",
@@ -52,18 +49,6 @@ const items = [
     url: paths.AdminSettings,
     icon: Calendar,
   }
-
-  // {
-  // {
-  //   title: "Appointments",
-  //   url: paths.AdminAppointments,
-  //   icon: Calendar,
-  // },
-  // {
-  //   title: "Settings",
-  //   url: paths.AdminSettings,
-  //   icon: Settings,
-  // },
 ];
 
 export function AppSidebar() {
@@ -80,7 +65,7 @@ export function AppSidebar() {
             </Avatar>
             <div className="space-y-2">
               <Link to={paths.Home}>
-                <p className="font-bold">Phòng khám Lavender</p>
+                <p className="font-bold">POWER HUB</p>
               </Link>
               <div className="flex items-center gap-2 flex-wrap">
                 <Badge

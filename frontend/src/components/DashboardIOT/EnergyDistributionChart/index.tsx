@@ -2,10 +2,20 @@ import React, { useState, useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { useEnergyDistribution } from '@/hooks/useEnergyData';
 
-// Bảng màu đẹp cho biểu đồ
+// Bảng màu đẹp cho biểu đồ lấy từ ai
 const COLORS = [
-  '#4CAF50', '#2196F3', '#FFC107', '#9C27B0', '#F44336', '#607D8B',
-  '#E91E63', '#00BCD4', '#8BC34A', '#FF9800', '#009688', '#673AB7'
+  '#6A5ACD', // Slate Blue (Pastel Deep Blue)
+  '#FF6B6B', // Pastel Red
+  '#4ECDC4', // Turquoise (Pastel Teal)
+  '#A8DADC', // Pastel Blue-Gray
+  '#FFD166', // Pastel Yellow
+  '#6B5B95', // Pastel Indigo
+  '#F4A261', // Pastel Orange
+  '#2A9D8F', // Pastel Green-Blue
+  '#E9C46A', // Pastel Mustard
+  '#264653', // Dark Teal (Deeper Pastel)
+  '#9B5DE5', // Pastel Purple
+  '#00BBF9'  // Pastel Bright Blue
 ];
 
 const EnergyDistributionChart: React.FC = () => {
@@ -14,22 +24,17 @@ const EnergyDistributionChart: React.FC = () => {
   );
   const { data, isLoading, error } = useEnergyDistribution(date);
 
-  // Xử lý dữ liệu - gom nhóm các thiết bị có cùng tên
   const processChartData = () => {
     if (!data || data.length === 0) return [];
     
-    // Tạo một Map để gom nhóm các thiết bị cùng tên
     const deviceMap = new Map();
     
-    // Gộp giá trị các thiết bị có cùng tên
     data.forEach(item => {
       if (deviceMap.has(item.name)) {
-        // Cộng dồn giá trị nếu đã tồn tại
         const existingItem = deviceMap.get(item.name);
         existingItem.value += item.value;
         existingItem.consumption += item.consumption;
       } else {
-        // Thêm mới nếu chưa tồn tại
         deviceMap.set(item.name, {
           deviceId: item.deviceId,
           name: item.name,
@@ -38,32 +43,21 @@ const EnergyDistributionChart: React.FC = () => {
         });
       }
     });
-    
-    // Chuyển đổi Map thành mảng
     const groupedData = Array.from(deviceMap.values());
-    
-    // Sắp xếp theo giá trị tiêu thụ từ cao đến thấp
     groupedData.sort((a, b) => b.value - a.value);
-    
-    // Làm tròn giá trị phần trăm đến 1 chữ số thập phân
     return groupedData.map(item => ({
       ...item,
       value: Math.round(item.value * 10) / 10
     }));
   };
-
-  // Sử dụng useMemo để tính toán dữ liệu biểu đồ và gán màu nhất quán
   const chartData = useMemo(() => {
     const processed = processChartData();
-    
-    // Gán màu cho mỗi thiết bị
     return processed.map((item, index) => ({
       ...item,
-      color: COLORS[index % COLORS.length] // Lấy màu từ bảng màu, lặp lại nếu có nhiều thiết bị
+      color: COLORS[index % COLORS.length] 
     }));
   }, [data]);
 
-  // Custom tooltip hiển thị chi tiết khi hover
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       return (
@@ -76,8 +70,6 @@ const EnergyDistributionChart: React.FC = () => {
     }
     return null;
   };
-
-  // Custom legend hiển thị tên thiết bị với màu tương ứng
   const CustomLegend = ({ payload }: any) => {
     return (
       <ul className="flex flex-wrap justify-center mt-2">
@@ -135,7 +127,7 @@ const EnergyDistributionChart: React.FC = () => {
                 cx="50%"
                 cy="40%"
                 labelLine={false}
-                label={false} // Tắt hoàn toàn các nhãn trên biểu đồ
+                label={false}
                 outerRadius={80}
                 fill="#8884d8"
                 dataKey="value"

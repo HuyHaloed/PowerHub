@@ -1,13 +1,14 @@
 
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using System;
-using System.Collections.Generic;
+
+using Newtonsoft.Json;
 
 namespace MyIoTPlatform.API.Models
 {
     #region User
 
+    // Cập nhật trong Models/User.cs
     public class User
     {
         [BsonId]
@@ -24,6 +25,10 @@ namespace MyIoTPlatform.API.Models
 
         public string Avatar { get; set; } = string.Empty;
 
+        // [BsonElement("role")]
+        // [JsonProperty("role")] 
+        public string role { get; set; } = "User";
+        
         public UserSubscription Subscription { get; set; } = new UserSubscription();
 
         public UserPreferences Preferences { get; set; } = new UserPreferences();
@@ -37,6 +42,13 @@ namespace MyIoTPlatform.API.Models
         public bool TwoFactorEnabled { get; set; } = false;
         
         public string TwoFactorSecret { get; set; } = string.Empty;
+    }
+
+    // Các role được định nghĩa sẵn
+    public static class UserRoles
+    {
+        public const string User = "User";
+        public const string Admin = "Admin";
     }
 
     public class UserSubscription
@@ -71,6 +83,23 @@ namespace MyIoTPlatform.API.Models
         public int EnergyGoal { get; set; } = 1000;
         public string Language { get; set; } = "en";
         public string Currency { get; set; } = "USD";
+    }
+    #endregion
+    #region ADMIN
+    public class DeviceStatisticsDto
+    {
+        public int TotalDevices { get; set; }
+        public int ActiveDevices { get; set; }
+        public double TotalEnergyConsumption { get; set; }
+        public double AverageDeviceUptime { get; set; }
+        public List<DeviceTypeDistributionItem> DeviceTypeDistribution { get; set; }
+    }
+
+    public class DeviceTypeDistributionItem
+    {
+        public string Type { get; set; }
+        public int Count { get; set; }
+        public double Percentage { get; set; }
     }
     #endregion
     #region Devices
@@ -291,10 +320,14 @@ namespace MyIoTPlatform.API.Models
         public string Name { get; set; }
         public string Email { get; set; }
         public string Avatar { get; set; }
+
+        [BsonElement("role")]
+        [JsonProperty("role")]
+        public string role { get; set; } = "User";
+        
         public UserSubscription Subscription { get; set; }
         public UserPreferences Preferences { get; set; }
     }
-
      public class AddDeviceRequest
     {
         public string Name { get; set; }
@@ -346,6 +379,89 @@ namespace MyIoTPlatform.API.Models
         public string ExpiryDate { get; set; }
         public string CardholderName { get; set; }
         public string CVV { get; set; }
+    }
+    #endregion
+    #region EnvironmentData
+    public class EnvironmentData
+    {
+        [BsonId]
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string Id { get; set; }
+
+        public string UserId { get; set; }
+
+        // // Không bắt buộc, có thể để null
+        // public string DeviceId { get; set; }
+        
+        // // Không bắt buộc, có thể để null
+        // public string DeviceName { get; set; }
+
+        public double Temperature { get; set; }
+
+        public double Humidity { get; set; }
+
+        public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+        
+        public string Location { get; set; } = "Phòng khách";
+    }
+    
+    // Request model for posting environment data
+    public class EnvironmentDataRequest
+    {
+        // Không bắt buộc, có thể để null
+        // public string DeviceId { get; set; }
+        
+        public double Temperature { get; set; }
+        
+        public double Humidity { get; set; }
+        
+        public string Location { get; set; } = "Phòng khách";
+    }
+    
+    // Response model for environment data
+    public class EnvironmentDataResponse
+    {
+        public string Id { get; set; }
+        
+        // // Không bắt buộc, có thể để null
+        // public string DeviceId { get; set; }
+        
+        // // // Không bắt buộc, có thể để null
+        // public string DeviceName { get; set; }
+        
+        public double Temperature { get; set; }
+        
+        public double Humidity { get; set; }
+        
+        public DateTime Timestamp { get; set; }
+        
+        public string Location { get; set; }
+    }
+    
+    // Data transfer object for environment statistics
+    public class EnvironmentStatsDto
+    {
+        public double CurrentTemperature { get; set; }
+        
+        public double CurrentHumidity { get; set; }
+        
+        public double AvgTemperature { get; set; }
+        
+        public double AvgHumidity { get; set; }
+        
+        public double MaxTemperature { get; set; }
+        
+        public double MinTemperature { get; set; }
+        
+        public double MaxHumidity { get; set; }
+        
+        public double MinHumidity { get; set; }
+        
+        public DateTime LastUpdated { get; set; }
+        
+        public bool HasData { get; set; } = false;
+        
+        public string Location { get; set; } = "Phòng khách";
     }
     #endregion
 }

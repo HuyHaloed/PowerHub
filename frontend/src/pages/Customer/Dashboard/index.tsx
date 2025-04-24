@@ -1,18 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useOutletContext } from "react-router-dom";
 import { useDashboardData, useActiveDevices, useQuickStats } from '@/hooks/useDashboardIOTData';
-import { useEnergyConsumption, useEnergyDistribution } from '@/hooks/useEnergyData';
 import DashboardSidebar from '@/components/DashboardIOT/DashboardSidebar';
 import QuickStatCard from '@/components/DashboardIOT/QuickStatCard';
 import EnergyConsumptionChart from '@/components/DashboardIOT/EnergyTotalbyRangeTimeChart';
 import DeviceStatusCard from '@/components/DashboardIOT/DeviceStatusCard';
 import EnergyDistributionChart from '@/components/DashboardIOT/EnergyDistributionChart';
 import UserInfoCard from '@/components/DashboardIOT/UserInfoCard';
-import { Bell, Zap, DollarSign, Calendar } from 'lucide-react';
+import { Bell } from 'lucide-react';
 import DevicesView from '@/pages/Customer/Dashboard/DevicesView';
 import AnalyticsView from '@/pages/Customer/Dashboard/AnalyticsView';
 import SettingsView from '@/pages/Customer/Dashboard/SettingsView';
 import { Stat, Device } from '@/types/dashboard.types';
+import { TemperatureCard, HumidityCard } from '@/components/DashboardIOT/EnvironmentDataCard';
 
 // Custom Alert Component
 const CustomAlert = ({ 
@@ -43,7 +43,6 @@ const CustomAlert = ({
     </div>
   );
 };
-// Define the type for context
 type LayoutContextType = {
   isMobile: boolean;
   isSidebarOpen: boolean;
@@ -55,11 +54,8 @@ export default function Dashboard() {
   const { data: dashboardData, isLoading: isDashboardLoading, error: dashboardError } = useDashboardData();
   const { data: activeDevicesData, isLoading: isActiveDevicesLoading } = useActiveDevices();
   const { data: quickStatsData, isLoading: isQuickStatsLoading } = useQuickStats();
-  
-  // Get layout context from parent
   const { isMobile, isSidebarOpen, setSidebarOpen } = useOutletContext<LayoutContextType>();
   
-  // Content based on active tab
   const renderContent = () => {
     switch (activeTab) {
       case "dashboard":
@@ -89,21 +85,15 @@ export default function Dashboard() {
         />
       );
     }
-    
-    // Unread alerts
     const unreadAlerts = dashboardData.alerts?.filter(alert => !alert.read) || [];
     
     return (
       <div className="p-6">
-        {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {quickStatsData?.map((stat: Stat) => (
             <QuickStatCard key={stat.id} stat={stat} />
           ))}
         </div>
-        
-        
-        {/* Alerts */}
         {unreadAlerts.length > 0 && (
           <div className="mb-6">
             <h2 className="text-lg font-medium mb-3">Cảnh báo gần đây</h2>
@@ -119,25 +109,27 @@ export default function Dashboard() {
             </div>
           </div>
         )}
-        
-        {/* Main Content */}
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Energy Consumption Chart */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-3">
             <EnergyConsumptionChart />
           </div>
-          
-          {/* User Info */}
           <div>
             <UserInfoCard user={dashboardData.user} />
           </div>
           
-          {/* Energy Distribution */}
           <div className="lg:col-span-2">
             <EnergyDistributionChart />
           </div>
           
-          {/* Active Devices */}
+          <div>
+            <TemperatureCard />
+          </div>
+          
+          <div>
+            <HumidityCard />
+          </div>
+          
           <div>
             <h2 className="text-lg font-medium mb-3">Thiết bị đang hoạt động</h2>
             <div className="space-y-4">
@@ -157,7 +149,6 @@ export default function Dashboard() {
 
   return (
     <>
-      {/* Sidebar */}
       <DashboardSidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -165,8 +156,6 @@ export default function Dashboard() {
         isOpen={isSidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />
-      
-      {/* Main Content */}
       {renderContent()}
     </>
   );

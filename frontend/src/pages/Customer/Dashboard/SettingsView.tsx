@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,22 +8,18 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useDashboardData } from '@/hooks/useDashboardIOTData';
-import { Loader2, User, Key, Bell, CreditCard, Clock, Sliders, Shield, AlertTriangle } from 'lucide-react';
+import { Loader2, Key, CreditCard, Clock, Shield, AlertTriangle } from 'lucide-react';
 
 export default function SettingsView() {
   const { data: dashboardData, isLoading } = useDashboardData();
   const [saving, setSaving] = useState(false);
   type ThemeType = "light" | "dark" | "system";
-  // User preference states
   const [theme, setTheme] = useState<ThemeType>(() => {
     const storedTheme = dashboardData?.user.preferences?.theme;
-    
-    // Ensure the theme is one of the allowed values
     if (storedTheme === "light" || storedTheme === "dark" || storedTheme === "system") {
       return storedTheme;
     }
-    
-    return "light"; // default fallback
+    return "light"; 
   });
   const [notifications, setNotifications] = useState(
     dashboardData?.user.preferences?.notifications || true
@@ -31,8 +27,6 @@ export default function SettingsView() {
   const [energyGoal, setEnergyGoal] = useState(
     dashboardData?.user.preferences?.energyGoal?.toString() || "300"
   );
-  
-  // Notification settings
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [pushNotifications, setPushNotifications] = useState(true);
   const [highUsageAlerts, setHighUsageAlerts] = useState(true);
@@ -42,8 +36,6 @@ export default function SettingsView() {
   
   const handleSavePreferences = () => {
     setSaving(true);
-    
-    // Simulate API call
     setTimeout(() => {
       setSaving(false);
     }, 1000);

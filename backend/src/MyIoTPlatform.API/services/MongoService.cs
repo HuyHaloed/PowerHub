@@ -19,6 +19,7 @@ namespace MyIoTPlatform.API.Services
         private readonly IMongoCollection<Notification> _notificationsCollection;
         private readonly IMongoCollection<Session> _sessionsCollection;
         private readonly IMongoCollection<EnergyDistribution> _energyDistributionCollection;
+        private readonly IMongoCollection<EnvironmentData> _environmentDataCollection;
 
         public MongoDbService(IOptions<MongoDbSettings> mongoDbSettings)
         {
@@ -32,6 +33,7 @@ namespace MyIoTPlatform.API.Services
             _notificationsCollection = mongoDatabase.GetCollection<Notification>("Notifications");
             _sessionsCollection = mongoDatabase.GetCollection<Session>("Sessions");
             _energyDistributionCollection = mongoDatabase.GetCollection<EnergyDistribution>("EnergyDistribution");
+            _environmentDataCollection = mongoDatabase.GetCollection<EnvironmentData>("EnvironmentData");
         }
 
         #region User Operations
@@ -94,14 +96,64 @@ namespace MyIoTPlatform.API.Services
             await _usersCollection.UpdateOneAsync(filter, update);
         }
         
-        // Updated method to properly fetch all users from MongoDB
         public async Task<List<User>> GetAllUsersAsync()
         {
-            // Create an empty filter to get all documents
             var filter = Builders<User>.Filter.Empty;
             return await _usersCollection.Find(filter).ToListAsync();
         }
         #endregion
+
+        #region ADMIN
+        public async Task<DeviceStatisticsDto> GetDeviceStatisticsAsync(string userId)
+        {
+            // Get all devices for the user
+            var devices = await GetDevicesByUserIdAsync(userId);
+            
+            // Get active devices
+            var activeDevices = devices.Where(d => d.Status == "on").ToList();
+            
+            // Calculate device type distribution
+            var deviceTypeDistribution = devices
+                .GroupBy(d => d.Type)
+                .Select(g => new DeviceTypeDistributionItem
+                {
+                    Type = g.Key,
+                    Count = g.Count(),
+                    Percentage = Math.Round((double)g.Count() / devices.Count * 100, 1)
+                })
+                .ToList();
+
+            // Calculate total energy consumption (you might want to use EnergyService for more precise calculation)
+            double totalEnergyConsumption = devices.Sum(d => d.Consumption);
+
+            return new DeviceStatisticsDto
+            {
+                TotalDevices = devices.Count,
+                ActiveDevices = activeDevices.Count,
+                TotalEnergyConsumption = Math.Round(totalEnergyConsumption, 1),
+                AverageDeviceUptime = Math.Round(activeDevices.Count / (double)devices.Count * 100, 1),
+                DeviceTypeDistribution = deviceTypeDistribution
+            };
+        }
+
+        // DTOs to represent the response
+        public class DeviceStatisticsDto
+        {
+            public int TotalDevices { get; set; }
+            public int ActiveDevices { get; set; }
+            public double TotalEnergyConsumption { get; set; }
+            public double AverageDeviceUptime { get; set; }
+            public List<DeviceTypeDistributionItem> DeviceTypeDistribution { get; set; }
+        }
+
+        public class DeviceTypeDistributionItem
+        {
+            public string Type { get; set; }
+            public int Count { get; set; }
+            public double Percentage { get; set; }
+        }
+        #endregion
+
 
         #region Device Operations
         public async Task<List<Device>> GetAllDevicesAsync(string status = null, string location = null, string type = null, string search = null)
@@ -128,7 +180,6 @@ namespace MyIoTPlatform.API.Services
             return device != null && device.UserIds.Contains(userId);
         }
 
-        // Phương thức để loại bỏ quyền truy cập của người dùng
         public async Task RemoveDeviceAccessAsync(string deviceId, string userId)
         {
             var device = await GetDeviceByIdAsync(deviceId);
@@ -225,13 +276,11 @@ namespace MyIoTPlatform.API.Services
 
         public async Task<List<EnergyDistribution>> GetAllDistributionsForUserAsync(string userId, DateTime startDate, DateTime endDate)
         {
-            // First get all devices the user has access to
             var devices = await GetDevicesByUserIdAsync(userId);
             
             if (devices.Count == 0)
                 return new List<EnergyDistribution>();
             
-            // Create a filter to get all distributions for this user's devices in the date range
             var deviceIds = devices.Select(d => d.Id).ToList();
             
             var filter = Builders<EnergyDistribution>.Filter.And(
@@ -241,7 +290,6 @@ namespace MyIoTPlatform.API.Services
                 Builders<EnergyDistribution>.Filter.Lte(e => e.Date, endDate)
             );
             
-            // Get all the distribution records in a single query (more efficient)
             var allDistributions = await _energyDistributionCollection.Find(filter)
                 .Sort(Builders<EnergyDistribution>.Sort.Ascending(e => e.Date))
                 .ToListAsync();
@@ -249,11 +297,9 @@ namespace MyIoTPlatform.API.Services
             return allDistributions;
         }
 
-        // Add this method to your MongoDbService class to get hourly data for a specific day
 
         public async Task<List<EnergyDistribution>> GetHourlyDistributionsForDayAsync(string userId, DateTime date)
         {
-            // Get the date range for the whole day (midnight to 11:59:59 PM)
             var startDate = date.Date;
             var endDate = startDate.AddDays(1).AddTicks(-1);
             
@@ -273,15 +319,10 @@ namespace MyIoTPlatform.API.Services
             if (endDate.HasValue)
                 filter &= Builders<EnergyConsumption>.Filter.Lte(e => e.Date, endDate.Value);
 
-            // Lấy tất cả các giá trị tiêu thụ có DeviceId (không null)
             filter &= Builders<EnergyConsumption>.Filter.Ne(e => e.DeviceId, null);
 
             return await _energyConsumptionCollection.Find(filter).SortBy(e => e.Date).ToListAsync();
         }
-
-        // Add these methods to your MongoDbService class
-
-// Get all distributions for a specific day across all devices
         public async Task<List<EnergyDistribution>> GetAllDistributionsForDayAsync(string userId, DateTime date)
         {
             var startDate = date.Date;
@@ -289,28 +330,19 @@ namespace MyIoTPlatform.API.Services
             
             return await GetAllDistributionsForPeriodAsync(userId, startDate, endDate);
         }
-
-        // Get all distributions for a specific time period across all devices
         public async Task<List<EnergyDistribution>> GetAllDistributionsForPeriodAsync(string userId, DateTime startDate, DateTime endDate)
         {
-            // Get all devices the user has access to
             var devices = await GetDevicesByUserIdAsync(userId);
-            
             if (devices.Count == 0)
                 return new List<EnergyDistribution>();
             
-            // Get device IDs
             var deviceIds = devices.Select(d => d.Id).ToList();
-            
-            // Create filter for all devices in the date range
             var filter = Builders<EnergyDistribution>.Filter.And(
                 Builders<EnergyDistribution>.Filter.Eq(e => e.UserId, userId),
                 Builders<EnergyDistribution>.Filter.In(e => e.DeviceId, deviceIds),
                 Builders<EnergyDistribution>.Filter.Gte(e => e.Date, startDate),
                 Builders<EnergyDistribution>.Filter.Lte(e => e.Date, endDate)
             );
-            
-            // Get the distributions and sort by time
             var distributions = await _energyDistributionCollection.Find(filter)
                 .Sort(Builders<EnergyDistribution>.Sort.Ascending(e => e.Date))
                 .ToListAsync();
@@ -322,36 +354,24 @@ namespace MyIoTPlatform.API.Services
         {
             var startDate = date.Date;
             var endDate = startDate.AddDays(1).AddTicks(-1);
-            
-            // Lấy tất cả các thiết bị của người dùng
             var devices = await GetDevicesByUserIdAsync(userId);
-            
-            // Lấy tiêu thụ của từng thiết bị trong ngày
             var deviceConsumptions = new List<(string DeviceId, string DeviceName, double Consumption)>();
-            
             foreach (var device in devices)
             {
                 var consumption = await GetEnergyConsumptionByDeviceAsync(userId, device.Id, "day", startDate, endDate);
                 double totalConsumption = consumption.Sum(c => c.Value);
                 deviceConsumptions.Add((device.Id, device.Name, totalConsumption));
             }
-            
-            // Tính tổng tiêu thụ
             double totalAllConsumption = deviceConsumptions.Sum(dc => dc.Consumption);
-            
-            // Nếu không có tiêu thụ, trả về danh sách trống
             if (totalAllConsumption <= 0)
                 return new List<EnergyDistribution>();
             
-            // Tạo danh sách phân bố năng lượng
             var colors = new[] { "#4CAF50", "#2196F3", "#FFC107", "#9C27B0", "#F44336", "#607D8B" };
             var result = new List<EnergyDistribution>();
-            
             for (int i = 0; i < deviceConsumptions.Count; i++)
             {
                 var (deviceId, deviceName, consumption) = deviceConsumptions[i];
                 double percentage = (consumption / totalAllConsumption) * 100;
-                
                 result.Add(new EnergyDistribution
                 {
                     UserId = userId,
@@ -365,9 +385,6 @@ namespace MyIoTPlatform.API.Services
             
             return result;
         }
-
-        // Phương thức để lấy phân bố năng lượng theo thiết bị và thời gian
-        // Phương thức lấy phân bố năng lượng theo thiết bị và khoảng thời gian
         public async Task<List<EnergyDistribution>> GetEnergyDistributionByDeviceAsync(
             string userId, string deviceId, DateTime startDate, DateTime endDate)
         {
@@ -378,7 +395,6 @@ namespace MyIoTPlatform.API.Services
 
             return await _energyDistributionCollection.Find(filter).ToListAsync();
         }
-        // Phương thức để lấy dữ liệu tiêu thụ năng lượng theo khoảng thời gian
         public async Task<List<EnergyConsumption>> GetEnergyConsumptionByTimeRangeAsync(string userId, string timeRange, DateTime startDate, DateTime endDate)
         {
             var filter = Builders<EnergyConsumption>.Filter.Eq(e => e.UserId, userId)
@@ -521,6 +537,116 @@ namespace MyIoTPlatform.API.Services
             await _sessionsCollection.DeleteOneAsync(s => s.Id == id);
         }
         #endregion
+        
+        #region Environment Data Operations
+        
+        public async Task<EnvironmentData> AddEnvironmentDataAsync(EnvironmentData data)
+        {
+            await _environmentDataCollection.InsertOneAsync(data);
+            return data;
+        }
+
+        public async Task<List<EnvironmentData>> GetEnvironmentDataForUserAsync(
+            string userId, 
+            DateTime? startDate = null, 
+            DateTime? endDate = null,
+            string deviceId = null)
+        {
+            var builder = Builders<EnvironmentData>.Filter;
+            var filter = builder.Eq(e => e.UserId, userId);
+
+            if (startDate.HasValue)
+                filter &= builder.Gte(e => e.Timestamp, startDate.Value);
+
+            if (endDate.HasValue)
+                filter &= builder.Lte(e => e.Timestamp, endDate.Value);
+
+            // if (!string.IsNullOrEmpty(deviceId))
+            //     filter &= builder.Eq(e => e.DeviceId, deviceId);
+
+            return await _environmentDataCollection
+                .Find(filter)
+                .SortByDescending(e => e.Timestamp)
+                .ToListAsync();
+        }
+
+        public async Task<EnvironmentData> GetLatestEnvironmentDataForUserAsync(string userId, string deviceId = null)
+        {
+            var builder = Builders<EnvironmentData>.Filter;
+            var filter = builder.Eq(e => e.UserId, userId);
+
+            // if (!string.IsNullOrEmpty(deviceId))
+            //     filter &= builder.Eq(e => e.DeviceId, deviceId);
+
+            return await _environmentDataCollection
+                .Find(filter)
+                .SortByDescending(e => e.Timestamp)
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<List<string>> GetEnvironmentDataLocationsAsync(string userId)
+        {
+            var data = await GetEnvironmentDataForUserAsync(userId);
+            return data.Select(d => d.Location).Distinct().ToList();
+        }
+
+        public async Task<EnvironmentStatsDto> GetEnvironmentStatsForUserAsync(
+            string userId, 
+            DateTime? startDate = null, 
+            DateTime? endDate = null,
+            string location = null)
+        {
+            var data = await GetEnvironmentDataForUserAsync(userId, startDate, endDate);
+            
+            // Lọc theo vị trí nếu được chỉ định
+            if (!string.IsNullOrEmpty(location))
+            {
+                data = data.Where(d => d.Location.Equals(location, StringComparison.OrdinalIgnoreCase)).ToList();
+            }
+            
+            if (data == null || !data.Any())
+            {
+                return new EnvironmentStatsDto 
+                { 
+                    HasData = false 
+                };
+            }
+
+            var latestData = data.OrderByDescending(d => d.Timestamp).First();
+            
+            return new EnvironmentStatsDto
+            {
+                CurrentTemperature = latestData.Temperature,
+                CurrentHumidity = latestData.Humidity,
+                AvgTemperature = Math.Round(data.Average(d => d.Temperature), 1),
+                AvgHumidity = Math.Round(data.Average(d => d.Humidity), 1),
+                MaxTemperature = Math.Round(data.Max(d => d.Temperature), 1),
+                MinTemperature = Math.Round(data.Min(d => d.Temperature), 1),
+                MaxHumidity = Math.Round(data.Max(d => d.Humidity), 1),
+                MinHumidity = Math.Round(data.Min(d => d.Humidity), 1),
+                LastUpdated = latestData.Timestamp,
+                Location = latestData.Location,
+                HasData = true
+            };
+        }
+
+        public async Task<bool> DeleteEnvironmentDataAsync(string id, string userId)
+        {
+            var filter = Builders<EnvironmentData>.Filter.Eq(e => e.Id, id) & 
+                        Builders<EnvironmentData>.Filter.Eq(e => e.UserId, userId);
+            
+            var result = await _environmentDataCollection.DeleteOneAsync(filter);
+            return result.DeletedCount > 0;
+        }
+
+        public async Task<bool> HasEnvironmentDataSubscriptionAsync(string userId)
+        {
+            var user = await GetUserByIdAsync(userId);
+            
+            // Mọi người dùng đều có thể sử dụng tính năng này trong ví dụ này
+            return user != null;
+        }
+        #endregion
     }
 
     public class MongoDbSettings
@@ -528,6 +654,7 @@ namespace MyIoTPlatform.API.Services
         public string ConnectionString { get; set; } = string.Empty;
         public string DatabaseName { get; set; } = string.Empty;
     }
+    
     public class TokenService
     {
         private readonly IConfiguration _configuration;
@@ -550,7 +677,8 @@ namespace MyIoTPlatform.API.Services
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(ClaimTypes.Name, user.Name)
+                new Claim(ClaimTypes.Name, user.Name),
+                new Claim(ClaimTypes.Role, user.role) // vướng r vs R mà mệt mỏi
             };
             claims.Add(new Claim("plan", user.Subscription.Plan));
             var token = new JwtSecurityToken(
@@ -564,7 +692,5 @@ namespace MyIoTPlatform.API.Services
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
         
-
-
     }
 }

@@ -42,7 +42,7 @@ namespace MyIoTPlatform.API.Controllers
                 validUntil = user.Subscription.ValidUntil,
                 features = GetPlanFeatures(user.Subscription.Plan),
                 price = GetPlanPrice(user.Subscription.Plan),
-                billingCycle = "Monthly", // This could be retrieved from user data
+                billingCycle = "Monthly",
                 paymentMethod = user.Subscription.PaymentMethod,
                 history = user.Subscription.PaymentHistory
             });
@@ -62,12 +62,8 @@ namespace MyIoTPlatform.API.Controllers
             {
                 return NotFound(new { message = "User not found" });
             }
-            
-            // Update subscription
             user.Subscription.Plan = request.Plan;
             user.Subscription.ValidUntil = DateTime.UtcNow.AddYears(1);
-            
-            // Add payment history
             var payment = new PaymentHistory
             {
                 Date = DateTime.UtcNow,
@@ -97,9 +93,6 @@ namespace MyIoTPlatform.API.Controllers
             {
                 return NotFound(new { message = "User not found" });
             }
-            
-            // In a real implementation, you would securely store payment information
-            // For demonstration purposes, we just store the last four digits
             var paymentMethod = new PaymentMethod
             {
                 Type = request.Type,

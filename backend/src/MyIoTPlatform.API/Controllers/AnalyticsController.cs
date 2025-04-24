@@ -46,8 +46,6 @@ namespace MyIoTPlatform.API.Controllers
                 if (DateTime.TryParse(endDate, out var parsedEndDate))
                     endDateTime = parsedEndDate;
             }
-            
-            // If dates are not provided, set defaults based on time range
             if (!startDateTime.HasValue)
             {
                 switch (timeRange.ToLower())
@@ -104,7 +102,7 @@ namespace MyIoTPlatform.API.Controllers
                     lowestConsumption = 0,
                     comparisonValue = 0,
                     estimatedCost = 0,
-                    costPerKwh = 0.15, // Default value
+                    costPerKwh = 0.15,
                     data = new List<object>()
                 });
             }
@@ -113,8 +111,6 @@ namespace MyIoTPlatform.API.Controllers
             var avgConsumption = totalConsumption / consumptionData.Count;
             var peakConsumption = consumptionData.Max(c => c.Value);
             var lowestConsumption = consumptionData.Min(c => c.Value);
-            
-            // Get previous period data for comparison
             var previousStartDate = startDateTime.Value.AddDays(-(endDateTime.Value - startDateTime.Value).Days);
             var previousEndDate = startDateTime.Value.AddTicks(-1);
             
@@ -129,9 +125,7 @@ namespace MyIoTPlatform.API.Controllers
                     comparisonValue = Math.Round(((totalConsumption - previousTotal) / previousTotal) * 100, 1);
                 }
             }
-            
-            // Calculate estimated cost
-            var costPerKwh = 0.15; // Default value - could be retrieved from user preferences
+            var costPerKwh = 0.15;
             var estimatedCost = totalConsumption * costPerKwh;
             
             return Ok(new
@@ -169,8 +163,6 @@ namespace MyIoTPlatform.API.Controllers
                 if (DateTime.TryParse(endDate, out var parsedEndDate))
                     endDateTime = parsedEndDate;
             }
-            
-            // If dates are not provided, set defaults based on time range
             if (!startDateTime.HasValue)
             {
                 switch (timeRange.ToLower())

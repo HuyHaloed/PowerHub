@@ -24,13 +24,10 @@ namespace MyIoTPlatform.API.Utilities
                 var mongoDbService = scope.ServiceProvider.GetRequiredService<MongoDbService>();
                 
                 Console.WriteLine("Checking for existing users in the database...");
-                
-                // Get all existing users
                 var users = await mongoDbService.GetAllUsersAsync();
                 
                 Console.WriteLine($"Found {users.Count} users in the database.");
                 
-                // If no users exist, do nothing
                 if (users.Count == 0)
                 {
                     Console.WriteLine("No users found. Skipping database initialization.");
@@ -44,15 +41,16 @@ namespace MyIoTPlatform.API.Utilities
                     Console.WriteLine($"Processing user: {user.Name} ({user.Email})");
                 }
                 
-                // Generate energy data only for existing users
-                var dataGenerator = new EnergyDataGenerator(mongoDbService);
+                var energyDataGenerator = new EnergyDataGenerator(mongoDbService);
+                var environmentDataGenerator = new EnvironmentDataGenerator(mongoDbService);
+                
                 foreach (var user in users)
                 {
-                    // Create sample devices for the user
                     await CreateSampleDevicesAsync(mongoDbService, user.Id);
+                    await energyDataGenerator.GenerateEnergyDataForUserAsync(user.Id, 30);
                     
-                    // Generate energy data for the user
-                    await dataGenerator.GenerateEnergyDataForUserAsync(user.Id, 30);
+                    // Generate environment data for the user
+                    await environmentDataGenerator.GenerateEnvironmentDataForUserAsync(user.Id, 14);
                 }
                 
                 Console.WriteLine("Database initialization completed successfully.");
@@ -61,15 +59,12 @@ namespace MyIoTPlatform.API.Utilities
             {
                 Console.WriteLine($"Error initializing database: {ex.Message}");
                 Console.WriteLine(ex.StackTrace);
-                // You might want to rethrow or handle differently depending on your requirements
             }
         }
         
         private async Task CreateSampleDevicesAsync(MongoDbService mongoDbService, string userId)
         {
             Console.WriteLine($"Creating sample devices for user {userId}...");
-            
-            // Check if the user already has devices
             var existingDevices = await mongoDbService.GetDevicesByUserIdAsync(userId);
             if (existingDevices.Count > 0)
             {

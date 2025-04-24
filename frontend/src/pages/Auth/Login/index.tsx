@@ -1,3 +1,4 @@
+// Cập nhật trong pages/Login/index.tsx
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -17,7 +18,9 @@ import { paths } from "@/utils/path";
 import { login } from "@/action/login";
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import { Eye, EyeOff, Lock, Mail } from "lucide-react"; // Thêm các biểu tượng
+import { Eye, EyeOff, Lock, Mail } from "lucide-react";
+import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
+import authorizedAxiosInstance from '@/lib/axios';
 
 const formSchema = z.object({
   email: z.string().refine(
@@ -59,7 +62,12 @@ export default function LoginPage() {
 
       if (response.success) {
         toast.success(response.message);
-        navigate(paths.Dashboard);
+        // Kiểm tra role của người dùng và chuyển hướng tương ứng
+        if (response.data?.user.role === 'Admin') {
+          navigate(paths.AdminDashboard);
+        } else {
+          navigate(paths.Dashboard);
+        }
       } else {
         toast.error(response.message);
       }
@@ -69,6 +77,41 @@ export default function LoginPage() {
       setLoading(false);
     }
   }
+
+  // Xử lý đăng nhập Google thành công
+  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
+    try {
+      setLoading(true);
+      const token = credentialResponse.credential;
+      if (!token) {
+        toast.error("Không nhận được thông tin xác thực từ Google");
+        return;
+      }
+
+      const response = await authorizedAxiosInstance.post('/auth/google-login', { token });
+      
+      if (response.data.success) {
+        toast.success("Đăng nhập Google thành công!");
+        // Kiểm tra role của người dùng và chuyển hướng tương ứng
+        if (response.data?.user?.role === 'Admin') {
+          navigate(paths.AdminDashboard);
+        } else {
+          navigate(paths.Dashboard);
+        }
+      } else {
+        toast.error(response.data.message || "Đăng nhập thất bại");
+      }
+    } catch (error) {
+      toast.error("Đăng nhập Google thất bại, vui lòng thử lại");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Xử lý lỗi đăng nhập Google
+  const handleGoogleError = () => {
+    toast.error("Đăng nhập Google thất bại, vui lòng thử lại");
+  };
 
   return (
     <div className="min-h-screen flex items-center bg-gradient-to-br from-blue-50 to-white">
@@ -214,45 +257,33 @@ export default function LoginPage() {
                 </form>
               </Form>
               
-              {/* Các nút đăng nhập với mạng xã hội */}
+                              {/* Phần đăng nhập với Google */}
               <div className="mt-8">
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-gray-200"></div>
                   </div>
                   <div className="relative flex justify-center text-sm">
-                    <span className="px-2 bg-white text-gray-500">Hoặc đăng nhập với</span>
+                    <span className="px-4 bg-white text-gray-500">Hoặc</span>
                   </div>
                 </div>
                 
-                <div className="mt-6 grid grid-cols-3 gap-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="h-10 hover:bg-gray-50 transition-all duration-300 hover:scale-105"
-                  >
-                    <svg className="w-5 h-5 text-[#3b5998]" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.093 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" />
-                    </svg>
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="h-10 hover:bg-gray-50 transition-all duration-300 hover:scale-105"
-                  >
-                    <svg className="w-5 h-5 text-[#1da1f2]" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
-                    </svg>
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="h-10 hover:bg-gray-50 transition-all duration-300 hover:scale-105"
-                  >
-                    <svg className="w-5 h-5 text-[#ea4335]" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1.086-9.8l4.5-2.6-4.5-2.6v5.2z" />
-                    </svg>
-                  </Button>
+                {/* Container cho GoogleLogin được căn giữa */}
+                <div className="mt-6 flex justify-center">
+                  <div className="transform transition-all duration-300 hover:scale-105">
+                    <GoogleLogin
+                      onSuccess={handleGoogleSuccess}
+                      onError={handleGoogleError}
+                      useOneTap
+                      type="standard"
+                      theme="outline"
+                      size="large"
+                      text="signin_with"
+                      shape="rectangular"
+                      logo_alignment="center"
+                      width="400"
+                    />
+                  </div>
                 </div>
               </div>
             </div>

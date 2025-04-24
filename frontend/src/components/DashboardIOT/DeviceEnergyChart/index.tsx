@@ -10,11 +10,7 @@ import {
   ResponsiveContainer 
 } from 'recharts';
 import axios from 'axios';
-
-// Base API URL
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
-
-// Get auth token from sessionStorage
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api'; // chờ env cúi project
 const getAuthToken = () => {
   return sessionStorage.getItem('auth_token');
 };
@@ -29,30 +25,22 @@ const DeviceEnergyChart: React.FC<DeviceEnergyChartProps> = ({ deviceId }) => {
   const [deviceDetails, setDeviceDetails] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<any>(null);
-
-  // Time range options
   const timeRangeOptions = [
     { id: 'day', label: 'Ngày' },
     { id: 'week', label: 'Tuần' },
     { id: 'month', label: 'Tháng' },
   ];
-
-  // Fetch device energy data
   useEffect(() => {
     const fetchDeviceEnergyData = async () => {
       setIsLoading(true);
       try {
         const token = getAuthToken();
-        
-        // Fetch device details
         const deviceResponse = await axios.get(`${API_URL}/devices/${deviceId}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
         });
         setDeviceDetails(deviceResponse.data);
-        
-        // Fetch device energy data
         const startDate = getStartDateForTimeRange(timeRange);
         const energyResponse = await axios.get(
           `${API_URL}/analytics/devices?deviceId=${deviceId}&timeRange=${timeRange}&startDate=${startDate.toISOString()}`, 
@@ -84,7 +72,6 @@ const DeviceEnergyChart: React.FC<DeviceEnergyChartProps> = ({ deviceId }) => {
     }
   }, [deviceId, timeRange]);
 
-  // Get start date based on time range
   const getStartDateForTimeRange = (range: string): Date => {
     const today = new Date();
     switch (range) {
@@ -98,7 +85,6 @@ const DeviceEnergyChart: React.FC<DeviceEnergyChartProps> = ({ deviceId }) => {
     }
   };
 
-  // Format time based on time range
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
     
@@ -114,7 +100,6 @@ const DeviceEnergyChart: React.FC<DeviceEnergyChartProps> = ({ deviceId }) => {
     }
   };
 
-  // Prepare chart data
   const formatChartData = () => {
     return energyData.map((item: any) => ({
       time: formatTime(item.date),
@@ -122,7 +107,6 @@ const DeviceEnergyChart: React.FC<DeviceEnergyChartProps> = ({ deviceId }) => {
     }));
   };
 
-  // Calculate energy metrics
   const calculateMetrics = () => {
     if (energyData.length === 0) {
       return {
@@ -137,9 +121,7 @@ const DeviceEnergyChart: React.FC<DeviceEnergyChartProps> = ({ deviceId }) => {
     const total = values.reduce((sum, val) => sum + val, 0);
     const average = total / values.length;
     const peak = Math.max(...values);
-    
-    // Assume 2500 VND per kWh
-    const costPerKwh = 2500;
+    const costPerKwh = 2500; // chổ này để tiền điện nè
     const cost = total * costPerKwh;
 
     return {

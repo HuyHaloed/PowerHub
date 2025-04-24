@@ -1,4 +1,3 @@
-import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, PieChart } from 'lucide-react';
 import { IOTStatistics } from '@/types/adminDashboard.types';
