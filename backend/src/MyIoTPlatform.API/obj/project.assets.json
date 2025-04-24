@@ -2049,15 +2049,15 @@
           "lib/netstandard2.0/Mono.TextTemplating.dll": {}
         }
       },
-      "MQTTnet/4.3.7.1207": {
+      "MQTTnet/4.0.0.167": {
         "type": "package",
         "compile": {
-          "lib/net7.0/MQTTnet.dll": {
+          "lib/net6.0/MQTTnet.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/net7.0/MQTTnet.dll": {
+          "lib/net6.0/MQTTnet.dll": {
             "related": ".xml"
           }
         }
@@ -5653,25 +5653,22 @@
         "mono.texttemplating.nuspec"
       ]
     },
-    "MQTTnet/4.3.7.1207": {
-      "sha512": "ah7aHXoedWp5m5a4zy2u4phOEVj0QFYzOb5tFKQeV8RRBrxp+1QREF4ymZuG8D+hzB2dhtrrG81WxTFv0PzOeQ==",
+    "MQTTnet/4.0.0.167": {
+      "sha512": "nF+QGoltNg8/uKCP2sh7nOuTWSOKNf6bqG5G5Px6ToFe4V70mMcjiigbzgVkntwdxjDJHXDhbxSRVvc8QDP6Jg==",
       "type": "package",
-      "path": "mqttnet/4.3.7.1207",
+      "path": "mqttnet/4.0.0.167",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
+        "LICENSE",
         "lib/net452/MQTTnet.dll",
         "lib/net452/MQTTnet.xml",
         "lib/net461/MQTTnet.dll",
         "lib/net461/MQTTnet.xml",
-        "lib/net48/MQTTnet.dll",
-        "lib/net48/MQTTnet.xml",
         "lib/net5.0/MQTTnet.dll",
         "lib/net5.0/MQTTnet.xml",
         "lib/net6.0/MQTTnet.dll",
         "lib/net6.0/MQTTnet.xml",
-        "lib/net7.0/MQTTnet.dll",
-        "lib/net7.0/MQTTnet.xml",
         "lib/netcoreapp3.1/MQTTnet.dll",
         "lib/netcoreapp3.1/MQTTnet.xml",
         "lib/netstandard1.3/MQTTnet.dll",
@@ -5683,7 +5680,7 @@
         "lib/uap10.0.10240/MQTTnet.dll",
         "lib/uap10.0.10240/MQTTnet.pri",
         "lib/uap10.0.10240/MQTTnet.xml",
-        "mqttnet.4.3.7.1207.nupkg.sha512",
+        "mqttnet.4.0.0.167.nupkg.sha512",
         "mqttnet.nuspec",
         "nuget.png"
       ]
@@ -7036,7 +7033,7 @@
       "Ardalis.GuardClauses >= 5.0.0",
       "Azure.Identity >= 1.12.0",
       "BCrypt.Net-Next >= 4.0.3",
-      "MQTTnet.Extensions.ManagedClient >= 4.3.7.1207",
+      "MQTTnet >= 3.1.5",
       "Microsoft.AspNetCore.Authentication.JwtBearer >= 8.0.2",
       "Microsoft.AspNetCore.Mvc.Core >= 2.2.5",
       "Microsoft.EntityFrameworkCore >= 9.0.4",
@@ -7126,9 +7123,9 @@
             "target": "Package",
             "version": "[4.0.3, )"
           },
-          "MQTTnet.Extensions.ManagedClient": {
+          "MQTTnet": {
             "target": "Package",
-            "version": "[4.3.7.1207, )"
+            "version": "[3.1.5, )"
           },
           "Microsoft.AspNetCore.Authentication.JwtBearer": {
             "target": "Package",
@@ -7203,5 +7200,26 @@
         "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.100/PortableRuntimeIdentifierGraph.json"
       }
     }
-  }
+  },
+  "logs": [
+    {
+      "code": "NU1603",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "MyIoTPlatform.API depends on MQTTnet (>= 3.1.5) but MQTTnet 3.1.5 was not found. MQTTnet 4.0.0.167 was resolved instead.",
+      "libraryId": "MQTTnet",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1605",
+      "level": "Error",
+      "message": "Warning As Error: Detected package downgrade: MQTTnet from 4.3.7.1207 to 4.0.0.167. Reference the package directly from the project to select a different version. \r\n MyIoTPlatform.API -> MyIoTPlatform.Infrastructure -> MQTTnet (>= 4.3.7.1207) \r\n MyIoTPlatform.API -> MQTTnet (>= 3.1.5)",
+      "libraryId": "MQTTnet",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    }
+  ]
 }
