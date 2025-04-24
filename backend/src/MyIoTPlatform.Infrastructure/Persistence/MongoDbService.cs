@@ -39,5 +39,11 @@ namespace MyIoTPlatform.Infrastructure.Persistence
         {
             await _telemetryCollection.InsertOneAsync(telemetry);
         }
+        public async Task InsertDeviceAsync(Device device)
+        {
+            var database = _telemetryCollection.Database;
+            var deviceCollection = database.GetCollection<Device>("Devices");
+            await deviceCollection.InsertOneAsync(device);
+        }
     }
 }
