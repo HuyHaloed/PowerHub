@@ -22,8 +22,8 @@ PZEM004Tv30 pzem(PZEM_SERIAL, RXD2, TXD2);
 // const char *THINGSBOARD_SERVER = "10.0.122.240";
 
 // Thông tin Adafruit IO
-#define IO_USERNAME "USER_NAME"
-#define IO_KEY "USER_KEY"
+#define IO_USERNAME "Hellosine"
+#define IO_KEY "aio_qGEl63Zg8c3Re0FfT6uqNStKyM7e"
 
 // Tạo instance kết nối Adafruit IO
 AdafruitIO_WiFi io(IO_USERNAME, IO_KEY, WIFI_SSID, WIFI_PASS);
