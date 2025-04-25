@@ -1,8 +1,11 @@
-import React from 'react';
+
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { User } from "@/types/dashboard.types";
 import { Crown, Calendar } from "lucide-react";
+import SettingsView from '@/pages/Customer/Dashboard/SettingsView';
+
+
 
 interface UserInfoCardProps {
   user: User;
@@ -15,6 +18,10 @@ export default function UserInfoCard({ user }: UserInfoCardProps) {
       month: 'long',
       day: 'numeric'
     });
+  };
+
+  const handlemanegeAccount = () => {
+    return <SettingsView />;
   };
 
   return (
@@ -65,7 +72,7 @@ export default function UserInfoCard({ user }: UserInfoCardProps) {
             </div>
           )}
           
-          <Button variant="outline" size="sm" className="mt-4 w-full">
+          <Button variant="outline" size="sm" className="mt-4 w-full" onClick={handlemanegeAccount}>
             Quản lý tài khoản
           </Button>
         </div>

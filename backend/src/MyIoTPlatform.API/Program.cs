@@ -15,6 +15,7 @@ using MyIoTPlatform.Application.Interfaces.Persistence;
 using MyIoTPlatform.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.Google;
 using System.Text;
+using MyIoTPlatform.Infrastructure.Communication.Adafruit;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -57,8 +58,8 @@ builder.Services.AddSingleton<ITelemetryMongoService, MyIoTPlatform.Infrastructu
 builder.Services.AddSingleton<MyIoTPlatform.API.Services.MongoDbService>();
 
 builder.Services.Configure<MqttConfig>(builder.Configuration.GetSection("Mqtt"));
-builder.Services.AddSingleton<IMqttClientService, MqttClientService>();
-builder.Services.AddHostedService<MqttClientService>();
+// builder.Services.AddSingleton<IMqttClientService, MqttClientService>();
+// builder.Services.AddHostedService<MqttClientService>();
 builder.Services.AddScoped<MyIoTPlatform.Application.Interfaces.Repositories.ITelemetryRepository, MyIoTPlatform.Infrastructure.Persistence.Repositories.TelemetryRepository>();
 builder.Services.AddTransient<IRealtimeNotifier, RealtimeNotifier>();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -101,6 +102,13 @@ builder.Services.AddTransient<MyIoTPlatform.API.Utilities.EnvironmentDataGenerat
 builder.Services.AddScoped<PasswordResetService>();
 builder.Services.AddScoped<IEmailService, SimpleEmailService>();
 builder.Services.AddScoped<UserService>();
+
+
+// Configure Adafruit MQTT Client
+builder.Services.Configure<AdafruitMqttConfig>(builder.Configuration.GetSection("Adafruit"));
+builder.Services.AddSingleton<IMqttClientService, AdafruitMqttService>();
+builder.Services.AddHostedService<AdafruitMqttService>();
+
 
 // Build app
 var app = builder.Build();

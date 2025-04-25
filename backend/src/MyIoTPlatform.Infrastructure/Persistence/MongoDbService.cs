@@ -7,6 +7,7 @@ using MyIoTPlatform.Domain.Entities;
 using Microsoft.Extensions.Options;
 using MyIoTPlatform.Infrastructure.Persistence.Settings;
 using System;
+using MyIoTPlatform.Infrastructure.Communication.CoreIot.Models;
 
 namespace MyIoTPlatform.Infrastructure.Persistence
 {
@@ -44,6 +45,11 @@ namespace MyIoTPlatform.Infrastructure.Persistence
             var database = _telemetryCollection.Database;
             var deviceCollection = database.GetCollection<Device>("Devices");
             await deviceCollection.InsertOneAsync(device);
+        }
+
+        internal async Task<Device> GetDeviceByIdAsync(string deviceId)
+        {
+            throw new NotImplementedException();
         }
     }
 }
