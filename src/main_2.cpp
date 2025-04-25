@@ -1,84 +1,97 @@
-/*
- Basic MQTT example
+//
+//    FILE: DHT20.ino
+//  AUTHOR: Rob Tillaart
+// PURPOSE: Demo for DHT20 I2C humidity & temperature sensor
+//     URL: https://github.com/RobTillaart/DHT20
+//
+//  Always check datasheet - front view
+//
+//          +--------------+
+//  VDD ----| 1            |
+//  SDA ----| 2    DHT20   |
+//  GND ----| 3            |
+//  SCL ----| 4            |
+//          +--------------+
 
- This sketch demonstrates the basic capabilities of the library.
- It connects to an MQTT server then:
-  - publishes "hello world" to the topic "outTopic"
-  - subscribes to the topic "inTopic", printing out any messages
-    it receives. NB - it assumes the received payloads are strings not binary
 
- It will reconnect to the server if the connection is lost using a blocking
- reconnect function. See the 'mqtt_reconnect_nonblocking' example for how to
- achieve the same result without blocking the main loop.
- 
-*/
+#include "DHT20.h"
 
-#include <SPI.h>
-#include <PubSubClient.h>
-#include <WiFi.h>
+DHT20 DHT;
 
-// Update these with values suitable for your network.
+uint8_t count = 0;
 
-IPAddress server(10,0,122,240);
-
-const char* ssid = "Bonjour";
-const char* password = "hellosine";
-
-WiFiClient espClient;
-
-void callback(char* topic, byte* payload, unsigned int length) {
-  Serial.print("Message arrived [");
-  Serial.print(topic);
-  Serial.print("] ");
-  for (int i=0;i<length;i++) {
-    Serial.print((char)payload[i]);
-  }
-  Serial.println();
-}
-
-PubSubClient client(espClient);
-
-void reconnect() {
-  // Loop until we're reconnected
-  while (!client.connected()) {
-    Serial.print("Attempting MQTT connection...");
-    // Attempt to connect
-    if (client.connect("backend-service")) {
-      Serial.println("connected");
-      // Once connected, publish an announcement...
-      client.publish("devices/esp32-1/telemetry","{\"temperature\": 24.0");
-      // ... and resubscribe
-      client.subscribe("devices/+/telemetry");
-    } else {
-      Serial.print("failed, rc=");
-      Serial.print(client.state());
-      Serial.println(" try again in 5 seconds");
-      // Wait 5 seconds before retrying
-      delay(5000);
-    }
-  }
-}
 
 void setup()
 {
   Serial.begin(115200);
+  Serial.println(__FILE__);
+  Serial.print("DHT20 LIBRARY VERSION: ");
+  Serial.println(DHT20_LIB_VERSION);
+  Serial.println();
 
-  client.setServer(server, 1883);
-  client.setCallback(callback);
-    // Connect to Wi-Fi
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println("WiFi connected");
-  delay(1500);
+  Wire.begin();
+  DHT.begin();    //  ESP32 default pins 21 22
+
+
+  delay(1000);
 }
+
 
 void loop()
 {
-  if (!client.connected()) {
-    reconnect();
+  if (millis() - DHT.lastRead() >= 1000)
+  {
+    //  READ DATA
+    uint32_t start = micros();
+    int status = DHT.read();
+    uint32_t stop = micros();
+
+    if ((count % 10) == 0)
+    {
+      count = 0;
+      Serial.println();
+      Serial.println("Type\tHumidity (%)\tTemp (°C)\tTime (µs)\tStatus");
+    }
+    count++;
+
+    Serial.print("DHT20 \t");
+    //  DISPLAY DATA, sensor has only one decimal.
+    Serial.print(DHT.getHumidity(), 1);
+    Serial.print("\t\t");
+    Serial.print(DHT.getTemperature(), 1);
+    Serial.print("\t\t");
+    Serial.print(stop - start);
+    Serial.print("\t\t");
+    switch (status)
+    {
+      case DHT20_OK:
+        Serial.print("OK");
+        break;
+      case DHT20_ERROR_CHECKSUM:
+        Serial.print("Checksum error");
+        break;
+      case DHT20_ERROR_CONNECT:
+        Serial.print("Connect error");
+        break;
+      case DHT20_MISSING_BYTES:
+        Serial.print("Missing bytes");
+        break;
+      case DHT20_ERROR_BYTES_ALL_ZERO:
+        Serial.print("All bytes read zero");
+        break;
+      case DHT20_ERROR_READ_TIMEOUT:
+        Serial.print("Read time out");
+        break;
+      case DHT20_ERROR_LASTREAD:
+        Serial.print("Error read too fast");
+        break;
+      default:
+        Serial.print("Unknown error");
+        break;
+    }
+    Serial.print("\n");
   }
-  client.loop();
 }
+
+
+//  -- END OF FILE --
