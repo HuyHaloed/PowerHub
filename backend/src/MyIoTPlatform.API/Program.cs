@@ -104,7 +104,7 @@ builder.Services.AddScoped<IEmailService, SimpleEmailService>();
 builder.Services.AddScoped<UserService>();
 
 
-// Configure Adafruit MQTT Client
+
 builder.Services.Configure<AdafruitMqttConfig>(builder.Configuration.GetSection("Adafruit"));
 builder.Services.AddSingleton<IMqttClientService, AdafruitMqttService>();
 builder.Services.AddHostedService<AdafruitMqttService>();
