@@ -8,9 +8,6 @@ import pandas as pd
 import xgboost as xgb
 import speech_recognition as sr
 from typing import Dict, Tuple, Optional, Any, List
-# Import MQTT client and the CallbackAPIVersion enum
-# import paho.mqtt.client as mqtt # Removed MQTT import
-# from paho.mqtt.enums import CallbackAPIVersion # Removed MQTT import
 import collections
 import datetime
 import numpy as np
@@ -41,17 +38,6 @@ INACTIVITY_TIMEOUT_SECONDS = 10
 # request_id_counter = 0 # Removed MQTT related global
 MAX_HISTORY_POINTS = 288
 sensor_history = collections.deque(maxlen=MAX_HISTORY_POINTS)
-
-# MQTT Configuration (Removed MQTT constants)
-# SENSOR_TELEMETRY_TOPIC = "home/livingroom/temperture" # Topic to listen for sensor data
-# MQTT_BROKER = "app.coreiot.io" #
-# MQTT_PORT = 1883 #
-# MQTT_TOKEN = "ZS9KjbmsPcXtniB8q9yP" # Get token from environment variable
-# ATTRIBUTE_TOPIC = "v1/devices/me/attributes" # Topic for publishing attributes
-
-# Removed MQTT token check
-# if not MQTT_TOKEN:
-#     logger.warning("MQTT Token not found in environment variable 'MQTT_TOKEN'. MQTT connection will likely fail.")
 
 class AiManager:
     """Manages AI functionalities: Voice Control (Online STT) and Prediction."""
@@ -260,14 +246,13 @@ class AiManager:
         except Exception as e:
             logger.exception(f"Prediction pipeline error: {e}")
             return None, None
+        def prepare_data_for_prediction(self, sensor_data: dict) -> Optional[pd.DataFrame]:
+            #  Convert the incoming dictionary to a DataFrame
+            history_df = pd.DataFrame([sensor_data], index=[pd.Timestamp.now()])
+            expected_features = self.predictor_features  #  Make sure this is loaded
+            return prediction.prepare_features(history_df, expected_features)
 
-
-# --- MQTT Callbacks (Removed) ---
-# def on_connect(...): ...
-# def on_disconnect(...): ...
-# def on_publish(...): ...
-# def on_message(...): ...
-
+from config import USE_AI_PREDICTION, USE_VOICE_INTERPRETER, USE_TRANSPREDICTION
 
 # ==============================================================================
 #                                Main Execution
@@ -279,26 +264,13 @@ if __name__ == '__main__': #
     try:
         # Initialize AI Manager
         ai_manager = AiManager() # Uses default config path "config/ai_config.json"
-
-        # --- MQTT Setup (Removed) ---
-        # client_id = f"sh-client-{uuid.uuid4()}"
-        # mqtt_client = mqtt.Client(...)
-        # if not MQTT_TOKEN: ... else: mqtt_client.username_pw_set(...)
-        # Assign callback functions (Removed)
-        # mqtt_client.on_connect = on_connect
-        # mqtt_client.on_disconnect = on_disconnect
-        # mqtt_client.on_publish = on_publish
-        # mqtt_client.on_message = on_message
-        # Attempt connection (Removed)
-        # try: ... mqtt_client.connect(...) ... mqtt_client.loop_start() ... except ... mqtt_client = None ... logger.warning(...)
-
         # --- Main Loop Setup ---
         last_prediction_time = 0
         # Get prediction interval from config, default to 15s
         prediction_interval_seconds = ai_manager.config.get("prediction", {}).get("prediction_interval_seconds", 15)
 
         # --- Option 1: Run Voice Control Loop ---
-        if ai_manager.voice_enabled:
+        if USE_VOICE_INTERPRETER:
             logger.info("--- Voice Control Active (Online STT) ---") # Important status
             if not ai_manager.speech_recognizer:
                 logger.error("Speech Recognizer component not initialized.")
@@ -384,7 +356,7 @@ if __name__ == '__main__': #
                             # Use voice_interpreter module
                             status, payload = ai_manager.interpret_text_command(recognized_text)
                             logger.info(f"  -> Interpreted: {status}, Payload: {payload}") # Important output
-                            
+
                             # --- Removed MQTT Publishing of Command ---
                             # if status == voice_interpreter.STATUS_OK and payload and mqtt_client and mqtt_client.is_connected(): ...
                             # elif status == voice_interpreter.STATUS_OK and payload and (not mqtt_client or not mqtt_client.is_connected()):
@@ -404,7 +376,7 @@ if __name__ == '__main__': #
             except Exception as e: logger.exception(f"Voice loop error: {e}")
 
         # --- Option 2: Run Prediction-Only Loop ---
-        elif ai_manager.prediction_enabled:
+        elif USE_AI_PREDICTION:
              logger.info("Voice disabled. Running prediction-only loop...") # Important status
              logger.info("Note: Prediction loop needs sensor data. Add data manually to 'sensor_history' or re-integrate a data source.")
              while True:
