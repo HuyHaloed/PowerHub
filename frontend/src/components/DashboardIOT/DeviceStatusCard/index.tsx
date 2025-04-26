@@ -8,8 +8,8 @@ import { Lightbulb, Tv, AirVent, AreaChart, Thermometer, Refrigerator, Plug, Lap
 
 interface DeviceStatusCardProps {
   device: Device;
-  onToggle?: (id: number, status: 'on' | 'off') => void;
-  isToggling?: boolean;
+  onToggle: (status: "on" | "off") => void;
+  isToggling?: boolean; // Thêm tham số với dấu ? để biểu thị nó là tùy chọn
 }
 
 const DeviceStatusCard: React.FC<DeviceStatusCardProps> = ({ 
@@ -40,11 +40,9 @@ const DeviceStatusCard: React.FC<DeviceStatusCardProps> = ({
     }
   };
   const handleToggle = () => {
-    if (onToggle && !isToggling) {
-      const newStatus = device.status === 'on' ? 'off' : 'on';
-      onToggle(Number(device.id), newStatus);
-    }
-  };  
+    const newStatus = device.status === 'on' ? 'off' : 'on';
+    onToggle(newStatus);
+  };
   const formatConsumption = (value: number): string => {
     if (value === 0) return '0 W';
     if (value < 1000) return `${value} W`;

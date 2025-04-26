@@ -255,6 +255,11 @@ namespace MyIoTPlatform.API.Services
             await UpdateDeviceAsync(id, device);
             return device;
         }
+
+        public async Task<Device> GetDeviceByNameAndUserIdAsync(string name, string userId)
+        {
+            return await _devicesCollection.Find(d => d.Name == name && d.UserIds.Contains(userId)).FirstOrDefaultAsync();
+        }
         #endregion
 
         #region Energy Consumption Operations

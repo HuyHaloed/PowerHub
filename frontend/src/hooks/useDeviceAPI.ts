@@ -65,42 +65,40 @@ export function useDevices() {
   return { devices, isLoading, error, fetchDevices };
 }
 
-export const useDeviceControl = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
+  export const useDeviceControl = () => {
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<Error | null>(null);
 
-  const toggleDevice = async (deviceId: number, newStatus: 'on' | 'off') => {
-    setIsLoading(true);
-    setError(null);
+    const toggleDevice = async (deviceName: string, newStatus: 'on' | 'off') => {
+      setIsLoading(true);
+      setError(null);
 
-    try {
-      const response = await authorizedAxiosInstance.put(`/devices/${deviceId}/status`, {
-        status: newStatus
-      });
-
-      // Publish MQTT message
-      await authorizedAxiosInstance.post('/mqtt/publish', {
-        topic: `devices/${deviceId}/status`,
-        payload: JSON.stringify({
-          deviceId: deviceId,
+      try {
+        // Cập nhật trạng thái thiết bị trong MongoDB
+        const response = await authorizedAxiosInstance.put(`/devices/control-by-name`, {
+          name: deviceName,
           status: newStatus
-        }),
-        retain: false,
-        qosLevel: 1
-      });
+        });
 
-      return response.data;
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Lỗi không xác định'));
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
+        // Publish tới Adafruit MQTT
+        await authorizedAxiosInstance.post('/adafruit/publish', {
+          feed: deviceName,  // Feed name is the device name
+          payload: newStatus,
+          retain: true,
+          qosLevel: 1
+        });
+
+        return response.data;
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error('Lỗi không xác định'));
+        throw err;
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    return { toggleDevice, isLoading, error };
   };
-
-  return { toggleDevice, isLoading, error };
-};
-
 export function useActiveDevices() {
   const { devices } = useDevices();
   return devices.filter(device => device.status === 'on');

@@ -75,11 +75,13 @@ export default function DevicesView() {
     devicesByLocation[location].push(device);
   });
 
-  // Xử lý bật/tắt thiết bị
-  const handleToggleDevice = async (id: number, newStatus: "on" | "off") => {
+
+  const handleToggleDevice = async (deviceName: string, newStatus: "on" | "off") => {
     try {
-      await toggleDevice(id, newStatus);
+      await toggleDevice(deviceName, newStatus);
       toast.success(`Đã ${newStatus === 'on' ? 'bật' : 'tắt'} thiết bị thành công`);
+      // Refresh devices list to show updated status
+      fetchDevices();
     } catch (err) {
       toast.error("Không thể thay đổi trạng thái thiết bị");
       console.error(err);
@@ -168,11 +170,12 @@ export default function DevicesView() {
   };
 
   // Hiển thị thẻ thiết bị với nút chia sẻ
+  // Hiển thị thẻ thiết bị với nút chia sẻ
   const renderDeviceCard = (device: Device) => (
     <div key={device.id} className="relative">
       <DeviceStatusCard 
         device={device} 
-        onToggle={(id, status) => handleToggleDevice(id, status)}
+        onToggle={(status) => handleToggleDevice(device.name, status)}
       />
       <div className="absolute top-2 right-2">
         <ShareDeviceModal 
