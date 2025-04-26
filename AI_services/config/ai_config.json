@@ -1,18 +1,16 @@
 {
     "voice_control": {
         "enabled": true,
-        "vosk_model_path": "models/vosk-model-en-us",
         "mic_sample_rate": 16000,
         "fuzzy_match_threshold": 75,
-        "config_file": "config/voice_config.json",
-        "vosk_log_level": -1
+        "config_file": "AI_services/config/voice_config.json"
     },
     "prediction": {
         "enabled": false,
-        "temp_model_path": "models/predictors/xgboost_temp_predictor.json",
-        "humid_model_path": "models/predictors/xgboost_humid_predictor.json",
+        "temp_model_path": "AI_services/models/predictors/xgboost_temp_predictor.json",
+        "humid_model_path": "AI_services/models/predictors/xgboost_humid_predictor.json",
         "prediction_horizon_minutes": 60,
-        "minutes_per_sample": 5,
+        "minutes_per_sample": 60,
         "lag_steps_count": 5
     }
 }

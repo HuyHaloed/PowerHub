@@ -14,7 +14,6 @@ using System.Text;
 using MyIoTPlatform.Application.Interfaces.Persistence;
 using MyIoTPlatform.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.Google;
-using System.Text;
 using MyIoTPlatform.Infrastructure.Communication.Adafruit;
 
 
@@ -58,8 +57,7 @@ builder.Services.AddSingleton<ITelemetryMongoService, MyIoTPlatform.Infrastructu
 builder.Services.AddSingleton<MyIoTPlatform.API.Services.MongoDbService>();
 
 builder.Services.Configure<MqttConfig>(builder.Configuration.GetSection("Mqtt"));
-// builder.Services.AddSingleton<IMqttClientService, MqttClientService>();
-// builder.Services.AddHostedService<MqttClientService>();
+
 builder.Services.AddScoped<MyIoTPlatform.Application.Interfaces.Repositories.ITelemetryRepository, MyIoTPlatform.Infrastructure.Persistence.Repositories.TelemetryRepository>();
 builder.Services.AddTransient<IRealtimeNotifier, RealtimeNotifier>();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -71,6 +69,21 @@ builder.Services.Configure<MongoDbSettings>(
     builder.Configuration.GetSection("MongoDB"));
 
 builder.Services.AddSingleton<MyIoTPlatform.API.Services.MongoDbService>();
+
+// Đăng ký dịch vụ cho AI
+builder.Services.AddHttpClient("AiService", client =>
+{
+    client.BaseAddress = new Uri("http://ai-service:8000");
+});
+builder.Services.AddScoped<IAiService, AiServiceClient>();
+
+// Đăng ký dịch vụ Adafruit API
+builder.Services.AddHttpClient<IAdafruitApiClient, AdafruitApiClient>(client =>
+{
+    client.BaseAddress = new Uri("https://io.adafruit.com/api/v2/");
+    client.DefaultRequestHeaders.Add("X-AIO-Key", ["Adafruit:IoKey"]);
+});
+
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options => 

@@ -1,0 +1,22 @@
+[
+    "hour",
+    "dayofweek",
+    "dayofyear",
+    "month",
+    "hour_sin",
+    "hour_cos",
+    "dayofweek_sin",
+    "dayofweek_cos",
+    "month_sin",
+    "month_cos",
+    "temp_lag_1",
+    "humid_lag_1",
+    "temp_lag_2",
+    "humid_lag_2",
+    "temp_lag_3",
+    "humid_lag_3",
+    "temp_lag_4",
+    "humid_lag_4",
+    "temp_lag_5",
+    "humid_lag_5"
+]

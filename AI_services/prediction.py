@@ -1,320 +1,173 @@
-# ai_module/train_predictors.py
-# NOTE: You might need to adjust paths in this script depending on
-#       how you run it and where your data/config resides relative to it.
-
+# ai_module/prediction.py
 import pandas as pd
-import xgboost as xgb
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error
-# import joblib # Or use model.save_model for native XGBoost format
-import pymongo # Or import csv if using CSV file
-import json
-import os
-import datetime # Added import
+import logging
+import datetime
+from typing import List, Optional
+import numpy as np 
 
-# --- Configuration ---
-# Adjust path to load the *new* AI config, or define paths directly
-# Option 1: Load from new config (assumes script run from project root)
-CONFIG_PATH = "ai_module/config/ai_config.json"
-# Option 2: Define paths directly here if running standalone
-# MONGO_URI = "mongodb+srv://..."
-# MONGO_DB = "iot-device"
-# MONGO_COLLECTION = "telemetry_data"
-# MODEL_SAVE_DIR = "ai_module/models/predictors" # Save directly to new structure
+logger = logging.getLogger(__name__)
 
-MONGO_ENABLED = False # Default if config loading fails
-try:
-    # Determine script's directory to reliably find config
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    config_path_abs = os.path.join(script_dir, CONFIG_PATH) # If CONFIG_PATH is relative
+def prepare_features(
+    history_df: pd.DataFrame,
+    expected_features: List[str],
+    prediction_horizon_minutes: int = 60,
+    minutes_per_sample: int = 60, # <-- Default updated to 60 to match config
+    lag_steps_count: int = 5
+    ) -> Optional[pd.DataFrame]:
+    """
+    Prepares the feature vector for prediction using historical data.
 
-    # Use config_path_abs if defined, otherwise fallback to CONFIG_PATH
-    effective_config_path = config_path_abs if 'config_path_abs' in locals() else CONFIG_PATH
+    Args:
+        history_df: DataFrame containing historical telemetry data (e.g., temp, humid).
+                    Must have a DatetimeIndex. Needs enough data for lags.
+                    Should contain 'temperature' and 'humidity' columns.
+        expected_features: List of feature names the XGBoost model was trained on
+                           (loaded from predictor_features.json).
+        prediction_horizon_minutes: How far ahead the model predicts (e.g., 60 mins).
+        minutes_per_sample: The time resolution of the history_df (e.g., 60 mins).
+        lag_steps_count: How many lag features were used in training (e.g., 5).
 
-    if not os.path.exists(effective_config_path):
-        print(f"Warning: Config file not found at {effective_config_path}. Using defaults.")
-        # Define default paths if config isn't found
-        MODEL_SAVE_DIR = os.path.join(script_dir, "models/predictors")
-        MONGO_URI = None
-        PREDICTION_HORIZON_MINUTES = 60
-        MINUTES_PER_SAMPLE = 5
-        LAG_STEPS_COUNT = 5
+    Returns:
+        A pandas DataFrame with a single row containing the features for prediction,
+        or None if features cannot be prepared.
+    """
+    if history_df is None or history_df.empty:
+        logger.warning("Cannot prepare features: Input history DataFrame is None or empty.")
+        return None
 
-    else:
-        print(f"Loading configuration from: {effective_config_path}")
-        with open(effective_config_path, 'r') as f:
-            settings = json.load(f)
+    if not isinstance(history_df.index, pd.DatetimeIndex):
+         logger.error("Cannot prepare features: history_df must have a DatetimeIndex.")
+         return None
 
-        # Get MongoDB settings if available and enabled in config
-        mongo_cfg = settings.get("mongodb") # Check if mongodb section exists
-        if mongo_cfg and mongo_cfg.get("enabled", False):
-            MONGO_URI = mongo_cfg.get("uri")
-            MONGO_DB = mongo_cfg.get("database")
-            MONGO_COLLECTION = mongo_cfg.get("collection")
-            MONGO_ENABLED = True
-            print("MongoDB configuration loaded.")
-        else:
-             MONGO_URI = None
-             print("MongoDB not enabled or configured in settings.")
+    if 'temperature' not in history_df.columns or 'humidity' not in history_df.columns:
+        logger.error("Cannot prepare features: history_df must contain 'temperature' and 'humidity' columns.")
+        return None
 
-        # Get predictor settings
-        pred_cfg = settings.get("prediction", {})
-        MODEL_SAVE_DIR = pred_cfg.get("temp_model_path") # Use one path to determine dir
-        if MODEL_SAVE_DIR:
-            MODEL_SAVE_DIR = os.path.dirname(MODEL_SAVE_DIR) # Get directory part
-            # Resolve relative to script dir if needed
-            if not os.path.isabs(MODEL_SAVE_DIR):
-                 MODEL_SAVE_DIR = os.path.join(script_dir, MODEL_SAVE_DIR)
-        else: # Fallback if path not in config
-            MODEL_SAVE_DIR = os.path.join(script_dir, "models/predictors")
+    # Ensure history is sorted by time
+    history_df = history_df.sort_index()
 
-        PREDICTION_HORIZON_MINUTES = pred_cfg.get("prediction_horizon_minutes", 60)
-        MINUTES_PER_SAMPLE = pred_cfg.get("minutes_per_sample", 5)
-        LAG_STEPS_COUNT = pred_cfg.get("lag_steps_count", 5)
+    # Calculate lag parameters based on config
+    if minutes_per_sample <= 0:
+        logger.error("Cannot prepare features: minutes_per_sample must be positive.")
+        return None
+    lag_steps_start = prediction_horizon_minutes // minutes_per_sample
+    if lag_steps_start <= 0:
+        logger.warning(f"Prediction horizon ({prediction_horizon_minutes}) <= sample interval ({minutes_per_sample}). Setting prediction step to 1.")
+        lag_steps_start = 1
+    lag_steps_needed = lag_steps_start + lag_steps_count # Total history points needed for latest lag calculation
 
+    if len(history_df) < lag_steps_needed:
+        logger.warning(f"Not enough history ({len(history_df)}) for prediction features (need {lag_steps_needed} steps including offset).")
+        return None
 
-    # Ensure model save directory exists
-    print(f"Model save directory: {MODEL_SAVE_DIR}")
-    os.makedirs(MODEL_SAVE_DIR, exist_ok=True)
-    MODEL_TEMP_PATH = os.path.join(MODEL_SAVE_DIR, "xgboost_temp_predictor.json")
-    MODEL_HUMID_PATH = os.path.join(MODEL_SAVE_DIR, "xgboost_humid_predictor.json")
+    # Use the timestamp of the *latest* data point in history for time features
+    current_timestamp = history_df.index[-1]
+    logger.debug(f"Preparing features based on latest timestamp: {current_timestamp}")
 
-except Exception as e:
-    print(f"Error loading configuration: {e}")
-    # Set safe defaults if config loading fails
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    MONGO_URI = None
-    MODEL_SAVE_DIR = os.path.join(script_dir, "models/predictors")
-    os.makedirs(MODEL_SAVE_DIR, exist_ok=True)
-    MODEL_TEMP_PATH = os.path.join(MODEL_SAVE_DIR, "xgboost_temp_predictor.json")
-    MODEL_HUMID_PATH = os.path.join(MODEL_SAVE_DIR, "xgboost_humid_predictor.json")
-    PREDICTION_HORIZON_MINUTES = 60
-    MINUTES_PER_SAMPLE = 5
-    LAG_STEPS_COUNT = 5
+    if not expected_features:
+        logger.error("Expected features list is empty. Cannot prepare features.")
+        return None
 
-
-# --- 1. Load Data ---
-print("Loading data...")
-df = pd.DataFrame() # Initialize empty dataframe
-
-# Example: Load from MongoDB
-if MONGO_ENABLED and MONGO_URI:
     try:
-        print(f"Connecting to MongoDB: {MONGO_DB}/{MONGO_COLLECTION}")
-        client = pymongo.MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
-        client.admin.command('ismaster') # Verify connection
-        db = client[MONGO_DB]
-        collection = db[MONGO_COLLECTION]
-        # Query data - adjust query as needed (e.g., filter by time range, ensure timestamp exists)
-        # Project only necessary fields
-        query = {} # Fetch all for now
-        projection = {"_id": 0, "temperature": 1, "humidity": 1, "timestamp": 1} # Add light/fan if logged and needed
-        data = list(collection.find(query, projection))
-        client.close()
+        features = {} # Dictionary to hold the generated features for the single prediction row
 
-        if not data:
-             print("No data found in MongoDB collection.")
-             exit()
+        # --- Time Features (Original + Cyclical) ---
+        # Calculate these based on the *latest* timestamp
+        original_hour = current_timestamp.hour
+        original_dayofweek = current_timestamp.dayofweek
+        original_dayofyear = current_timestamp.dayofyear
+        original_month = current_timestamp.month
 
-        df = pd.DataFrame(data)
-        # Data Cleaning & Preparation
-        if 'timestamp' not in df.columns:
-             print("Error: 'timestamp' column missing in MongoDB data.")
-             exit()
-        df = df.dropna(subset=['timestamp', 'temperature', 'humidity']) # Drop rows missing essential data
-        # Convert timestamp (assuming Unix epoch seconds) to datetime and set as index
-        # Use errors='coerce' to handle potential bad timestamp values
-        df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s', errors='coerce')
-        df = df.dropna(subset=['timestamp']) # Drop rows where timestamp conversion failed
-        df = df.set_index('timestamp').sort_index()
+        # Only add features if they are in the expected list
+        if 'hour' in expected_features: features['hour'] = original_hour
+        if 'dayofweek' in expected_features: features['dayofweek'] = original_dayofweek
+        if 'dayofyear' in expected_features: features['dayofyear'] = original_dayofyear
+        if 'month' in expected_features: features['month'] = original_month
 
-        # Resample data to a consistent frequency (handle duplicates and gaps)
-        # Use mean aggregation, drop duplicates before resampling if necessary
-        df = df[~df.index.duplicated(keep='first')] # Keep first if duplicate timestamps exist
-        df = df.resample(f'{MINUTES_PER_SAMPLE}T').mean() # Resample
-        df = df.interpolate(method='time') # Interpolate missing values based on time
+        # --- Cyclical Features ---
+        if 'hour_sin' in expected_features: features['hour_sin'] = np.sin(2 * np.pi * original_hour/24.0)
+        if 'hour_cos' in expected_features: features['hour_cos'] = np.cos(2 * np.pi * original_hour/24.0)
+        if 'dayofweek_sin' in expected_features: features['dayofweek_sin'] = np.sin(2 * np.pi * original_dayofweek/7.0)
+        if 'dayofweek_cos' in expected_features: features['dayofweek_cos'] = np.cos(2 * np.pi * original_dayofweek/7.0)
+        if 'month_sin' in expected_features: features['month_sin'] = np.sin(2 * np.pi * original_month/12.0)
+        if 'month_cos' in expected_features: features['month_cos'] = np.cos(2 * np.pi * original_month/12.0)
+        # Uncomment dayofyear if used in training and present in expected_features
+        # if 'dayofyear_sin' in expected_features: features['dayofyear_sin'] = np.sin(2 * np.pi * original_dayofyear/366.0)
+        # if 'dayofyear_cos' in expected_features: features['dayofyear_cos'] = np.cos(2 * np.pi * original_dayofyear/366.0)
 
-        print(f"Loaded and preprocessed {len(df)} data points from MongoDB.")
+        # --- Lag Features ---
+        # Extract necessary historical values directly using .iloc for shifts
+        # Example: For lag_1, we need the value at index -1
+        #          For lag_N, we need the value at index -N
+        for i in range(lag_steps_start, lag_steps_needed):
+            temp_lag_col = f'temp_lag_{i}'
+            humid_lag_col = f'humid_lag_{i}'
 
-    except pymongo.errors.ServerSelectionTimeoutError:
-         print(f"Error: Could not connect to MongoDB at {MONGO_URI}. Check connection string/network.")
-         exit()
+            # Calculate the index position needed from the end of the history_df
+            # shift `i` corresponds to iloc position `-(i+1)` because iloc is 0-based from start
+            # BUT, we need the value *i* steps *before* the last one.
+            # The last value is at index -1. The value i steps before it is at index -(i+1).
+            # However, pandas shift(i) takes the value from i rows *above*.
+            # So, to get the value corresponding to shift(i) for the last row, we need iloc[-i-1] is wrong.
+            # shift(1) uses data from index -2. shift(i) uses data from index -(i+1). No, that's also wrong.
+            # Let's recalculate:
+            # If last timestamp is T, shift(1) gives value at T-1. This is history_df.iloc[-2].
+            # If last timestamp is T, shift(i) gives value at T-i. This is history_df.iloc[-(i+1)]. NO!
+            # Example: Index = [0, 1, 2, 3, 4]. last=4. shift(1) for row 4 uses data from row 3 (iloc[-2]). shift(2) uses data from row 2 (iloc[-3]).
+            # Correct: To get the value for the last row shifted by `i`, use history_df[COLUMN].iloc[-1-i] -- THIS IS WRONG.
+            # Let's use shift on the series and take the last value.
+
+            try:
+                # Get the series for the specific column
+                temp_series = history_df['temperature']
+                humid_series = history_df['humidity']
+
+                # Apply shift and get the last valid value (which corresponds to the lag for the current_timestamp)
+                if temp_lag_col in expected_features:
+                    features[temp_lag_col] = temp_series.shift(i).iloc[-1]
+                if humid_lag_col in expected_features:
+                    features[humid_lag_col] = humid_series.shift(i).iloc[-1]
+
+            except IndexError:
+                logger.error(f"IndexError while calculating lag {i}. History might be too short unexpectedly.")
+                return None
+
+
+        # --- Consistency Check ---
+        # Verify that all expected features have been generated
+        generated_feature_keys = set(features.keys())
+        expected_feature_set = set(expected_features)
+
+        missing_in_generated = expected_feature_set - generated_feature_keys
+        if missing_in_generated:
+            logger.error(f"Features expected by model but not generated by prepare_features: {missing_in_generated}")
+            # Add missing features with NaN or handle error
+            for feat in missing_in_generated:
+                features[feat] = np.nan # Or raise error
+
+        extra_in_generated = generated_feature_keys - expected_feature_set
+        if extra_in_generated:
+            logger.warning(f"Features generated by prepare_features but not in expected_features list: {extra_in_generated}")
+            # Remove extra features before creating DataFrame
+            for extra_feat in extra_in_generated:
+                del features[extra_feat]
+
+
+        # --- Create Final DataFrame ---
+        # Create the final DataFrame ensuring the column order matches expected_features
+        feature_df = pd.DataFrame([features], columns=expected_features)
+
+        # Final check for any remaining NaNs (could happen if history had NaNs or lags failed)
+        if feature_df.isnull().values.any():
+            null_cols = feature_df.columns[feature_df.isnull().any()].tolist()
+            logger.warning(f"Missing values (NaN) detected in final feature vector for columns: {null_cols}. Prediction might be inaccurate.")
+            # Option: Return None if NaNs are not tolerated by the model
+            # return None
+
+        logger.debug(f"Prepared feature row: OK") # Avoid logging potentially large dict
+        return feature_df
+
     except Exception as e:
-        print(f"Error loading or processing data from MongoDB: {e}")
-        exit()
-else:
-    # Example: Load from CSV (Uncomment and adapt if using CSV)
-    # CSV_PATH = "path/to/your/data.csv"
-    # print(f"Loading data from CSV: {CSV_PATH}")
-    # try:
-    #     df = pd.read_csv(CSV_PATH, parse_dates=['timestamp_column']) # Specify your timestamp column
-    #     df = df.set_index('timestamp_column').sort_index()
-    #     # Apply same preprocessing (resample, interpolate) as MongoDB path
-    #     df = df[~df.index.duplicated(keep='first')]
-    #     df = df.resample(f'{MINUTES_PER_SAMPLE}T').mean().interpolate(method='time')
-    #     print(f"Loaded and preprocessed {len(df)} data points from CSV.")
-    # except FileNotFoundError:
-    #     print(f"Error: CSV file not found at {CSV_PATH}")
-    #     exit()
-    # except Exception as e:
-    #     print(f"Error loading data from CSV: {e}")
-    #     exit()
-    print("MongoDB not configured or enabled, and CSV loading is not implemented/enabled.")
-    # Create dummy data for testing if no source is available? Or exit.
-    print("Exiting.")
-    exit()
-
-if df.empty or df[['temperature', 'humidity']].isnull().all().all():
-    print("No valid data loaded after preprocessing. Exiting.")
-    exit()
-
-# --- 2. Feature Engineering ---
-print("Engineering features...")
-
-# Time-based features
-df['hour'] = df.index.hour
-df['dayofweek'] = df.index.dayofweek
-df['dayofyear'] = df.index.dayofyear
-df['month'] = df.index.month
-
-# Lag features (using past values to predict future)
-# Calculate number of lag steps based on resampling frequency and horizon
-lag_steps_start = PREDICTION_HORIZON_MINUTES // MINUTES_PER_SAMPLE # Predict N steps ahead
-lag_steps_end = lag_steps_start + LAG_STEPS_COUNT # Use specified number of lags
-
-# Create lag features for temp and humidity
-print(f"Creating {LAG_STEPS_COUNT} lag features starting from step {lag_steps_start}...")
-for i in range(lag_steps_start, lag_steps_end):
-     df[f'temp_lag_{i}'] = df['temperature'].shift(i)
-     df[f'humid_lag_{i}'] = df['humidity'].shift(i)
-     # Add lags for light/fan state if you have them and think they are predictive
-     # if 'light_state' in df.columns: df[f'light_state_lag_{i}'] = df['light_state'].shift(i)
-
-# Target variables (future values - shifted backward)
-df['temp_target'] = df['temperature'].shift(-lag_steps_start)
-df['humid_target'] = df['humidity'].shift(-lag_steps_start)
-
-# Drop rows with NaN values created by shifts (especially target NaNs)
-initial_rows = len(df)
-df = df.dropna()
-final_rows = len(df)
-print(f"Dropped {initial_rows - final_rows} rows containing NaNs after feature engineering.")
-
-
-print("Features created:")
-# print(df.head())
-print(df.columns)
-
-if df.empty:
-    print("No data remaining after feature engineering (check lag/horizon/data range). Exiting.")
-    exit()
-
-# --- 3. Prepare Data for XGBoost ---
-# Dynamically create FEATURES list based on columns present
-FEATURES = [col for col in df.columns if col.startswith(('hour', 'dayofweek', 'dayofyear', 'month'))]
-FEATURES.extend([col for col in df.columns if col.startswith(('temp_lag_', 'humid_lag_'))])
-# Add other engineered features if created (e.g., 'light_state_lag_')
-# FEATURES.extend([col for col in df.columns if col.startswith(('light_state_lag_'))])
-
-# Ensure only existing columns are used
-FEATURES = [f for f in FEATURES if f in df.columns]
-
-TARGET_TEMP = 'temp_target'
-TARGET_HUMID = 'humid_target'
-
-if TARGET_TEMP not in df.columns or TARGET_HUMID not in df.columns:
-    print("Error: Target columns ('temp_target', 'humid_target') not found after processing.")
-    exit()
-
-if not FEATURES:
-    print("Error: No features selected for training.")
-    exit()
-
-print(f"\nUsing Features for Training: {FEATURES}")
-
-X = df[FEATURES]
-y_temp = df[TARGET_TEMP]
-y_humid = df[TARGET_HUMID]
-
-# Split data (chronological split for time series is often better)
-test_size = 0.2 # Use last 20% for testing
-split_index = int(len(X) * (1 - test_size))
-
-if split_index == 0 or split_index == len(X):
-     print("Warning: Cannot perform train/test split. Dataset might be too small.")
-     # Decide how to handle: train on all data? or exit?
-     print("Training on all available data.")
-     X_train, X_test = X, X
-     y_temp_train, y_temp_test = y_temp, y_temp
-     y_humid_train, y_humid_test = y_humid, y_humid
-else:
-     X_train, X_test = X[:split_index], X[split_index:]
-     y_temp_train, y_temp_test = y_temp[:split_index], y_temp[split_index:]
-     y_humid_train, y_humid_test = y_humid[:split_index], y_humid[split_index:]
-
-print(f"Training set size: {len(X_train)}, Test set size: {len(X_test)}")
-
-# --- 4. Train XGBoost Models ---
-
-# Define XGBoost parameters (consider tuning these)
-xgb_params = {
-    'objective': 'reg:squarederror', # Objective for regression
-    'n_estimators': 1000,           # Number of trees (can be tuned with early stopping)
-    'learning_rate': 0.05,          # Step size shrinkage
-    'max_depth': 5,                 # Max depth of trees
-    'subsample': 0.8,               # Fraction of samples used per tree
-    'colsample_bytree': 0.8,        # Fraction of features used per tree
-    'random_state': 42,
-    'n_jobs': -1                    # Use all available CPU cores
-}
-
-# Early stopping parameters
-early_stopping_params = {
-    'early_stopping_rounds': 50,   # Stop if no improvement after 50 rounds
-    'eval_metric': 'rmse',         # Root Mean Squared Error
-    'verbose': 100                 # Print evaluation metrics every 100 rounds
-}
-
-
-# Temperature Model
-print("\nTraining Temperature Predictor...")
-xgb_temp = xgb.XGBRegressor(**xgb_params)
-
-eval_set_temp = [(X_train, y_temp_train), (X_test, y_temp_test)]
-
-xgb_temp.fit(X_train, y_temp_train,
-             eval_set=eval_set_temp,
-             **early_stopping_params)
-
-# Humidity Model
-print("\nTraining Humidity Predictor...")
-xgb_humid = xgb.XGBRegressor(**xgb_params)
-
-eval_set_humid = [(X_train, y_humid_train), (X_test, y_humid_test)]
-
-xgb_humid.fit(X_train, y_humid_train,
-              eval_set=eval_set_humid,
-              **early_stopping_params)
-
-# --- 5. Evaluate Models ---
-print("\nEvaluating models on Test Set...")
-temp_pred = xgb_temp.predict(X_test)
-humid_pred = xgb_humid.predict(X_test)
-
-temp_rmse = mean_squared_error(y_temp_test, temp_pred, squared=False)
-humid_rmse = mean_squared_error(y_humid_test, humid_pred, squared=False)
-
-print(f"Temperature Prediction RMSE on Test Set: {temp_rmse:.4f}")
-print(f"Humidity Prediction RMSE on Test Set: {humid_rmse:.4f}")
-
-# --- 6. Save Models ---
-print("\nSaving models...")
-try:
-    # Use native XGBoost save format (preferred, includes feature names)
-    xgb_temp.save_model(MODEL_TEMP_PATH)
-    xgb_humid.save_model(MODEL_HUMID_PATH)
-    print(f"Temperature model saved to {MODEL_TEMP_PATH}")
-    print(f"Humidity model saved to {MODEL_HUMID_PATH}")
-    print("\nTraining complete.")
-except Exception as e:
-    print(f"Error saving models: {e}")
+         # Log the specific feature being processed if possible, or just the general error
+         logger.exception(f"Error preparing features for prediction: {e}")
+         return None

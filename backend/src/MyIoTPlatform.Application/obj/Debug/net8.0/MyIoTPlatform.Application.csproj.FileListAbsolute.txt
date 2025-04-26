@@ -1,19 +1,3 @@
-D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.Application\bin\Debug\net8.0\MyIoTPlatform.Application.deps.json
-D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.Application\bin\Debug\net8.0\MyIoTPlatform.Application.dll
-D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.Application\bin\Debug\net8.0\MyIoTPlatform.Application.pdb
-D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.Application\bin\Debug\net8.0\MyIoTPlatform.Domain.dll
-D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.Application\bin\Debug\net8.0\MyIoTPlatform.Domain.pdb
-D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.Application\obj\Debug\net8.0\MyIoTPlatform.Application.csproj.AssemblyReference.cache
-D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.Application\obj\Debug\net8.0\MyIoTPlatform.Application.GeneratedMSBuildEditorConfig.editorconfig
-D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.Application\obj\Debug\net8.0\MyIoTPlatform.Application.AssemblyInfoInputs.cache
-D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.Application\obj\Debug\net8.0\MyIoTPlatform.Application.AssemblyInfo.cs
-D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.Application\obj\Debug\net8.0\MyIoTPlatform.Application.csproj.CoreCompileInputs.cache
-D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.Application\obj\Debug\net8.0\MyIoTPlatform.Application.sourcelink.json
-D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.Application\obj\Debug\net8.0\MyIoTPla.A0A4B163.Up2Date
-D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.Application\obj\Debug\net8.0\MyIoTPlatform.Application.dll
-D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.Application\obj\Debug\net8.0\refint\MyIoTPlatform.Application.dll
-D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.Application\obj\Debug\net8.0\MyIoTPlatform.Application.pdb
-D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.Application\obj\Debug\net8.0\ref\MyIoTPlatform.Application.dll
 D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.Application\bin\Debug\net8.0\MyIoTPlatform.Application.deps.json
 D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.Application\bin\Debug\net8.0\MyIoTPlatform.Application.dll
 D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.Application\bin\Debug\net8.0\MyIoTPlatform.Application.pdb
