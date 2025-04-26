@@ -18,6 +18,7 @@ import uuid
 import voice_interpreter
 import prediction
 
+from config import USE_AI_PREDICTION, USE_VOICE_INTERPRETER, USE_TRANSPREDICTION
 # --- Argument Parsing ---
 parser = argparse.ArgumentParser()
 parser.add_argument("--debug", action="store_true", help="Enable debug logging")
@@ -53,9 +54,6 @@ class AiManager:
              self.config["_source_path"] = self.config_path
              logger.info("AI Manager configuration loaded.") # Important status
 
-        self.voice_enabled = self.config.get("voice_control", {}).get("enabled", False) #
-        self.prediction_enabled = self.config.get("prediction", {}).get("enabled", False) #
-
         self.speech_recognizer: Optional[sr.Recognizer] = None
 
         # Prediction attributes
@@ -65,11 +63,11 @@ class AiManager:
         self.prediction_params: Dict[str, Any] = {}
 
         # Setup components
-        if self.voice_enabled:
+        if USE_VOICE_INTERPRETER:
             logger.info("Setting up voice control (Online STT)...") # Important status
             self.speech_recognizer = sr.Recognizer() # Initialize Recognizer
             self._load_voice_commands() # Load voice command definitions
-        if self.prediction_enabled:
+        if USE_AI_PREDICTION:
             self._setup_prediction() # Setup prediction models/features if enabled
 
     def _find_config_file(self, relative_path: str) -> Optional[str]: #
@@ -137,7 +135,7 @@ class AiManager:
         pred_config = self.config.get("prediction", {}) #
         if not pred_config.get("enabled", False): #
              logger.info("Prediction disabled in config.") # Important status
-             self.prediction_enabled = False; return
+             USE_AI_PREDICTION = False; return
 
         # Get model/feature paths from config
         temp_model_rel = pred_config.get("temp_model_path")
@@ -161,7 +159,7 @@ class AiManager:
              logger.error(f"Features file for prediction not found: {features_path}"); paths_ok = False
         if not paths_ok:
              logger.error("Disabling prediction due to missing model/feature files.")
-             self.prediction_enabled = False; return
+             USE_AI_PREDICTION = False; return
 
         # Load models and features
         try:
@@ -185,7 +183,7 @@ class AiManager:
             logger.debug(f"Prediction params: {self.prediction_params}")
         except Exception as e:
             logger.exception(f"Failed prediction setup: {e}")
-            self.prediction_enabled = False
+            USE_AI_PREDICTION = False
 
     def interpret_text_command(self, text: str) -> Tuple[str, Optional[Dict]]: #
         # (Interprets recognized text using voice_interpreter module)
@@ -200,9 +198,17 @@ class AiManager:
 
     def make_prediction(self) -> Tuple[Optional[float], Optional[float]]: #
         # (Generates temperature/humidity prediction using loaded models)
-        if not self.prediction_enabled or not self.temp_model or not self.humid_model or not self.predictor_features:
+        if not USE_AI_PREDICTION or not self.temp_model or not self.humid_model or not self.predictor_features:
             return None, None
-        global sensor_history
+        global sensor_history 
+        sensor_history = collections.deque([
+                            ('2025-04-26 17:35:24', 26.49, 61.57),
+                            ('2025-04-26 17:36:24', 28.4, 70.29),
+                            ('2025-04-26 17:37:24', 26.8, 70.46),
+                            ('2025-04-26 17:38:24', 25.97, 60.17),
+                            ('2025-04-26 17:39:24', 26.55, 70.41),
+                            ('2025-04-26 17:40:24', 27.18, 77.98),
+                        ], maxlen=288)
         min_hist = self.prediction_params.get("min_history", 6)
         if len(sensor_history) < min_hist:
             logger.debug(f"Skipping prediction: Insufficient history ({len(sensor_history)} < {min_hist} needed).")
@@ -251,9 +257,7 @@ class AiManager:
             history_df = pd.DataFrame([sensor_data], index=[pd.Timestamp.now()])
             expected_features = self.predictor_features  #  Make sure this is loaded
             return prediction.prepare_features(history_df, expected_features)
-
-from config import USE_AI_PREDICTION, USE_VOICE_INTERPRETER, USE_TRANSPREDICTION
-
+    
 # ==============================================================================
 #                                Main Execution
 # ==============================================================================
@@ -295,7 +299,7 @@ if __name__ == '__main__': #
 
                     # --- Prediction Check ---
                     current_time = time.time()
-                    if ai_manager.prediction_enabled and (current_time - last_prediction_time) >= prediction_interval_seconds:
+                    if USE_VOICE_INTERPRETER and (current_time - last_prediction_time) >= prediction_interval_seconds:
                          logger.info("--- Making Prediction ---") # Important status
                          pred_temp, pred_humid = ai_manager.make_prediction()
                          # Removed MQTT publishing of prediction
