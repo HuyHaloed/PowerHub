@@ -1,8 +1,12 @@
 # AI_services/main.py
 from fastapi import FastAPI
+from fastapi import WebSocket
 from ai_manager import AiManager
 from voice_interpreter import VoiceInterpreter
 from mqttservice import turn_on_light, turn_off_light, turn_on_fan, turn_off_fan
+import datetime
+
+sensor_history = []
 
 def execute_payload(payload: dict):
     if payload.get("sharevalueLight") == True:
