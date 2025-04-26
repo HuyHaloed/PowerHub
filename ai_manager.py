@@ -13,13 +13,16 @@ import paho.mqtt.client as mqtt
 from paho.mqtt.enums import CallbackAPIVersion # <-- Import the enum
 import collections
 import datetime
-import numpy as np
+# import numpy as np
 import uuid
 
 # Import local modules
 # Ensure these files exist in the same directory or are accessible via PYTHONPATH
 import voice_interpreter #
 import prediction      #
+# Thêm import cho chatbot
+from AIchatbot import chatbot
+from AIchatbot import mqttservice
 
 # --- Argument Parsing ---
 parser = argparse.ArgumentParser()
@@ -42,15 +45,17 @@ request_id_counter = 0
 MAX_HISTORY_POINTS = 288
 sensor_history = collections.deque(maxlen=MAX_HISTORY_POINTS)
 
-# MQTT Configuration
-SENSOR_TELEMETRY_TOPIC = "home/livingroom/temperture" # Topic to listen for sensor data
-MQTT_BROKER = "app.coreiot.io" #
-MQTT_PORT = 1883 #
-MQTT_TOKEN = "ZS9KjbmsPcXtniB8q9yP" # Get token from environment variable
-ATTRIBUTE_TOPIC = "v1/devices/me/attributes" # Topic for publishing attributes
+# MQTT Configuration for Adafruit IO
+ADAFRUIT_IO_USERNAME = 'Hellosine'  # Thay bằng username thật hoặc lấy từ biến môi trường
+ADAFRUIT_IO_KEY = 'aio_mStR74qgprQUBF5F3UXCTcPdIlay'             # Thay bằng key thật hoặc lấy từ biến môi trường
+MQTT_BROKER = "io.adafruit.com"
+MQTT_PORT = 1883
+CHAT_FEED = "chat"
+SENSOR_TELEMETRY_TOPIC = f"{ADAFRUIT_IO_USERNAME}/feeds/{CHAT_FEED}"  # Topic cho feed "chat" trên Adafruit IO
+ATTRIBUTE_TOPIC = SENSOR_TELEMETRY_TOPIC  # Có thể dùng chung topic để publish nếu cần
 
-if not MQTT_TOKEN:
-    logger.warning("MQTT Token not found in environment variable 'MQTT_TOKEN'. MQTT connection will likely fail.")
+if not ADAFRUIT_IO_KEY or ADAFRUIT_IO_KEY == "your_aio_key":
+    logger.warning("Adafruit IO Key not found in environment variable 'ADAFRUIT_IO_KEY'. MQTT connection will likely fail.")
 
 class AiManager:
     """Manages AI functionalities: Voice Control (Online STT) and Prediction."""
@@ -261,106 +266,17 @@ class AiManager:
             return None, None
 
 
-# --- MQTT Callbacks (V2 Signatures) ---
-def on_connect(client, userdata, flags, reason_code, properties): #
-    """Callback when the client connects to the MQTT broker."""
-    connect_reason_str = str(reason_code) # Get string representation
-    if reason_code == 0:
-        logger.info("MQTT Connected") # Important status
-        try:
-            # Subscribe to sensor topic
-            result, mid = client.subscribe(SENSOR_TELEMETRY_TOPIC, qos=1)
-            if result == mqtt.MQTT_ERR_SUCCESS:
-                 logger.debug(f"MQTT Subscribed OK: '{SENSOR_TELEMETRY_TOPIC}'")
-            else:
-                 logger.error(f"MQTT Subscription failed '{SENSOR_TELEMETRY_TOPIC}': {mqtt.error_string(result)}")
-        except Exception as sub_e:
-            logger.exception(f"MQTT Subscription error: {sub_e}")
-    else:
-        # Log the specific failure reason
-        logger.error(f"MQTT Connection failed: {connect_reason_str}")
-
-# Added properties=None for robust V2 callback handling
-def on_disconnect(client, userdata, disconnect_flags, reason_code, properties):
-    if reason_code == 0:
-        logger.info("MQTT Disconnected normally.")
-    else:
-        logger.warning(f"MQTT Unexpected disconnection: Reason Code={reason_code}")
-
-def on_publish(client, userdata, mid, reason_code, properties):
-    if reason_code == 0:
-         logger.debug(f"MQTT Published message id: {mid} successfully")
-    else:
-         logger.warning(f"MQTT Publish failed for mid {mid}: {reason_code}")
-
-def on_message(client, userdata, msg): #
-    """Callback when a message is received from the broker."""
-    global sensor_history
-    logger.debug(f"MQTT Message received on topic '{msg.topic}'")
-    if msg.topic == SENSOR_TELEMETRY_TOPIC:
-        try:
-            payload_str = msg.payload.decode('utf-8')
-            data = json.loads(payload_str)
-            temp_str = data.get("temperature")
-            humid_str = data.get("humidity")
-            if temp_str is not None and humid_str is not None:
-                timestamp = datetime.datetime.now(datetime.timezone.utc)
-                try:
-                    temp_float = float(temp_str)
-                    humid_float = float(humid_str)
-                    sensor_history.append((timestamp, temp_float, humid_float))
-                    logger.debug(f"MQTT sensor data added. History size: {len(sensor_history)}")
-                except (ValueError, TypeError) as convert_err:
-                    logger.warning(f"MQTT data conversion error: {convert_err}. Data: T='{temp_str}', H='{humid_str}'")
-            else:
-                 logger.warning(f"Missing 'temperature' or 'humidity' in MQTT payload: {data}")
-        except json.JSONDecodeError:
-            logger.warning(f"MQTT JSON Decode Error: {msg.payload.decode('utf-8', errors='ignore')}")
-        except Exception as e:
-            logger.warning(f"MQTT message processing error: {e}")
-    else:
-        logger.debug(f"MQTT message ignored on unhandled topic '{msg.topic}'")
-
-
 # ==============================================================================
+
 #                                Main Execution
-# ==============================================================================
-if __name__ == '__main__': #
 
-    mqtt_client = None
+# ==============================================================================
+
+if __name__ == '__main__': #
 
     try:
         # Initialize AI Manager
         ai_manager = AiManager() # Uses default config path "config/ai_config.json"
-
-        # --- MQTT Setup ---
-        client_id = f"sh-client-{uuid.uuid4()}"
-        mqtt_client = mqtt.Client(
-            client_id=client_id,
-            protocol=mqtt.MQTTv311,
-            callback_api_version=CallbackAPIVersion.VERSION2
-        )
-        if not MQTT_TOKEN:
-            logger.warning("MQTT Token environment variable not set. Connection likely requires a token.")
-        else:
-            mqtt_client.username_pw_set(username=MQTT_TOKEN, password=None)  
-
-        # Assign callback functions
-        mqtt_client.on_connect = on_connect
-        mqtt_client.on_disconnect = on_disconnect
-        mqtt_client.on_publish = on_publish
-        mqtt_client.on_message = on_message
-
-        # Attempt connection
-        try:
-            logger.info(f"MQTT Connecting to {MQTT_BROKER}:{MQTT_PORT} with Client ID '{client_id}'...")
-            mqtt_client.connect(MQTT_BROKER, MQTT_PORT, 30)
-            mqtt_client.loop_start() # Start background thread for MQTT network traffic
-            logger.debug("MQTT Network loop started.")
-        except Exception as mqtt_e:
-             logger.exception(f"MQTT Connection error: {mqtt_e}")
-             mqtt_client = None # Ensure client is None if connection fails
-             logger.warning("Proceeding without MQTT connection.")
 
         # --- Main Loop Setup ---
         last_prediction_time = 0
@@ -397,10 +313,10 @@ if __name__ == '__main__': #
                          logger.info("--- Making Prediction ---") # Important status
                          pred_temp, pred_humid = ai_manager.make_prediction()
                          # Publish prediction as attribute if successful and connected
-                         if pred_temp is not None and mqtt_client and mqtt_client.is_connected():
+                         if pred_temp is not None and mqttservice.is_connected():
                              try:
                                  pred_payload_dict = {"predicted_temp": round(pred_temp, 2), "predicted_humid": round(pred_humid, 2)}
-                                 mqtt_client.publish(ATTRIBUTE_TOPIC, json.dumps(pred_payload_dict), qos=1)
+                                 mqttservice.publish_to_feed(CHAT_FEED, payload=json.dumps(pred_payload_dict))
                                  logger.debug(f"Published prediction attribute: {pred_payload_dict}")
                              except Exception as pub_err:
                                  logger.error(f"Failed to publish prediction attribute: {pub_err}")
@@ -456,39 +372,60 @@ if __name__ == '__main__': #
 
                         # --- Interpret Recognized Text ---
                         if recognized_text:
+                            # Gửi trực tiếp kết quả nhận diện lên feed "chat" dưới dạng text
+
                             # Use voice_interpreter module
                             status, payload = ai_manager.interpret_text_command(recognized_text)
                             logger.info(f"  -> Interpreted: {status}, Payload: {payload}") # Important output
 
                             # --- Publish Command as Attribute ---
-                            if status == voice_interpreter.STATUS_OK and payload and mqtt_client and mqtt_client.is_connected(): #
-                                 try:
-                                     # Create attribute payload (publishing the interpreted structure)
-                                     # --- OLD CODE ---
-                                     # attribute_payload_dict = {"last_command_payload": payload}
-                                     # message_json = json.dumps(attribute_payload_dict)
-                                     # --- END OLD CODE ---
+                            if status == voice_interpreter.STATUS_OK and payload and mqttservice.is_connected():
+                                try:
+                                    # Normalize payload to {'Device': ..., 'State': ...}
+                                    if isinstance(payload, dict):
+                                        if "Device" in payload and "State" in payload:
+                                            device = payload["Device"]
+                                            state = payload["State"]
+                                        elif len(payload) == 1:
+                                            # Convert {'Fan': 'ON'} or {'Light': 'OFF'} to {'Device': ..., 'State': ...}
+                                            device, state = next(iter(payload.items()))
+                                            payload = {"Device": device, "State": state}
+                                        else:
+                                            logger.warning(f"Invalid payload structure: {payload}. Expected format: {{'Device': 'Fan/Light', 'State': 'ON/OFF'}}.")
+                                            continue
+                                    else:
+                                        logger.warning(f"Invalid payload type: {type(payload)}. Payload: {payload}")
+                                        continue
+                                    if device not in {"Fan", "Light"} or state not in {"ON", "OFF"}:
+                                        logger.warning(f"Invalid payload values: Device='{device}', State='{state}'. Expected Device='Fan/Light' and State='ON/OFF'.")
+                                        continue
+                                    logger.info(f"Publishing Attribute: {state} to {device}") # Important action
+                                    mqttservice.publish_to_feed(device, state)
+                                except Exception as pub_e:
+                                    logger.exception(f"Attribute publishing error: {pub_e}")
 
-                                     # --- NEW CODE ---
-                                     # Directly use the payload returned by interpret_command,
-                                     # which should be like {"sharevalueFan": True}
-                                     message_json = json.dumps(payload)
-                                     # --- END NEW CODE ---
-
-                                     logger.info(f"Publishing Attribute: {message_json} to {ATTRIBUTE_TOPIC}") # Important action
-                                     # Publish to the standard attribute topic
-                                     mqtt_client.publish(ATTRIBUTE_TOPIC, message_json, qos=1)
-
-                                 except Exception as pub_e:
-                                     logger.exception(f"Attribute publishing error: {pub_e}")
-
-                            elif status == voice_interpreter.STATUS_OK and payload and (not mqtt_client or not mqtt_client.is_connected()):
-                                 logger.warning("Command OK, but MQTT client not connected.")
+                            elif status == voice_interpreter.STATUS_OK and payload and (not mqttservice.is_connected()):
+                                logger.warning("Command OK, but MQTT service not connected.")
 
                             # --- Handle Stop Command ---
                             if status == voice_interpreter.STATUS_STOP: #
                                 logger.info("Stop command received. Exiting voice loop.") # Important status
                                 run_voice_loop = False
+
+                            # --- Xử lý khi không nhận diện được lệnh điều khiển ---
+                            if status not in [voice_interpreter.STATUS_OK, voice_interpreter.STATUS_STOP]:
+                                logger.info("Không nhận diện được lệnh điều khiển, chuyển sang hỏi AI chatbot.")
+                                try:
+                                    # Gọi AI chatbot để trả lời
+                                    intent = chatbot.parse_intent(recognized_text)
+                                    device = intent.get("device")
+                                    action = intent.get("action")
+                                    # Sử dụng hàm control_device của chatbot để lấy response
+                                    response = chatbot.control_device(device, action, recognized_text)
+                                    print("Chatbot:", response)
+                                    mqttservice.publish_to_feed('response', response)
+                                except Exception as e:
+                                    logger.error(f"Lỗi khi gọi AI chatbot: {e}")
                     # --- End of audio processing ---
 
                 logger.info("Exited voice control loop.") # Important status
@@ -526,9 +463,9 @@ if __name__ == '__main__': #
 
     finally:
         # --- Cleanup ---
-        if mqtt_client and mqtt_client.is_connected():
+        if mqttservice and mqttservice.is_connected():
             logger.info("MQTT Disconnecting...") # Important status
-            mqtt_client.loop_stop() # Stop background network thread
-            mqtt_client.disconnect() # Send MQTT disconnect packet
+            mqttservice.loop_stop() # Stop background network thread
+            mqttservice.disconnect() # Send MQTT disconnect packet
             # on_disconnect callback should log "MQTT Disconnected"
         logger.info("Application finished.") # Important status

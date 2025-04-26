@@ -120,7 +120,7 @@ def interpret_command(text: str, fuzzy_threshold: int = 75) -> INTERPRETATION_RE
                         # Determine boolean state based on command key name convention
                         target_state = None
                         if "ON" in command_key.upper():
-                            target_state = True
+                            target_state = "ON"
                         elif "OFF" in command_key.upper():
                              # Special check for "TURN_OFF_ALL" which might not have a device
                             if command_key == "TURN_OFF_ALL":
@@ -132,13 +132,17 @@ def interpret_command(text: str, fuzzy_threshold: int = 75) -> INTERPRETATION_RE
                                 # Example: return STATUS_OK, {"command": "shutdown_all"}
                                 # Returning unrecognized for now as it doesn't fit the sharevalue pattern.
                                 return STATUS_UNRECOGNIZED, None
-                            target_state = False
+                            target_state = "OFF"
 
 
                         # --- Step 3: Construct the desired payload ---
                         if normalized_device and target_state is not None:
                             # Construct the key like "sharevalueFan" or "sharevalueLight"
-                            payload_key = f"sharevalue{normalized_device.capitalize()}"
+                            if normalized_device in ["fan", "light"]:
+                                payload_key = f"{normalized_device.capitalize()}"
+                            else:
+                                logger.warning(f"Device '{normalized_device}' is not recognized as 'Fan' or 'Light'.")
+                                status = STATUS_UNRECOGNIZED
                             # Create the final payload dictionary
                             command_payload = {payload_key: target_state}
                             status = STATUS_OK

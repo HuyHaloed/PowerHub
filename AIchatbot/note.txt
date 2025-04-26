@@ -1,0 +1,3 @@
+- paho-mqtt giúp Python kết nối, subscribe, publish tới broker, nhưng không cung cấp broker.
+- ESP32 và IoTGateway đều là client, cần một broker trung gian để giao tiếp.
+
