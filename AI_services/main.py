@@ -94,22 +94,15 @@
 
 from fastapi import FastAPI, WebSocket, Request
 from config import USE_AI_PREDICTION, USE_VOICE_INTERPRETER
-
-if USE_AI_PREDICTION:
-    from ai_manager import AiManager
-    
-if USE_VOICE_INTERPRETER:
-    from voice_interpreter import VoiceInterpreter
+from ai_manager import AiManager
+from voice_interpreter import VoiceInterpreter
 
 from mqttservice import turn_on_light, turn_off_light, turn_on_fan, turn_off_fan
 
 app = FastAPI()
 
-if USE_AI_PREDICTION:
-    ai = AiManager()
-
-if USE_VOICE_INTERPRETER:
-    vi = VoiceInterpreter()
+ai = AiManager()
+vi = VoiceInterpreter()
 
 
 def execute_payload(payload: dict):
