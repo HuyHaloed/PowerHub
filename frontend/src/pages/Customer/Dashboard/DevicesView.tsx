@@ -80,7 +80,6 @@ export default function DevicesView() {
     try {
       await toggleDevice(deviceName, newStatus);
       toast.success(`Đã ${newStatus === 'on' ? 'bật' : 'tắt'} thiết bị thành công`);
-      // Refresh devices list to show updated status
       fetchDevices();
     } catch (err) {
       toast.error("Không thể thay đổi trạng thái thiết bị");
@@ -135,19 +134,19 @@ export default function DevicesView() {
       const userIds = response.data.userIds || [];
       const firstUserId = userIds.length > 0 ? userIds[0] : null;
   
-      await authorizedAxiosInstance.post('/mqtt/publish', {
-        topic: 'devices/new',
-        payload: JSON.stringify({
-          deviceId: response.data.id,
-          userIds: [firstUserId],
-          name: newDevice.name,
-          type: newDevice.type,
-          location: newDevice.location,
-          status: response.data.status,
-        }),
-        retain: false,
-        qosLevel: 1,
-      });
+      // await authorizedAxiosInstance.post('/mqtt/publish', {
+      //   topic: 'devices/new',
+      //   payload: JSON.stringify({
+      //     deviceId: response.data.id,
+      //     userIds: [firstUserId],
+      //     name: newDevice.name,
+      //     type: newDevice.type,
+      //     location: newDevice.location,
+      //     status: response.data.status,
+      //   }),
+      //   retain: false,
+      //   qosLevel: 1,
+      // });
   
       toast.success("Thêm thiết bị thành công!");
       setIsAddModalOpen(false);
