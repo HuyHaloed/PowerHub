@@ -1,4 +1,5 @@
 
+using System.Text.Json.Serialization;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
@@ -357,6 +358,14 @@ namespace MyIoTPlatform.API.Models
     {
         public string Status { get; set; } // "on" or "off"
     }
+
+    public class ControlDeviceByNameRequest
+    {
+        public string Name { get; set; }
+        public string Status { get; set; } // "on" or "off"
+    }
+
+    
 
      public class Verify2FARequest
     {

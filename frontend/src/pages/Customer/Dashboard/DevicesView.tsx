@@ -75,11 +75,12 @@ export default function DevicesView() {
     devicesByLocation[location].push(device);
   });
 
-  // Xử lý bật/tắt thiết bị
-  const handleToggleDevice = async (id: number, newStatus: "on" | "off") => {
+
+  const handleToggleDevice = async (deviceName: string, newStatus: "on" | "off") => {
     try {
-      await toggleDevice(id, newStatus);
+      await toggleDevice(deviceName, newStatus);
       toast.success(`Đã ${newStatus === 'on' ? 'bật' : 'tắt'} thiết bị thành công`);
+      fetchDevices();
     } catch (err) {
       toast.error("Không thể thay đổi trạng thái thiết bị");
       console.error(err);
@@ -133,19 +134,19 @@ export default function DevicesView() {
       const userIds = response.data.userIds || [];
       const firstUserId = userIds.length > 0 ? userIds[0] : null;
   
-      await authorizedAxiosInstance.post('/mqtt/publish', {
-        topic: 'devices/new',
-        payload: JSON.stringify({
-          deviceId: response.data.id,
-          userIds: [firstUserId],
-          name: newDevice.name,
-          type: newDevice.type,
-          location: newDevice.location,
-          status: response.data.status,
-        }),
-        retain: false,
-        qosLevel: 1,
-      });
+      // await authorizedAxiosInstance.post('/mqtt/publish', {
+      //   topic: 'devices/new',
+      //   payload: JSON.stringify({
+      //     deviceId: response.data.id,
+      //     userIds: [firstUserId],
+      //     name: newDevice.name,
+      //     type: newDevice.type,
+      //     location: newDevice.location,
+      //     status: response.data.status,
+      //   }),
+      //   retain: false,
+      //   qosLevel: 1,
+      // });
   
       toast.success("Thêm thiết bị thành công!");
       setIsAddModalOpen(false);
@@ -168,11 +169,12 @@ export default function DevicesView() {
   };
 
   // Hiển thị thẻ thiết bị với nút chia sẻ
+  // Hiển thị thẻ thiết bị với nút chia sẻ
   const renderDeviceCard = (device: Device) => (
     <div key={device.id} className="relative">
       <DeviceStatusCard 
         device={device} 
-        onToggle={(id, status) => handleToggleDevice(id, status)}
+        onToggle={(status) => handleToggleDevice(device.name, status)}
       />
       <div className="absolute top-2 right-2">
         <ShareDeviceModal 

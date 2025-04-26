@@ -37,14 +37,13 @@ export interface User {
   };
 }
 
-// Device Types
 export interface Device {
   id: string;
   userId: string;
   name: string;
   type: string;
   location: string;
-  status: 'on' | 'off';
+  status: string;
   consumption: number;
   lastUpdated: string;
   properties: {

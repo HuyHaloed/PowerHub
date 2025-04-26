@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyIoTPlatform.Application.Interfaces.Communication;
 using System;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace MyIoTPlatform.API.Controllers
@@ -13,12 +14,17 @@ namespace MyIoTPlatform.API.Controllers
     {
         private readonly IMqttClientService _adafruitMqttService;
         private readonly ILogger<AdafruitMqttController> _logger;
+        private readonly IConfiguration _configuration;
 
-        public AdafruitMqttController(IMqttClientService adafruitMqttService, ILogger<AdafruitMqttController> logger)
-        {
-            _adafruitMqttService = adafruitMqttService;
-            _logger = logger;
-        }
+        public AdafruitMqttController(
+        IMqttClientService adafruitMqttService, 
+        ILogger<AdafruitMqttController> logger,
+        IConfiguration configuration) // Thêm vào constructor
+    {
+        _adafruitMqttService = adafruitMqttService;
+        _logger = logger;
+        _configuration = configuration; // Gán giá trị
+    }
 
         [HttpPost("publish")]
         public async Task<IActionResult> PublishToFeed([FromBody] AdafruitPublishRequest request)
@@ -79,6 +85,42 @@ namespace MyIoTPlatform.API.Controllers
                 return StatusCode(500, new { message = $"Error: {ex.Message}" });
             }
         }
+
+        [HttpGet("data/{feed}")]
+        public async Task<IActionResult> GetFeedData(string feed)
+        {
+            if (string.IsNullOrEmpty(feed))
+            {
+                return BadRequest("Feed name is required");
+            }
+
+            try
+            {
+                // Gọi đến Adafruit API để lấy giá trị mới nhất của feed
+                // Đây là một ví dụ, bạn cần thay thế bằng cách gọi thực tế đến Adafruit API
+                var httpClient = new HttpClient();
+                httpClient.DefaultRequestHeaders.Add("X-AIO-Key", _configuration["Adafruit:IoKey"]);
+                
+                var response = await httpClient.GetAsync($"https://io.adafruit.com/api/v2/{_configuration["Adafruit:Username"]}/feeds/{feed}/data/last");
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    var data = System.Text.Json.JsonSerializer.Deserialize<AdafruitDataResponse>(content);
+                    
+                    return Ok(new { value = data.Value, created_at = data.CreatedAt });
+                }
+                else
+                {
+                    return StatusCode((int)response.StatusCode, new { message = $"Error fetching data from Adafruit: {response.ReasonPhrase}" });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error getting data from Adafruit feed '{feed}'");
+                return StatusCode(500, new { message = $"Error: {ex.Message}" });
+            }
+        }
     }
 
     public class AdafruitPublishRequest
@@ -123,5 +165,14 @@ namespace MyIoTPlatform.API.Controllers
         /// The Adafruit IO feed name to unsubscribe from
         /// </summary>
         public string Feed { get; set; }
+    }
+
+    public class AdafruitDataResponse
+    {
+        [JsonPropertyName("value")]
+        public string Value { get; set; }
+        
+        [JsonPropertyName("created_at")]
+        public string CreatedAt { get; set; }
     }
 }

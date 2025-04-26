@@ -24,6 +24,9 @@ namespace MyIoTPlatform.API.Services
         private readonly string _adafruitUsername;
         private readonly string _adafruitIoKey;
         private readonly string _brokerUrl;
+        
+        // Thêm sự kiện MessageReceived
+        public event EventHandler<MqttMessageReceivedEventArgs> MessageReceived;
 
         public AdafruitMqttService(ILogger<AdafruitMqttService> logger, IConfiguration configuration)
         {
@@ -36,10 +39,12 @@ namespace MyIoTPlatform.API.Services
             _brokerUrl = "io.adafruit.com";
             
             _isConnected = false;
-
+            
+            // Create MQTT client instance
             var factory = new MqttFactory();
             _mqttClient = factory.CreateMqttClient();
-
+            
+            // Set up client event handlers using UseXxx extension methods
             _mqttClient.ConnectedAsync += async e =>
             {
                 _isConnected = true;
@@ -52,14 +57,26 @@ namespace MyIoTPlatform.API.Services
                 _isConnected = false;
                 _logger.LogWarning("Disconnected from Adafruit IO MQTT Broker");
 
+                // Try to reconnect when disconnected
                 await Task.Delay(TimeSpan.FromSeconds(5));
                 await ConnectAsync();
             };
 
-            
+            // Cập nhật xử lý tin nhắn để kích hoạt sự kiện MessageReceived
             _mqttClient.ApplicationMessageReceivedAsync += e =>
             {
-                Console.WriteLine($"Received message: {e.ApplicationMessage.Topic}");
+                var topic = e.ApplicationMessage.Topic;
+                var payload = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
+                
+                _logger.LogInformation($"Received message: {topic}, {payload}");
+                
+                // Kích hoạt sự kiện MessageReceived
+                MessageReceived?.Invoke(this, new MqttMessageReceivedEventArgs
+                {
+                    Topic = topic,
+                    Payload = payload
+                });
+                
                 return Task.CompletedTask;
             };
         }
@@ -82,7 +99,7 @@ namespace MyIoTPlatform.API.Services
             try
             {
                 var options = new MqttClientOptionsBuilder()
-                    .WithTcpServer(_brokerUrl, 8883)
+                    .WithTcpServer(_brokerUrl, 8883) // TLS secure connection
                     .WithTls()
                     .WithCredentials(_adafruitUsername, _adafruitIoKey)
                     .WithClientId($"MyIoTPlatform_{Guid.NewGuid()}")
@@ -96,6 +113,7 @@ namespace MyIoTPlatform.API.Services
             {
                 _logger.LogError(ex, "Failed to connect to Adafruit IO MQTT Broker");
                 
+                // Retry connection after delay
                 await Task.Delay(TimeSpan.FromSeconds(10));
                 await ConnectAsync();
             }
@@ -110,6 +128,7 @@ namespace MyIoTPlatform.API.Services
                     await ConnectAsync();
                 }
                 
+                // Format topic for Adafruit IO (username/feeds/feed-name)
                 string formattedTopic = topic;
                 if (!topic.StartsWith(_adafruitUsername))
                 {
@@ -142,12 +161,14 @@ namespace MyIoTPlatform.API.Services
                     await ConnectAsync();
                 }
                 
+                // Format topic for Adafruit IO (username/feeds/feed-name)
                 string formattedTopic = topic;
                 if (!topic.StartsWith(_adafruitUsername))
                 {
                     formattedTopic = $"{_adafruitUsername}/feeds/{topic}";
                 }
                 
+                // Use TopicFilterBuilder for subscribing
                 var topicFilter = new MqttTopicFilterBuilder()
                     .WithTopic(formattedTopic)
                     .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce)
@@ -172,6 +193,7 @@ namespace MyIoTPlatform.API.Services
                     await ConnectAsync();
                 }
                 
+                // Format topic for Adafruit IO (username/feeds/feed-name)
                 string formattedTopic = topic;
                 if (!topic.StartsWith(_adafruitUsername))
                 {
@@ -187,5 +209,12 @@ namespace MyIoTPlatform.API.Services
                 throw;
             }
         }
+    }
+    
+    // Thêm lớp MqttMessageReceivedEventArgs
+    public class MqttMessageReceivedEventArgs : EventArgs
+    {
+        public string Topic { get; set; }
+        public string Payload { get; set; }
     }
 }

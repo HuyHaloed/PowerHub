@@ -241,19 +241,34 @@ namespace MyIoTPlatform.API.Services
 
         public async Task<Device> ControlDeviceAsync(string id, string status)
         {
-            var device = await GetDeviceByIdAsync(id);
-            device.Status = status;
-            device.LastUpdated = DateTime.UtcNow;
+            string normalizedStatus = status.ToUpper();
+            
+            var update = Builders<Device>.Update
+                .Set(d => d.Status, normalizedStatus)
+                .Set(d => d.LastUpdated, DateTime.UtcNow)
+                .Push(d => d.History, new DeviceHistory 
+                {
+                    Timestamp = DateTime.UtcNow,
+                    Status = normalizedStatus,
+                    Consumption = normalizedStatus == "ON" ? GetRandomConsumption() : 0
+                });
 
-            device.History.Add(new DeviceHistory
-            {
-                Timestamp = DateTime.UtcNow,
-                Status = status,
-                Consumption = device.Consumption
-            });
+            return await _devicesCollection.FindOneAndUpdateAsync(
+                d => d.Id == id,
+                update,
+                new FindOneAndUpdateOptions<Device> { ReturnDocument = ReturnDocument.After }
+            );
+        }
 
-            await UpdateDeviceAsync(id, device);
-            return device;
+        private double GetRandomConsumption()
+        {
+            Random random = new Random();
+            return Math.Round(random.NextDouble() * 100, 2);
+        }
+
+        public async Task<Device> GetDeviceByNameAndUserIdAsync(string name, string userId)
+        {
+            return await _devicesCollection.Find(d => d.Name == name && d.UserIds.Contains(userId)).FirstOrDefaultAsync();
         }
         #endregion
 
@@ -693,4 +708,6 @@ namespace MyIoTPlatform.API.Services
         }
         
     }
+
+    
 }

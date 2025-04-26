@@ -86,6 +86,32 @@ namespace MyIoTPlatform.API.Controllers
             });
         }
 
+        [HttpPut("control-by-name")]
+        public async Task<IActionResult> ControlDeviceByName([FromBody] ControlDeviceByNameRequest request)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { message = "User not authenticated" });
+            }
+
+            // Tìm thiết bị theo tên và userId
+            var device = await _mongoDbService.GetDeviceByNameAndUserIdAsync(request.Name, userId);
+            if (device == null)
+                return NotFound($"Không tìm thấy thiết bị có tên '{request.Name}'.");
+
+            // Cập nhật trạng thái thiết bị
+            var updatedDevice = await _mongoDbService.ControlDeviceAsync(device.Id, request.Status);
+            
+            return Ok(new
+            {
+                id = updatedDevice.Id,
+                name = updatedDevice.Name,
+                status = updatedDevice.Status,
+                message = "Trạng thái thiết bị đã được cập nhật."
+            });
+        }
+
 
         [HttpPost]
         public async Task<IActionResult> AddNewDevice([FromBody] AddDeviceRequest request)
@@ -101,7 +127,7 @@ namespace MyIoTPlatform.API.Controllers
                 Name = request.Name,
                 Type = request.Type,
                 Location = request.Location,
-                Status = "off",
+                Status = "OFF",
                 Consumption = 0,
                 LastUpdated = DateTime.UtcNow,
                 UserIds = new List<string> { userId },
