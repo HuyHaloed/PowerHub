@@ -1,0 +1,37 @@
+{
+    "voice_control": {
+        "enabled": true,
+        "mic_sample_rate": 16000,
+        "fuzzy_match_threshold": 75,
+        "config_file": "config/voice_config.json",
+        "vosk_model_path": "models/vosk-model-en-us",
+        "vosk_log_level": 0
+    },
+    "prediction": {
+        "enabled": true,
+        "temp_model_path": "models/predictors/xgboost_temp_predictor.json",
+        "humid_model_path": "models/predictors/xgboost_humid_predictor.json",
+        "prediction_horizon_minutes": 60,
+        "minutes_per_sample": 60,
+        "lag_steps_count": 5
+    },
+    "mqtt": {
+        "broker": "app.coreiot.io",
+        "port": 1883,
+        "token": "ZS9KjbmsPcXtniB8q9yP",
+        "client_id_prefix": "ai-service"
+    },
+    "mongodb": {
+        "enabled": false,
+        "uri": "mongodb+srv://username:password@cluster.mongodb.net/",
+        "database": "iot-device",
+        "collection": "telemetry_data"
+    },
+    "api": {
+        "host": "0.0.0.0",
+        "port": 8000,
+        "enable_cors": true,
+        "allowed_origins": ["*"],
+        "debug": true
+    }
+}

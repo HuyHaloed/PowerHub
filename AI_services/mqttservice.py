@@ -1,3 +1,4 @@
+
 import os
 import ssl
 import paho.mqtt.client as mqtt
@@ -5,7 +6,7 @@ import requests
 
 # === Thiết lập từ biến môi trường hoặc giá trị mặc định ===
 ADAFRUIT_USERNAME = 'Hellosine'
-ADAFRUIT_IO_KEY   = 'aio_wWwy72SXwCLMl1adccXdnXclQk26'
+ADAFRUIT_IO_KEY   = 'aio_mStR74qgprQUBF5F3UXCTcPdIlay'
 
 MQTT_BROKER = 'io.adafruit.com'
 MQTT_PORT   = 1883
@@ -70,6 +71,12 @@ def get_latest_from_feed(feed: str) -> str:
         print(f"Lỗi lấy dữ liệu từ feed '{feed}': {e}")
         return None
 
+def is_connected():
+    """
+    Kiểm tra client MQTT đã kết nối chưa.
+    """
+    return client.is_connected()
+
 def get_temperature():
     return get_latest_from_feed("temperature")
 
@@ -105,6 +112,15 @@ def turn_off_light():
     Tắt đèn (gửi '0' tới feed Light)
     """
     publish_to_feed('Light', 'OFF')
+
+def loop_stop():
+    """
+    Dừng loop MQTT client.
+    """
+    client.loop_stop()
+
+def disconnect():
+    client.disconnect()
 
 # Nếu script này được chạy trực tiếp, ví dụ:
 if __name__ == '__main__':

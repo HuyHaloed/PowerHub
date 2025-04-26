@@ -18,3 +18,23 @@ D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.Infrastructu
 D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.Infrastructure\obj\Debug\net8.0\MyIoTPlatform.Infrastructure.pdb
 D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.Infrastructure\obj\Debug\net8.0\MyIoTPlatform.Infrastructure.genruntimeconfig.cache
 D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.Infrastructure\obj\Debug\net8.0\ref\MyIoTPlatform.Infrastructure.dll
+D:\DHBK242\Đồ án đa ngành\POWER\backend\src\MyIoTPlatform.Infrastructure\bin\Debug\net8.0\MyIoTPlatform.Infrastructure.deps.json
+D:\DHBK242\Đồ án đa ngành\POWER\backend\src\MyIoTPlatform.Infrastructure\bin\Debug\net8.0\MyIoTPlatform.Infrastructure.runtimeconfig.json
+D:\DHBK242\Đồ án đa ngành\POWER\backend\src\MyIoTPlatform.Infrastructure\bin\Debug\net8.0\MyIoTPlatform.Infrastructure.dll
+D:\DHBK242\Đồ án đa ngành\POWER\backend\src\MyIoTPlatform.Infrastructure\bin\Debug\net8.0\MyIoTPlatform.Infrastructure.pdb
+D:\DHBK242\Đồ án đa ngành\POWER\backend\src\MyIoTPlatform.Infrastructure\bin\Debug\net8.0\MyIoTPlatform.Application.dll
+D:\DHBK242\Đồ án đa ngành\POWER\backend\src\MyIoTPlatform.Infrastructure\bin\Debug\net8.0\MyIoTPlatform.Domain.dll
+D:\DHBK242\Đồ án đa ngành\POWER\backend\src\MyIoTPlatform.Infrastructure\bin\Debug\net8.0\MyIoTPlatform.Application.pdb
+D:\DHBK242\Đồ án đa ngành\POWER\backend\src\MyIoTPlatform.Infrastructure\bin\Debug\net8.0\MyIoTPlatform.Domain.pdb
+D:\DHBK242\Đồ án đa ngành\POWER\backend\src\MyIoTPlatform.Infrastructure\obj\Debug\net8.0\MyIoTPlatform.Infrastructure.csproj.AssemblyReference.cache
+D:\DHBK242\Đồ án đa ngành\POWER\backend\src\MyIoTPlatform.Infrastructure\obj\Debug\net8.0\MyIoTPlatform.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+D:\DHBK242\Đồ án đa ngành\POWER\backend\src\MyIoTPlatform.Infrastructure\obj\Debug\net8.0\MyIoTPlatform.Infrastructure.AssemblyInfoInputs.cache
+D:\DHBK242\Đồ án đa ngành\POWER\backend\src\MyIoTPlatform.Infrastructure\obj\Debug\net8.0\MyIoTPlatform.Infrastructure.AssemblyInfo.cs
+D:\DHBK242\Đồ án đa ngành\POWER\backend\src\MyIoTPlatform.Infrastructure\obj\Debug\net8.0\MyIoTPlatform.Infrastructure.csproj.CoreCompileInputs.cache
+D:\DHBK242\Đồ án đa ngành\POWER\backend\src\MyIoTPlatform.Infrastructure\obj\Debug\net8.0\MyIoTPlatform.Infrastructure.sourcelink.json
+D:\DHBK242\Đồ án đa ngành\POWER\backend\src\MyIoTPlatform.Infrastructure\obj\Debug\net8.0\MyIoTPla.15F7443C.Up2Date
+D:\DHBK242\Đồ án đa ngành\POWER\backend\src\MyIoTPlatform.Infrastructure\obj\Debug\net8.0\MyIoTPlatform.Infrastructure.dll
+D:\DHBK242\Đồ án đa ngành\POWER\backend\src\MyIoTPlatform.Infrastructure\obj\Debug\net8.0\refint\MyIoTPlatform.Infrastructure.dll
+D:\DHBK242\Đồ án đa ngành\POWER\backend\src\MyIoTPlatform.Infrastructure\obj\Debug\net8.0\MyIoTPlatform.Infrastructure.pdb
+D:\DHBK242\Đồ án đa ngành\POWER\backend\src\MyIoTPlatform.Infrastructure\obj\Debug\net8.0\MyIoTPlatform.Infrastructure.genruntimeconfig.cache
+D:\DHBK242\Đồ án đa ngành\POWER\backend\src\MyIoTPlatform.Infrastructure\obj\Debug\net8.0\ref\MyIoTPlatform.Infrastructure.dll

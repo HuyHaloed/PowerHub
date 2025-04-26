@@ -14,3 +14,19 @@ D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.Application\
 D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.Application\obj\Debug\net8.0\refint\MyIoTPlatform.Application.dll
 D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.Application\obj\Debug\net8.0\MyIoTPlatform.Application.pdb
 D:\DHBK242\Đồ án đa ngành\POWER HUB\backend\src\MyIoTPlatform.Application\obj\Debug\net8.0\ref\MyIoTPlatform.Application.dll
+D:\DHBK242\Đồ án đa ngành\POWER\backend\src\MyIoTPlatform.Application\bin\Debug\net8.0\MyIoTPlatform.Application.deps.json
+D:\DHBK242\Đồ án đa ngành\POWER\backend\src\MyIoTPlatform.Application\bin\Debug\net8.0\MyIoTPlatform.Application.dll
+D:\DHBK242\Đồ án đa ngành\POWER\backend\src\MyIoTPlatform.Application\bin\Debug\net8.0\MyIoTPlatform.Application.pdb
+D:\DHBK242\Đồ án đa ngành\POWER\backend\src\MyIoTPlatform.Application\bin\Debug\net8.0\MyIoTPlatform.Domain.dll
+D:\DHBK242\Đồ án đa ngành\POWER\backend\src\MyIoTPlatform.Application\bin\Debug\net8.0\MyIoTPlatform.Domain.pdb
+D:\DHBK242\Đồ án đa ngành\POWER\backend\src\MyIoTPlatform.Application\obj\Debug\net8.0\MyIoTPlatform.Application.csproj.AssemblyReference.cache
+D:\DHBK242\Đồ án đa ngành\POWER\backend\src\MyIoTPlatform.Application\obj\Debug\net8.0\MyIoTPlatform.Application.GeneratedMSBuildEditorConfig.editorconfig
+D:\DHBK242\Đồ án đa ngành\POWER\backend\src\MyIoTPlatform.Application\obj\Debug\net8.0\MyIoTPlatform.Application.AssemblyInfoInputs.cache
+D:\DHBK242\Đồ án đa ngành\POWER\backend\src\MyIoTPlatform.Application\obj\Debug\net8.0\MyIoTPlatform.Application.AssemblyInfo.cs
+D:\DHBK242\Đồ án đa ngành\POWER\backend\src\MyIoTPlatform.Application\obj\Debug\net8.0\MyIoTPlatform.Application.csproj.CoreCompileInputs.cache
+D:\DHBK242\Đồ án đa ngành\POWER\backend\src\MyIoTPlatform.Application\obj\Debug\net8.0\MyIoTPlatform.Application.sourcelink.json
+D:\DHBK242\Đồ án đa ngành\POWER\backend\src\MyIoTPlatform.Application\obj\Debug\net8.0\MyIoTPla.A0A4B163.Up2Date
+D:\DHBK242\Đồ án đa ngành\POWER\backend\src\MyIoTPlatform.Application\obj\Debug\net8.0\MyIoTPlatform.Application.dll
+D:\DHBK242\Đồ án đa ngành\POWER\backend\src\MyIoTPlatform.Application\obj\Debug\net8.0\refint\MyIoTPlatform.Application.dll
+D:\DHBK242\Đồ án đa ngành\POWER\backend\src\MyIoTPlatform.Application\obj\Debug\net8.0\MyIoTPlatform.Application.pdb
+D:\DHBK242\Đồ án đa ngành\POWER\backend\src\MyIoTPlatform.Application\obj\Debug\net8.0\ref\MyIoTPlatform.Application.dll
