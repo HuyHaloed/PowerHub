@@ -135,7 +135,9 @@ export default function Dashboard() {
             <div className="space-y-4">
               {activeDevicesData && activeDevicesData.length > 0 ? (
                 activeDevicesData.slice(0, 3).map((device: Device) => (
-                  <DeviceStatusCard key={device.id} device={device} />
+                  <DeviceStatusCard device={device} onToggle={function (status: 'on' | 'off'): void {
+                    throw new Error('Function not implemented.');
+                  } } />
                 ))
               ) : (
                 <p className="text-gray-500 text-sm">Không có thiết bị nào đang hoạt động</p>

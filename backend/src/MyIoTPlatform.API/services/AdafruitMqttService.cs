@@ -24,6 +24,9 @@ namespace MyIoTPlatform.API.Services
         private readonly string _adafruitUsername;
         private readonly string _adafruitIoKey;
         private readonly string _brokerUrl;
+        
+        // Thêm sự kiện MessageReceived
+        public event EventHandler<MqttMessageReceivedEventArgs> MessageReceived;
 
         public AdafruitMqttService(ILogger<AdafruitMqttService> logger, IConfiguration configuration)
         {
@@ -59,10 +62,21 @@ namespace MyIoTPlatform.API.Services
                 await ConnectAsync();
             };
 
-            
+            // Cập nhật xử lý tin nhắn để kích hoạt sự kiện MessageReceived
             _mqttClient.ApplicationMessageReceivedAsync += e =>
             {
-                Console.WriteLine($"Received message: {e.ApplicationMessage.Topic}");
+                var topic = e.ApplicationMessage.Topic;
+                var payload = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
+                
+                _logger.LogInformation($"Received message: {topic}, {payload}");
+                
+                // Kích hoạt sự kiện MessageReceived
+                MessageReceived?.Invoke(this, new MqttMessageReceivedEventArgs
+                {
+                    Topic = topic,
+                    Payload = payload
+                });
+                
                 return Task.CompletedTask;
             };
         }
@@ -195,5 +209,12 @@ namespace MyIoTPlatform.API.Services
                 throw;
             }
         }
+    }
+    
+    // Thêm lớp MqttMessageReceivedEventArgs
+    public class MqttMessageReceivedEventArgs : EventArgs
+    {
+        public string Topic { get; set; }
+        public string Payload { get; set; }
     }
 }

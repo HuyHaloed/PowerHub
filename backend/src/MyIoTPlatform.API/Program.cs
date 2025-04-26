@@ -16,6 +16,7 @@ using MyIoTPlatform.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.Google;
 using System.Text;
 using MyIoTPlatform.Infrastructure.Communication.Adafruit;
+using System.Net.WebSockets;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -133,4 +134,114 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-app.Run();
+
+
+
+
+
+
+
+// Thêm sau các cấu hình dịch vụ và trước app.Run()
+
+// Cấu hình WebSocket
+app.UseWebSockets(new WebSocketOptions
+{
+    KeepAliveInterval = TimeSpan.FromMinutes(2)
+});
+
+// Xử lý yêu cầu WebSocket
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path == "/ws")
+    {
+        if (context.WebSockets.IsWebSocketRequest)
+        {
+            using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
+            var serviceProvider = context.RequestServices;
+            var mqttService = serviceProvider.GetRequiredService<IMqttClientService>();
+            
+            await HandleWebSocketConnection(webSocket, context.RequestAborted, mqttService);
+        }
+        else
+        {
+            context.Response.StatusCode = 400;
+        }
+    }
+    else
+    {
+        await next();
+    }
+});
+
+// Thêm hàm xử lý WebSocket
+async Task HandleWebSocketConnection(WebSocket webSocket, CancellationToken cancellationToken, IMqttClientService mqttService)
+{
+    // Tạo một completion source để theo dõi khi WebSocket hoàn thành
+    var socketFinishedTcs = new TaskCompletionSource<object>();
+    cancellationToken.Register(() => socketFinishedTcs.TrySetResult(null));
+    
+    // Đăng ký sự kiện nhận tin nhắn MQTT
+    void MessageReceivedHandler(object sender, MqttMessageReceivedEventArgs args)
+    {
+        if (webSocket.State == WebSocketState.Open)
+        {
+            var message = Encoding.UTF8.GetBytes(System.Text.Json.JsonSerializer.Serialize(new
+            {
+                feed = args.Topic,
+                value = args.Payload
+            }));
+            
+            webSocket.SendAsync(
+                new ArraySegment<byte>(message, 0, message.Length),
+                WebSocketMessageType.Text,
+                true,
+                cancellationToken).GetAwaiter().GetResult();
+        }
+    }
+    
+    // Cast và đăng ký event
+
+    AdafruitMqttService adafruitService = null;
+    if (mqttService is AdafruitMqttService service)
+    {
+        adafruitService = service;
+        adafruitService.MessageReceived += MessageReceivedHandler;
+    }
+    
+    // Duy trì kết nối
+    var buffer = new byte[1024 * 4];
+    try
+    {
+        while (webSocket.State == WebSocketState.Open)
+        {
+            var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
+            if (result.MessageType == WebSocketMessageType.Close)
+            {
+                await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Connection closed by client", cancellationToken);
+                break;
+            }
+        }
+    }
+    catch (OperationCanceledException)
+    {
+        // Bình thường khi hủy
+    }
+    catch (Exception ex)
+    {
+        // Log lỗi nếu cần
+    }
+    finally
+    {
+        // Hủy đăng ký sự kiện
+        if (adafruitService != null)
+        {
+            adafruitService.MessageReceived -= MessageReceivedHandler;
+        }
+        
+        // Đảm bảo WebSocket đóng
+        if (webSocket.State != WebSocketState.Closed && webSocket.State != WebSocketState.Aborted)
+        {
+            await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Server closing connection", CancellationToken.None);
+        }
+    }
+}app.Run();

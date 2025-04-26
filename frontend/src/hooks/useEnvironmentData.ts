@@ -1,219 +1,104 @@
+// hooks/useAdafruitData.ts
 import { useState, useEffect } from 'react';
 import authorizedAxiosInstance from '../lib/axios';
 
-interface EnvironmentData {
-  id: string;
-  deviceId: string | null;
-  deviceName: string | null;
-  temperature: number;
-  humidity: number;
-  timestamp: string;
-  location: string;
-}
-
-interface EnvironmentStats {
-  currentTemperature: number;
-  currentHumidity: number;
-  avgTemperature: number;
-  avgHumidity: number;
-  maxTemperature: number;
-  minTemperature: number;
-  maxHumidity: number;
-  minHumidity: number;
+export interface AdafruitData {
+  temperature?: number;
+  humidity?: number;
   lastUpdated: string;
-  hasData: boolean;
-  location: string;
 }
 
-interface EnvironmentResponse {
-  hasSubscription: boolean;
-  hasData?: boolean;
-  data?: EnvironmentData | EnvironmentStats;
-}
-
-// Hook để lấy dữ liệu môi trường mới nhất
-export const useLatestEnvironmentData = (location?: string) => {
-  const [data, setData] = useState<EnvironmentData | null>(null);
-  const [hasSubscription, setHasSubscription] = useState<boolean>(false);
-  const [hasData, setHasData] = useState<boolean>(false);
+export const useAdafruitData = () => {
+  const [data, setData] = useState<AdafruitData>({
+    temperature: undefined,
+    humidity: undefined,
+    lastUpdated: new Date().toISOString()
+  });
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
+    // Tải dữ liệu ban đầu từ API
+    const fetchInitialData = async () => {
       setIsLoading(true);
       try {
-        const url = location 
-          ? `/Environment/latest?location=${encodeURIComponent(location)}`
-          : `/Environment/latest`;
+        // Lấy giá trị nhiệt độ từ Adafruit
+        const tempResponse = await authorizedAxiosInstance.get('/adafruit/data/temperature');
+        
+        // Lấy giá trị độ ẩm từ Adafruit
+        const humidityResponse = await authorizedAxiosInstance.get('/adafruit/data/humidity');
+        
+        setData({
+          temperature: parseFloat(tempResponse.data.value),
+          humidity: parseFloat(humidityResponse.data.value),
+          lastUpdated: new Date().toISOString()
+        });
+        
+        setError(null);
+      } catch (err) {
+        setError('Không thể tải dữ liệu từ Adafruit');
+        console.error('Lỗi khi tải dữ liệu từ Adafruit:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchInitialData();
+    
+    // Kết nối WebSocket để nhận cập nhật thời gian thực
+    const connectWebSocket = () => {
+      const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//localhost:5000/ws`;
+      console.log('Connecting to WebSocket at:', wsUrl);
+      
+      const ws = new WebSocket(wsUrl);
+      
+      ws.onopen = () => {
+        console.log('WebSocket connection established');
+      };
+      
+      ws.onmessage = (event) => {
+        try {
+          const message = JSON.parse(event.data);
           
-        const response = await authorizedAxiosInstance.get<EnvironmentResponse>(url);
-        
-        setHasSubscription(response.data.hasSubscription);
-        
-        if (response.data.hasSubscription && response.data.hasData) {
-          setData(response.data.data as EnvironmentData);
-          setHasData(true);
-        } else {
-          setData(null);
-          setHasData(false);
+          if (message.feed.includes('temperature')) {
+            setData(prev => ({
+              ...prev,
+              temperature: parseFloat(message.value),
+              lastUpdated: new Date().toISOString()
+            }));
+          } else if (message.feed.includes('humidity')) {
+            setData(prev => ({
+              ...prev,
+              humidity: parseFloat(message.value),
+              lastUpdated: new Date().toISOString()
+            }));
+          }
+        } catch (err) {
+          console.error('Lỗi khi xử lý tin nhắn WebSocket:', err);
         }
-        
-        setError(null);
-      } catch (err) {
-        setError('Không thể tải dữ liệu môi trường');
-        console.error('Lỗi khi tải dữ liệu môi trường:', err);
-      } finally {
-        setIsLoading(false);
-      }
+      };
+      
+      ws.onclose = () => {
+        console.log('WebSocket connection closed. Reconnecting...');
+        // Kết nối lại sau 3 giây nếu bị đóng
+        setTimeout(connectWebSocket, 3000);
+      };
+      
+      ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+      };
+      
+      // Hàm dọn dẹp khi component unmount
+      return () => {
+        console.log('Closing WebSocket connection');
+        ws.close();
+      };
     };
-
-    fetchData();
     
-    // Làm mới dữ liệu mỗi phút
-    const intervalId = setInterval(fetchData, 60000);
+    const cleanup = connectWebSocket();
     
-    return () => clearInterval(intervalId);
-  }, [location]);
-
-  return { data, isLoading, error, hasSubscription, hasData };
-};
-
-// Hook để lấy thống kê môi trường
-export const useEnvironmentStats = (startDate?: Date, endDate?: Date, location?: string) => {
-  const [stats, setStats] = useState<EnvironmentStats | null>(null);
-  const [hasSubscription, setHasSubscription] = useState<boolean>(false);
-  const [hasData, setHasData] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      setIsLoading(true);
-      try {
-        let url = `/Environment/stats`;
-        const params = [];
-        
-        if (startDate) {
-          params.push(`startDate=${startDate.toISOString()}`);
-        }
-        
-        if (endDate) {
-          params.push(`endDate=${endDate.toISOString()}`);
-        }
-        
-        if (location) {
-          params.push(`location=${encodeURIComponent(location)}`);
-        }
-        
-        if (params.length > 0) {
-          url += `?${params.join('&')}`;
-        }
-        
-        const response = await authorizedAxiosInstance.get<EnvironmentResponse>(url);
-        
-        setHasSubscription(response.data.hasSubscription);
-        
-        if (response.data.hasSubscription && response.data.hasData) {
-          setStats(response.data.data as EnvironmentStats);
-          setHasData(true);
-        } else {
-          setStats(null);
-          setHasData(false);
-        }
-        
-        setError(null);
-      } catch (err) {
-        setError('Không thể tải thống kê môi trường');
-        console.error('Lỗi khi tải thống kê môi trường:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchStats();
-  }, [startDate, endDate, location]);
-
-  return { stats, isLoading, error, hasSubscription, hasData };
-};
-
-// Hook để lấy toàn bộ dữ liệu môi trường
-export const useEnvironmentData = (
-  startDate?: Date, 
-  endDate?: Date,
-  location?: string
-) => {
-  const [data, setData] = useState<EnvironmentData[]>([]);
-  const [hasSubscription, setHasSubscription] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        let url = '/Environment';
-        const params = [];
-        
-        if (startDate) {
-          params.push(`startDate=${startDate.toISOString()}`);
-        }
-        
-        if (endDate) {
-          params.push(`endDate=${endDate.toISOString()}`);
-        }
-        
-        if (location) {
-          params.push(`location=${encodeURIComponent(location)}`);
-        }
-        
-        if (params.length > 0) {
-          url += `?${params.join('&')}`;
-        }
-        
-        const response = await authorizedAxiosInstance.get<{hasSubscription: boolean, data: EnvironmentData[]}>(url);
-        setHasSubscription(response.data.hasSubscription);
-        setData(response.data.hasSubscription ? response.data.data : []);
-        setError(null);
-      } catch (err) {
-        setError('Không thể tải dữ liệu môi trường');
-        console.error('Lỗi khi tải dữ liệu môi trường:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [startDate, endDate, location]);
-
-  return { data, isLoading, error, hasSubscription };
-};
-
-// Hook để lấy danh sách các vị trí có dữ liệu môi trường
-export const useEnvironmentLocations = () => {
-  const [locations, setLocations] = useState<string[]>([]);
-  const [hasSubscription, setHasSubscription] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchLocations = async () => {
-      setIsLoading(true);
-      try {
-        const response = await authorizedAxiosInstance.get<{hasSubscription: boolean, data: string[]}>('/Environment/locations');
-        setHasSubscription(response.data.hasSubscription);
-        setLocations(response.data.hasSubscription ? response.data.data : []);
-        setError(null);
-      } catch (err) {
-        setError('Không thể tải danh sách vị trí');
-        console.error('Lỗi khi tải danh sách vị trí:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchLocations();
+    return cleanup;
   }, []);
-
-  return { locations, isLoading, error, hasSubscription };
+  
+  return { data, isLoading, error };
 };
