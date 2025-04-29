@@ -1,15 +1,12 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
-// Base API configuration
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
-// Get token from sessionStorage
 const getAuthToken = () => {
   return sessionStorage.getItem('auth_token');
 };
 
-// Configure axios with token
 const axiosWithAuth = () => {
   const token = getAuthToken();
   return axios.create({

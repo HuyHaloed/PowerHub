@@ -6,8 +6,7 @@ namespace MyIoTPlatform.API.Services
     {
         private readonly ILogger<EnhancedAIService> _logger;
         private readonly MongoDbService _mongoDbService;
-        
-        // Additional knowledge for answering questions
+    
         private static readonly Dictionary<string, Dictionary<string, string>> _extendedKnowledge = new Dictionary<string, Dictionary<string, string>>
         {
             {
@@ -36,7 +35,7 @@ namespace MyIoTPlatform.API.Services
             }
         };
         
-        // Function words by language for better language detection
+
         private static readonly Dictionary<string, HashSet<string>> _functionWords = new Dictionary<string, HashSet<string>>
         {
             { 
@@ -55,7 +54,6 @@ namespace MyIoTPlatform.API.Services
             }
         };
 
-        // Weather patterns for improved responses
         private static readonly Dictionary<string, Dictionary<string, WeatherResponse>> _weatherResponses = new Dictionary<string, Dictionary<string, WeatherResponse>>
         {
             {
@@ -88,39 +86,33 @@ namespace MyIoTPlatform.API.Services
         
         public string GetEnhancedResponse(string message, List<ChatMessage> history, string language)
         {
-            // Improve language detection by counting function words
             if (language == null)
             {
                 language = DetectLanguageAdvanced(message);
             }
             
-            // Handle weather-related queries
             if (IsWeatherQuery(message, language))
             {
                 return GenerateWeatherResponse(message, language);
             }
             
-            // Handle home status queries
             if (IsHomeStatusQuery(message, language))
             {
                 return GetHomeStatus(language);
             }
             
-            // Handle knowledge base queries with extended knowledge
             string knowledgeResponse = CheckExtendedKnowledge(message, language);
             if (!string.IsNullOrEmpty(knowledgeResponse))
             {
                 return knowledgeResponse;
             }
             
-            // Handle contextual queries
             string contextualResponse = GenerateContextualResponse(message, history, language);
             if (!string.IsNullOrEmpty(contextualResponse))
             {
                 return contextualResponse;
             }
             
-            // Default responses for unknown queries
             return language == "vi"
                 ? "Tôi không có đủ thông tin để trả lời câu hỏi đó. Bạn có thể hỏi về tình trạng thiết bị, thời tiết, hoặc điều khiển các thiết bị trong nhà."
                 : "I don't have enough information to answer that question. You can ask about device status, weather, or control your home devices.";
@@ -130,12 +122,10 @@ namespace MyIoTPlatform.API.Services
         {
             if (string.IsNullOrWhiteSpace(text))
             {
-                return "en"; // Default to English for empty texts
+                return "en";
             }
             
             string lowerText = text.ToLower();
-            
-            // First check Vietnamese specific characters
             if (lowerText.Contains("ă") || lowerText.Contains("â") || lowerText.Contains("đ") || 
                 lowerText.Contains("ê") || lowerText.Contains("ô") || lowerText.Contains("ơ") || 
                 lowerText.Contains("ư") || lowerText.Contains("á") || lowerText.Contains("à") ||
@@ -143,12 +133,8 @@ namespace MyIoTPlatform.API.Services
             {
                 return "vi";
             }
-            
-            // Count function words from each language
             int viCount = 0;
             int enCount = 0;
-            
-            // Split text into words
             string[] words = Regex.Split(lowerText, @"\W+");
             
             foreach (string word in words)
@@ -162,14 +148,12 @@ namespace MyIoTPlatform.API.Services
                     enCount++;
                 }
             }
-            
-            // Determine language based on the most function words found
             if (viCount > enCount)
             {
                 return "vi";
             }
             
-            return "en"; // Default to English
+            return "en"; 
         }
         
         private bool IsWeatherQuery(string message, string language)
@@ -197,8 +181,6 @@ namespace MyIoTPlatform.API.Services
         
         private string GenerateWeatherResponse(string message, string language)
         {
-            // In a real system, this would connect to a weather API
-            // For demo purposes, we'll randomly select a weather condition
             Random rnd = new Random();
             
             var weatherDict = _weatherResponses[language];
@@ -239,8 +221,6 @@ namespace MyIoTPlatform.API.Services
         
         private string GetHomeStatus(string language)
         {
-            // In a real system, this would query actual device states
-            // For demo purposes, we'll return a fixed status
             
             if (language == "vi")
             {
@@ -280,8 +260,6 @@ namespace MyIoTPlatform.API.Services
             }
             
             string lowerMessage = message.ToLower();
-            
-            // Get the last user and assistant messages
             var lastUserMsg = history
                 .Where(m => m.Role == "user")
                 .LastOrDefault();
@@ -294,8 +272,6 @@ namespace MyIoTPlatform.API.Services
             {
                 return null;
             }
-            
-            // Handle follow-up questions about devices
             if (language == "vi")
             {
                 if ((lowerMessage.Contains("tại sao") || lowerMessage.Contains("vì sao")) && 
@@ -309,7 +285,7 @@ namespace MyIoTPlatform.API.Services
                     return "Nhiệt độ được điều chỉnh thông qua bộ điều nhiệt thông minh, kết nối với hệ thống HVAC của bạn. Nó có thể tự động điều chỉnh dựa trên sở thích của bạn và thời gian trong ngày.";
                 }
             }
-            else // English
+            else 
             {
                 if ((lowerMessage.Contains("why") || lowerMessage.Contains("how come")) && 
                     lastAssistantMsg.Content.ToLower().Contains("light"))
@@ -329,17 +305,15 @@ namespace MyIoTPlatform.API.Services
 
     public class ChatMessage
 {
-    public string Role { get; set; }  // Add this property for user/assistant role
-    public string Content { get; set; } // Add this property for message content
+    public string Role { get; set; } 
+    public string Content { get; set; } 
     
-    // Optionally add a constructor if needed
     public ChatMessage(string role, string content)
     {
         Role = role;
         Content = content;
     }
     
-    // Add a parameterless constructor as well
     public ChatMessage() { }
 }
 

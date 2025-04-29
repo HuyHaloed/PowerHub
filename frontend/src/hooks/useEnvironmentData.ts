@@ -1,36 +1,30 @@
 import { useState, useEffect } from 'react';
 import authorizedAxiosInstance from '../lib/axios';
+import { AdafruitData } from '../types/adafruit';
 
-export interface AdafruitData {
-  temperature?: number;
-  humidity?: number;
-  brightness?: number; // Thêm brightness vào interface
-  lastUpdated: string;
-}
 
 export const useAdafruitData = () => {
   const [data, setData] = useState<AdafruitData>({
     temperature: undefined,
     humidity: undefined,
-    brightness: undefined, // Khởi tạo brightness
+    brightness: undefined,
     lastUpdated: new Date().toISOString(),
   });
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Tải dữ liệu ban đầu từ API
     const fetchInitialData = async () => {
       setIsLoading(true);
       try {
         const tempResponse = await authorizedAxiosInstance.get('/adafruit/data/temperature');
         const humidityResponse = await authorizedAxiosInstance.get('/adafruit/data/humidity');
-        const brightnessResponse = await authorizedAxiosInstance.get('/adafruit/data/brightness'); // Thêm API call cho brightness
+        const brightnessResponse = await authorizedAxiosInstance.get('/adafruit/data/brightness'); 
 
         setData({
           temperature: parseFloat(tempResponse.data.value),
           humidity: parseFloat(humidityResponse.data.value),
-          brightness: parseFloat(brightnessResponse.data.value), // Lưu giá trị brightness
+          brightness: parseFloat(brightnessResponse.data.value), 
           lastUpdated: new Date().toISOString(),
         });
         setError(null);
@@ -43,8 +37,6 @@ export const useAdafruitData = () => {
     };
 
     fetchInitialData();
-
-    // Kết nối WebSocket để nhận cập nhật thời gian thực
     const connectWebSocket = () => {
       const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//localhost:5000/ws`;
       const ws = new WebSocket(wsUrl);
@@ -68,7 +60,7 @@ export const useAdafruitData = () => {
               humidity: parseFloat(message.value),
               lastUpdated: new Date().toISOString(),
             }));
-          } else if (message.feed.includes('brightness')) { // Xử lý cập nhật brightness
+          } else if (message.feed.includes('brightness')) { 
             setData((prev) => ({
               ...prev,
               brightness: parseFloat(message.value),

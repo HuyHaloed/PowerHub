@@ -1,15 +1,13 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
-// Base API configuration
 const API_URL = 'http://localhost:5000/api';
 
-// Get token from sessionStorage
 const getAuthToken = () => {
   return sessionStorage.getItem('auth_token');
 };
 
-// Configure axios with token
+
 const axiosWithAuth = () => {
   const token = getAuthToken();
   return axios.create({
@@ -32,9 +30,7 @@ export const useEnergyConsumption = (timeRange: string, startDate?: string, endD
       try {
         let url = `/energy/consumption?timeRange=${timeRange}`;
         
-        // Xử lý startDate
         if (timeRange === 'day') {
-          // Nếu không có startDate, sử dụng ngày hiện tại
           const dateToUse = startDate || new Date().toISOString().split('T')[0];
           url += `&startDate=${dateToUse}`;
         } else if (startDate) {
@@ -42,7 +38,7 @@ export const useEnergyConsumption = (timeRange: string, startDate?: string, endD
           url += `&startDate=${utcStartDate}`;
         }
         
-        // Xử lý endDate tương tự
+
         if (timeRange === 'day' && endDate) {
           url += `&endDate=${endDate}`;
         } else if (endDate) {

@@ -13,9 +13,6 @@ import AnalyticsView from '@/pages/Customer/Dashboard/AnalyticsView';
 import SettingsView from '@/pages/Customer/Dashboard/SettingsView';
 import { Stat, Device } from '@/types/dashboard.types';
 import { TemperatureCard, HumidityCard, BrightnessCard } from '@/components/DashboardIOT/EnvironmentDataCard';
-
-
-// Custom Alert Component
 const CustomAlert = ({ 
   title, 
   message, 
@@ -128,7 +125,7 @@ export default function Dashboard() {
             <HumidityCard />
           </div>
           <div>
-            <BrightnessCard /> {/* Thêm BrightnessCard */}
+            <BrightnessCard />
           </div>
           <div>
             <h2 className="text-lg font-medium mb-3">Thiết bị đang hoạt động</h2>

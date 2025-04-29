@@ -85,14 +85,12 @@ const AnalyticsView: React.FC = () => {
     }
   };
 
-  // Render loading state
   const renderLoading = () => (
     <div className="h-72 flex items-center justify-center">
       <p className="text-gray-500">Đang tải dữ liệu...</p>
     </div>
   );
 
-  // Render consumption tab
   const renderConsumptionTab = () => {
     if (isConsumptionLoading) return renderLoading();
     
@@ -121,7 +119,6 @@ const AnalyticsView: React.FC = () => {
     );
   };
 
-  // Render distribution tab
   const renderDistributionTab = () => {
     if (isDistributionLoading) return renderLoading();
     
@@ -157,7 +154,6 @@ const AnalyticsView: React.FC = () => {
     );
   };
 
-  // Render predictions tab
   const renderPredictionsTab = () => {
     if (isPredictionsLoading) return renderLoading();
     
@@ -186,7 +182,6 @@ const AnalyticsView: React.FC = () => {
     );
   };
 
-  // Render comparison tab
   const renderComparisonTab = () => {
     if (isComparisonLoading) return renderLoading();
     
@@ -245,7 +240,6 @@ const AnalyticsView: React.FC = () => {
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6">Phân tích năng lượng</h1>
       
-      {/* Filter controls */}
       <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
         <div className="flex flex-wrap justify-between items-center">
           <div className="mb-4 md:mb-0">
@@ -292,7 +286,6 @@ const AnalyticsView: React.FC = () => {
         </div>
       </div>
       
-      {/* Tab navigation */}
       <div className="bg-white rounded-lg shadow-sm mb-6">
         <div className="border-b">
           <nav className="flex">
@@ -339,7 +332,7 @@ const AnalyticsView: React.FC = () => {
           </nav>
         </div>
         
-        {/* Tab content */}
+
         <div className="p-4">
           {selectedTab === 'consumption' && renderConsumptionTab()}
           {selectedTab === 'distribution' && renderDistributionTab()}
@@ -348,7 +341,6 @@ const AnalyticsView: React.FC = () => {
         </div>
       </div>
       
-      {/* Stats and insights */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 mt-10">
         <div className="bg-white p-4 rounded-lg shadow-sm">
           <h3 className="text-lg font-medium mb-2">Tổng tiêu thụ</h3>

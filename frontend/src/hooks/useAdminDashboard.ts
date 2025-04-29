@@ -21,7 +21,6 @@ export function useAdminUsers() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulating API call
     setTimeout(() => {
       setUsers(mockAdminUsers);
       setLoading(false);
@@ -44,7 +43,6 @@ export function useIOTDevices() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulating API call
     setTimeout(() => {
       setDevices(mockIOTDevices);
       setLoading(false);
@@ -67,7 +65,6 @@ export function useCustomerFeedbacks() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulating API call
     setTimeout(() => {
       setFeedbacks(mockCustomerFeedbacks);
       setLoading(false);
@@ -90,7 +87,6 @@ export function useBlogPosts() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulating API call
     setTimeout(() => {
       setBlogPosts(mockBlogPosts);
       setLoading(false);
@@ -113,7 +109,6 @@ export function useSystemConfig() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulating API call
     setTimeout(() => {
       setConfig(defaultSystemConfig);
       setLoading(false);
@@ -132,7 +127,6 @@ export function useIOTStatistics() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulating API call
     setTimeout(() => {
       setStatistics(mockIOTStatistics);
       setLoading(false);

@@ -1,16 +1,14 @@
-import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DashboardData, Alert, Device, EnergyConsumption } from '@/types/dashboard.types';
 import authorizedAxiosInstance from '@/lib/axios';
 import { useAccount } from '@/hooks/useAccount';
 
-// Fetch dashboard data from API
+
 const fetchDashboardData = async (): Promise<DashboardData> => {
   const response = await authorizedAxiosInstance.get('/dashboard');
   return response.data;
 };
 
-// Hook for dashboard data
 export const useDashboardData = () => {
   const { data: user } = useAccount();
   
@@ -18,14 +16,13 @@ export const useDashboardData = () => {
     queryKey: ['dashboard', user?.id],
     queryFn: fetchDashboardData,
     enabled: !!user?.id,
-    refetchInterval: 60000, // Refresh every minute
+    refetchInterval: 60000, 
     refetchOnWindowFocus: true,
     retry: 1,
     staleTime: 30000,
   });
 };
 
-// Fetch energy data by time range
 const fetchEnergyData = async (timeRange: string, startDate?: Date, endDate?: Date): Promise<EnergyConsumption[]> => {
   try {
     const params = new URLSearchParams();
@@ -37,11 +34,10 @@ const fetchEnergyData = async (timeRange: string, startDate?: Date, endDate?: Da
     return response.data;
   } catch (error) {
     console.error('Error fetching energy data', error);
-    throw error; // Rethrow to let the caller handle the error
+    throw error; 
   }
 };
 
-// Hook for energy data
 export const useEnergyData = (timeRange: 'day' | 'week' | 'month' | 'year' = 'day', startDate?: Date, endDate?: Date) => {
   const { data: user } = useAccount();
   
@@ -53,7 +49,6 @@ export const useEnergyData = (timeRange: 'day' | 'week' | 'month' | 'year' = 'da
   });
 };
 
-// Fetch energy distribution data
 const fetchEnergyDistribution = async (): Promise<any[]> => {
   try {
     const response = await authorizedAxiosInstance.get('/energy/distribution');
@@ -64,7 +59,7 @@ const fetchEnergyDistribution = async (): Promise<any[]> => {
   }
 };
 
-// Hook for energy distribution
+
 export const useEnergyDistribution = () => {
   const { data: user } = useAccount();
   
@@ -72,11 +67,11 @@ export const useEnergyDistribution = () => {
     queryKey: ['energyDistribution', user?.id],
     queryFn: fetchEnergyDistribution,
     enabled: !!user?.id,
-    staleTime: 300000, // 5 minutes
+    staleTime: 300000, 
   });
 };
 
-// Fetch devices
+
 const fetchDevices = async (filters: { status?: string; location?: string; type?: string; search?: string } = {}): Promise<Device[]> => {
   try {
     const params = new URLSearchParams();
@@ -93,7 +88,6 @@ const fetchDevices = async (filters: { status?: string; location?: string; type?
   }
 };
 
-// Hook for devices
 export const useDevices = (filters: { status?: string; location?: string; type?: string; search?: string } = {}) => {
   const { data: user } = useAccount();
   
@@ -111,7 +105,6 @@ export const useDevices = (filters: { status?: string; location?: string; type?:
   };
 };
 
-// Hook for active devices
 export const useActiveDevices = () => {
   const { data: user } = useAccount();
   
@@ -119,11 +112,10 @@ export const useActiveDevices = () => {
     queryKey: ['activeDevices', user?.id],
     queryFn: () => authorizedAxiosInstance.get('/devices/active').then(res => res.data),
     enabled: !!user?.id,
-    staleTime: 30000, // 30 seconds
+    staleTime: 30000, 
   });
 };
 
-// Toggle device status mutation
 export const useDeviceControl = () => {
   const queryClient = useQueryClient();
   
@@ -132,7 +124,6 @@ export const useDeviceControl = () => {
       return authorizedAxiosInstance.put(`/devices/${deviceId}/control`, { status });
     },
     onSuccess: () => {
-      // Invalidate and refetch queries that depend on this data
       queryClient.invalidateQueries({ queryKey: ['devices'] });
       queryClient.invalidateQueries({ queryKey: ['activeDevices'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
@@ -145,7 +136,6 @@ export const useDeviceControl = () => {
   };
 };
 
-// Fetch alerts
 const fetchAlerts = async (unreadOnly = false): Promise<Alert[]> => {
   try {
     const endpoint = unreadOnly ? '/dashboard/alerts/unread' : '/dashboard/alerts';
@@ -157,7 +147,6 @@ const fetchAlerts = async (unreadOnly = false): Promise<Alert[]> => {
   }
 };
 
-// Hook for alerts
 export const useAlerts = (unreadOnly = false) => {
   const { data: user } = useAccount();
   
@@ -165,16 +154,15 @@ export const useAlerts = (unreadOnly = false) => {
     queryKey: ['alerts', user?.id, unreadOnly],
     queryFn: () => fetchAlerts(unreadOnly),
     enabled: !!user?.id,
-    staleTime: 30000, // 30 seconds
+    staleTime: 30000,
   });
 };
 
-// Hook for unread alerts
 export const useUnreadAlerts = () => {
   return useAlerts(true);
 };
 
-// Fetch quick stats
+
 const fetchQuickStats = async () => {
   try {
     const response = await authorizedAxiosInstance.get('/dashboard/quick-stats');
@@ -185,7 +173,6 @@ const fetchQuickStats = async () => {
   }
 };
 
-// Hook for quick stats
 export const useQuickStats = () => {
   const { data: user } = useAccount();
   
@@ -193,11 +180,10 @@ export const useQuickStats = () => {
     queryKey: ['quickStats', user?.id],
     queryFn: fetchQuickStats,
     enabled: !!user?.id,
-    staleTime: 60000, // 1 minute
+    staleTime: 60000,
   });
 };
 
-// Analytics data fetching
 export const useAnalyticsData = (timeRange: string, startDate?: Date, endDate?: Date) => {
   const { data: user } = useAccount();
   
@@ -213,11 +199,10 @@ export const useAnalyticsData = (timeRange: string, startDate?: Date, endDate?: 
       return response.data;
     },
     enabled: !!user?.id,
-    staleTime: 300000, // 5 minutes
+    staleTime: 300000, 
   });
 };
 
-// Compare energy usage
 export const useEnergyComparison = (timeRange: string, startDate?: Date, endDate?: Date) => {
   const { data: user } = useAccount();
   
@@ -233,11 +218,10 @@ export const useEnergyComparison = (timeRange: string, startDate?: Date, endDate
       return response.data;
     },
     enabled: !!user?.id,
-    staleTime: 300000, // 5 minutes
+    staleTime: 300000,
   });
 };
 
-// Energy predictions
 export const useEnergyPredictions = (timeRange: string, periods: number = 4) => {
   const { data: user } = useAccount();
   
@@ -252,6 +236,6 @@ export const useEnergyPredictions = (timeRange: string, periods: number = 4) => 
       return response.data;
     },
     enabled: !!user?.id,
-    staleTime: 300000, // 5 minutes
+    staleTime: 300000, 
   });
 };

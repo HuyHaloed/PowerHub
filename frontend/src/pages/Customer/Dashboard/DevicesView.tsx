@@ -34,7 +34,6 @@ export default function DevicesView() {
     },
   });
 
-  // Áp dụng bộ lọc
   useEffect(() => {
     let result = [...allDevices];
     if (activeFilter !== "all") {

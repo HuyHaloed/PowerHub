@@ -12,38 +12,14 @@ import {
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from 'react-toastify';
 import authorizedAxiosInstance from '@/lib/axios';
 import { useDeviceControl } from '@/hooks/useDeviceAPI';
-
-interface Message {
-  id: string;
-  sender: 'user' | 'ai';
-  text: string;
-  timestamp: Date;
-}
-
-interface CommandPayload {
-  status: string;
-  payload: {
-    method: string;
-    params: {
-      [key: string]: boolean;
-    };
-  } | null;
-}
-
-interface ChatResponse {
-  response: string;
-  sessionId: string;
-  isCommand: boolean;
-  commandPayload?: CommandPayload;
-}
+import {Message, CommandPayload, ChatResponse} from '@/types/AI';
 
 const VoiceAIChat: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -61,21 +37,15 @@ const VoiceAIChat: React.FC = () => {
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { toggleDevice } = useDeviceControl();
-
-  // Get a unique session ID when component mounts
   useEffect(() => {
     setSessionId(generateSessionId());
     initializeSpeechRecognition();
   }, []);
-
-  // Scroll to bottom when messages change
   useEffect(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
   }, [messages]);
-
-  // Initialize speech recognition
   const initializeSpeechRecognition = () => {
     if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -106,8 +76,6 @@ const VoiceAIChat: React.FC = () => {
       toast.error('Trình duyệt của bạn không hỗ trợ nhận diện giọng nói');
     }
   };
-
-  // Generate a unique session ID
   const generateSessionId = (): string => {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
       const r = Math.random() * 16 | 0;
@@ -115,8 +83,6 @@ const VoiceAIChat: React.FC = () => {
       return v.toString(16);
     });
   };
-
-  // Handle toggling speech recognition
   const toggleSpeechRecognition = () => {
     if (isListening) {
       stopListening();
@@ -124,28 +90,20 @@ const VoiceAIChat: React.FC = () => {
       startListening();
     }
   };
-
-  // Start listening for speech
   const startListening = () => {
     if (recognition) {
       setIsListening(true);
       recognition.start();
     }
   };
-
-  // Stop listening for speech
   const stopListening = () => {
     if (recognition) {
       recognition.stop();
       setIsListening(false);
     }
   };
-
-  // Handle sending a message (either typed or from speech recognition)
   const handleSendMessage = async (text: string = inputText) => {
     if (!text.trim()) return;
-    
-    // Add user message to UI
     const userMessage: Message = {
       id: Math.random().toString(36).substring(2, 11),
       sender: 'user',
@@ -158,7 +116,6 @@ const VoiceAIChat: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // Send message to backend
       const response = await authorizedAxiosInstance.post<ChatResponse>(
         '/voice-ai/chat',
         {
@@ -166,13 +123,9 @@ const VoiceAIChat: React.FC = () => {
           sessionId: sessionId
         }
       );
-
-      // Handle command if the response is a command
       if (response.data.isCommand && response.data.commandPayload) {
         await handleCommand(response.data.commandPayload);
       }
-
-      // Add AI response to UI
       const aiMessage: Message = {
         id: Math.random().toString(36).substring(2, 11),
         sender: 'ai',
@@ -181,30 +134,21 @@ const VoiceAIChat: React.FC = () => {
       };
       
       setMessages(prev => [...prev, aiMessage]);
-      
-      // Speak the response if auto-speak is enabled
       if (autoSpeak && !isMuted) {
         speakText(response.data.response);
       }
     } catch (error: any) {
       console.error('Error sending message:', error);
-      
-      // Create a user-friendly error message
       let errorMessage = 'Lỗi khi gửi tin nhắn, vui lòng thử lại';
-      
-      // Show more specific error if available
       if (error.response) {
-        // Server responded with a status outside 2xx range
         errorMessage = `Lỗi máy chủ: ${error.response.status}`;
         if (error.response.data && error.response.data.message) {
           errorMessage = error.response.data.message;
         }
       } else if (error.request) {
-        // Request was made but no response received (network error)
+
         errorMessage = 'Không thể kết nối đến máy chủ, vui lòng kiểm tra kết nối mạng';
       }
-      
-      // Add error message as AI response
       const errorResponseMessage: Message = {
         id: Math.random().toString(36).substring(2, 11),
         sender: 'ai',
@@ -219,7 +163,6 @@ const VoiceAIChat: React.FC = () => {
     }
   };
 
-  // Handle command payloads from the AI
   const handleCommand = async (commandPayload: CommandPayload) => {
     if (commandPayload.status === 'OK' && commandPayload.payload) {
       const { method, params } = commandPayload.payload;
@@ -229,7 +172,7 @@ const VoiceAIChat: React.FC = () => {
         const value = params[device];
         
         try {
-          // Use your existing device control hook
+
           await toggleDevice(device, value ? 'on' : 'off');
           toast.success(`Đã ${value ? 'bật' : 'tắt'} thiết bị ${device}`);
         } catch (err) {
@@ -240,20 +183,17 @@ const VoiceAIChat: React.FC = () => {
     }
   };
 
-  // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     handleSendMessage();
   };
 
-  // Speak text using the Web Speech API
   const speakText = (text: string) => {
     if ('speechSynthesis' in window) {
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'vi-VN';
       utterance.volume = volume;
       
-      // Find a Vietnamese voice if available
       const voices = window.speechSynthesis.getVoices();
       const vietnameseVoice = voices.find(voice => voice.lang.includes('vi'));
       if (vietnameseVoice) {
@@ -264,16 +204,15 @@ const VoiceAIChat: React.FC = () => {
     }
   };
 
-  // Toggle mute
+
   const toggleMute = () => {
     setIsMuted(!isMuted);
   };
 
-  // Add welcome message when chat first opens
   const handleOpenChat = () => {
     setIsOpen(true);
     
-    // Add welcome message if no messages exist
+
     if (messages.length === 0) {
       setMessages([
         {
@@ -285,7 +224,6 @@ const VoiceAIChat: React.FC = () => {
       ]);
     }
     
-    // Focus the input field
     setTimeout(() => {
       if (inputRef.current) {
         inputRef.current.focus();
@@ -293,12 +231,10 @@ const VoiceAIChat: React.FC = () => {
     }, 100);
   };
 
-  // Clear chat history
   const clearChat = () => {
     setMessages([]);
     setSessionId(generateSessionId());
     
-    // Add a new welcome message
     setMessages([
       {
         id: 'welcome-new',
@@ -309,7 +245,6 @@ const VoiceAIChat: React.FC = () => {
     ]);
   };
 
-  // Format timestamp for messages
   const formatTimestamp = (date: Date): string => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };

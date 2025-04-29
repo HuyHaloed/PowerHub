@@ -1,21 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
 import authorizedAxiosInstance from '@/lib/axios';
-import { useAccount } from '@/hooks/useAccount';
+import { UpdateProfileRequest, ChangePasswordRequest } from '@/types/auth';
 
-interface UpdateProfileRequest {
-  name: string;
-  phone?: string;
-  language?: string;
-}
-
-interface ChangePasswordRequest {
-  currentPassword: string;
-  newPassword: string;
-  confirmPassword: string;
-}
-
-// Update Profile Hook
 export const useUpdateProfile = () => {
   const queryClient = useQueryClient();
 
@@ -24,7 +11,7 @@ export const useUpdateProfile = () => {
       authorizedAxiosInstance.put('/auth/profile', data).then(res => res.data),
     onSuccess: () => {
       toast.success('Cập nhật thông tin thành công');
-      queryClient.invalidateQueries({ queryKey: ['account'] }); // Giả sử có hook useAccount
+      queryClient.invalidateQueries({ queryKey: ['account'] }); 
     },
     onError: (error: any) => {
       const errorMessage = error.response?.data?.message || 'Cập nhật thông tin thất bại';
@@ -65,7 +52,6 @@ export const useChangePassword = () => {
   });
 };
 
-// Delete Account Hook
 export const useDeleteAccount = () => {
   return useMutation({
     mutationFn: (password: string) =>

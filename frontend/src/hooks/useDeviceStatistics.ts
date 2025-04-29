@@ -1,19 +1,8 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { DeviceStatistics} from '@/types/device';
 
-interface DeviceTypeDistributionItem {
-  type: string;
-  count: number;
-  percentage: number;
-}
 
-interface DeviceStatistics {
-  totalDevices: number;
-  activeDevices: number;
-  totalEnergyConsumption: number;
-  averageDeviceUptime: number;
-  deviceTypeDistribution: DeviceTypeDistributionItem[];
-}
 
 export function useDeviceStatistics() {
   const [statistics, setStatistics] = useState<DeviceStatistics | null>(null);

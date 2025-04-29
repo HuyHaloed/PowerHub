@@ -84,8 +84,6 @@ namespace MyIoTPlatform.API.Controllers
             { @"lock\s+.*(door|doors)", new CommandInfo("setValue", "door", true) },
             { @"unlock\s+.*(door|doors)", new CommandInfo("setValue", "door", false) }
         };
-        
-        // Basic command patterns for local fallback processing in Vietnamese
         private static readonly Dictionary<string, CommandInfo> _commandPatternsVi = new Dictionary<string, CommandInfo>
         {
             { @"(bật|mở)\s+.*(đèn|ánh sáng)", new CommandInfo("setValue", "light", true) },
@@ -106,8 +104,6 @@ namespace MyIoTPlatform.API.Controllers
             { @"khóa\s+.*(cửa)", new CommandInfo("setValue", "door", true) },
             { @"mở\s+khóa\s+.*(cửa)", new CommandInfo("setValue", "door", false) }
         };
-        
-        // Basic factual knowledge to enable the AI to answer common questions
         private static readonly Dictionary<string, Dictionary<string, string>> _knowledgeBase = new Dictionary<string, Dictionary<string, string>>
         {
             {
@@ -148,10 +144,8 @@ namespace MyIoTPlatform.API.Controllers
             _mongoDbService = mongoDbService;
             _httpClient = new HttpClient();
             
-            // Get AI service URL from configuration (default if not specified)
             _aiServiceUrl = _configuration["AIServices:BaseUrl"] ?? "http://localhost:8000";
             
-            // Enable local fallback by default (can be disabled in config)
             _useLocalFallback = _configuration.GetValue<bool>("AIServices:UseLocalFallback", true);
         }
 
@@ -167,39 +161,31 @@ namespace MyIoTPlatform.API.Controllers
 
                 _logger.LogInformation("Received voice command: {Command}", request.Command);
 
-                // Try to use the Python AI service first
                 try 
                 {
                     if (!_useLocalFallback) 
                     {
-                        // Force use of remote service only if local fallback is disabled
                         var aiResponse = await CallRemoteVoiceInterpreter(request.Command);
                         return Ok(aiResponse);
                     }
                     
-                    // Try to use remote service with a short timeout
-                    var timeoutTask = Task.Delay(3000); // 3 second timeout
+                    var timeoutTask = Task.Delay(3000); 
                     var serviceTask = CallRemoteVoiceInterpreter(request.Command);
                     
                     var completedTask = await Task.WhenAny(serviceTask, timeoutTask);
                     if (completedTask == serviceTask && serviceTask.IsCompletedSuccessfully)
                     {
-                        // Remote service responded in time
                         return Ok(await serviceTask);
                     }
                     
-                    // If we get here, either the timeout occurred or the service task failed
                     _logger.LogWarning("Remote AI service unavailable or timed out, using local fallback for voice interpretation");
                     
-                    // Continue to fallback processing
                 }
                 catch (Exception serviceEx)
                 {
                     _logger.LogWarning(serviceEx, "Error calling remote AI service, using local fallback for voice interpretation");
-                    // Continue to fallback processing
                 }
                 
-                // Local fallback processing for voice commands
                 return Ok(ProcessLocalVoiceCommand(request.Command));
             }
             catch (Exception ex)
@@ -275,45 +261,36 @@ namespace MyIoTPlatform.API.Controllers
                 
                 string sessionId = request.SessionId ?? Guid.NewGuid().ToString();
                 
-                // Store the user message in session history
                 StoreMessage(sessionId, "user", request.Message);
                 
-                // Try to use the Python AI service first
                 try 
                 {
                     if (!_useLocalFallback) 
                     {
-                        // Force use of remote service only if local fallback is disabled
                         var aiResponse = await CallRemoteAIService(request.Message, sessionId);
                         StoreMessage(sessionId, "assistant", aiResponse.Response);
                         return Ok(aiResponse);
                     }
                     
-                    // Try to use remote service with a short timeout
-                    var timeoutTask = Task.Delay(3000); // 3 second timeout
+                    var timeoutTask = Task.Delay(3000); 
                     var serviceTask = CallRemoteAIService(request.Message, sessionId);
                     
                     var completedTask = await Task.WhenAny(serviceTask, timeoutTask);
                     if (completedTask == serviceTask && serviceTask.IsCompletedSuccessfully)
                     {
-                        // Remote service responded in time
                         var response = await serviceTask;
                         StoreMessage(sessionId, "assistant", response.Response);
                         return Ok(response);
                     }
                     
-                    // If we get here, either the timeout occurred or the service task failed
                     _logger.LogWarning("Remote AI service unavailable or timed out, using local fallback");
                     
-                    // Continue to fallback processing
                 }
                 catch (Exception serviceEx)
                 {
                     _logger.LogWarning(serviceEx, "Error calling remote AI service, using local fallback");
-                    // Continue to fallback processing
                 }
                 
-                // Local fallback processing for commands and chat
                 var fallbackResponse = ProcessLocalFallback(request.Message, sessionId);
                 StoreMessage(sessionId, "assistant", fallbackResponse.Response);
                 return Ok(fallbackResponse);
@@ -327,7 +304,6 @@ namespace MyIoTPlatform.API.Controllers
         
         private async Task<AIChatResponse> CallRemoteAIService(string message, string sessionId)
         {
-            // Get conversation history for context
             var history = GetSessionHistory(sessionId);
             
             var aiRequest = new
@@ -358,10 +334,8 @@ namespace MyIoTPlatform.API.Controllers
         
         private AIChatResponse ProcessLocalFallback(string message, string sessionId)
         {
-            // Detect language
             string language = DetectLanguage(message);
             
-            // Check if the message matches a command pattern
             var commandResult = ProcessLocalCommand(message);
             if (commandResult != null)
             {
@@ -382,7 +356,6 @@ namespace MyIoTPlatform.API.Controllers
                 };
             }
             
-            // Check if we can answer from knowledge base
             string knowledgeResponse = CheckKnowledgeBase(message, language);
             if (!string.IsNullOrEmpty(knowledgeResponse))
             {
@@ -394,7 +367,6 @@ namespace MyIoTPlatform.API.Controllers
                 };
             }
             
-            // Check for contextual responses based on chat history
             string contextResponse = GenerateContextualResponse(message, sessionId, language);
             if (!string.IsNullOrEmpty(contextResponse))
             {
@@ -406,7 +378,6 @@ namespace MyIoTPlatform.API.Controllers
                 };
             }
             
-            // Check for predefined responses
             string response = GetLocalChatResponse(message, language);
             
             return new AIChatResponse
@@ -431,10 +402,8 @@ namespace MyIoTPlatform.API.Controllers
                 {
                     var commandInfo = pattern.Value;
                     
-                    // Check if we need to extract a parameter value
                     if (!string.IsNullOrEmpty(commandInfo.ParameterName) && match.Groups.Count > 1)
                     {
-                        // Try to extract a numeric parameter value
                         if (int.TryParse(match.Groups[1].Value, out int paramValue))
                         {
                             return new
@@ -484,10 +453,8 @@ namespace MyIoTPlatform.API.Controllers
         
         private string DetectLanguage(string text)
         {
-            // Simple language detection based on common Vietnamese words and characters
             string lowerText = text.ToLower();
             
-            // Check for Vietnamese specific characters
             if (lowerText.Contains("ă") || lowerText.Contains("â") || lowerText.Contains("đ") || 
                 lowerText.Contains("ê") || lowerText.Contains("ô") || lowerText.Contains("ơ") || 
                 lowerText.Contains("ư") || lowerText.Contains("á") || lowerText.Contains("à") ||
@@ -496,7 +463,6 @@ namespace MyIoTPlatform.API.Controllers
                 return "vi";
             }
             
-            // Check for common Vietnamese words
             string[] viWords = { "xin chào", "cảm ơn", "tạm biệt", "bạn", "tôi", "không", "có", "và", "hoặc", "nhưng" };
             foreach (var word in viWords)
             {
@@ -506,7 +472,6 @@ namespace MyIoTPlatform.API.Controllers
                 }
             }
             
-            // Default to English
             return "en";
         }
         
@@ -544,7 +509,6 @@ namespace MyIoTPlatform.API.Controllers
                 Timestamp = DateTime.UtcNow
             });
             
-            // Keep only the last 10 messages in memory
             if (_sessionHistory[sessionId].Count > 10)
             {
                 _sessionHistory[sessionId].RemoveAt(0);
@@ -571,7 +535,6 @@ namespace MyIoTPlatform.API.Controllers
             
             string lowerMessage = message.ToLower();
             
-            // Check if the user's message appears to be a follow-up question
             bool isFollowUp = language == "vi" 
                 ? (lowerMessage.Contains("tại sao") || lowerMessage.Contains("vì sao") || lowerMessage.Contains("thế nào") || 
                    lowerMessage.Contains("cái đó") || lowerMessage.Contains("điều đó") || lowerMessage.StartsWith("và"))
@@ -583,7 +546,6 @@ namespace MyIoTPlatform.API.Controllers
                 return null;
             }
             
-            // Get the last assistant message
             var lastAssistantMsg = history
                 .Where(m => m.Role == "assistant")
                 .LastOrDefault();
@@ -593,7 +555,6 @@ namespace MyIoTPlatform.API.Controllers
                 return null;
             }
             
-            // Simple contextual response based on the previous assistant message
             if (language == "vi")
             {
                 if (lastAssistantMsg.Content.Contains("nhiệt độ"))
@@ -605,7 +566,7 @@ namespace MyIoTPlatform.API.Controllers
                     return "Hệ thống đèn được kết nối qua mạng Wi-Fi và có thể được điều khiển từ xa. Có thể điều chỉnh độ sáng và màu sắc nếu bạn có đèn thông minh.";
                 }
             }
-            else // English
+            else 
             {
                 if (lastAssistantMsg.Content.Contains("temperature"))
                 {
@@ -628,7 +589,6 @@ namespace MyIoTPlatform.API.Controllers
         public DateTime Timestamp { get; internal set; }
     }
 
-    // Request and response models
     public class VoiceCommandRequest
     {
         public string Command { get; set; }

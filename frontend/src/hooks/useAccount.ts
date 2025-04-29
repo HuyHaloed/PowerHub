@@ -23,22 +23,15 @@ export function useAccount() {
     const fetchUserData = async () => {
       setIsLoading(true);
       try {
-        // Get token from session storage
         const token = sessionStorage.getItem("auth_token");
         
         if (!token) {
           setData(null);
           return;
         }
-        
-        // Two approaches:
-        // 1. Decode the JWT token (if it's structured that way)
         try {
-          // Split token into parts and decode the payload (middle part)
           const payload = token.split('.')[1];
           const decodedPayload = JSON.parse(atob(payload));
-          
-          // Create user from JWT payload
           setData({
             id: decodedPayload.sub || decodedPayload.id,
             name: decodedPayload.name,
@@ -50,7 +43,6 @@ export function useAccount() {
             }
           });
         } catch (decodeError) {
-          // 2. If JWT decoding fails, fetch user data from API
           try {
             const response = await authorizedAxiosInstance.get('/user/profile');
             setData(response.data);

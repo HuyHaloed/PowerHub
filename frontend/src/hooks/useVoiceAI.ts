@@ -1,35 +1,7 @@
 import { useState, useCallback } from 'react';
 import authorizedAxiosInstance from '@/lib/axios';
+import { VoiceCommandResponse, ChatResponse, UseVoiceAIReturn } from '@/types/AI';  
 
-interface CommandPayload {
-  status: string;
-  payload: {
-    method: string;
-    params: {
-      [key: string]: boolean;
-    };
-  } | null;
-}
-
-interface VoiceCommandResponse {
-  status: string;
-  payload: CommandPayload | null;
-  message: string;
-}
-
-interface ChatResponse {
-  response: string;
-  sessionId: string;
-  isCommand: boolean;
-  commandPayload?: CommandPayload;
-}
-
-interface UseVoiceAIReturn {
-  interpretCommand: (command: string) => Promise<VoiceCommandResponse>;
-  sendChatMessage: (message: string, sessionId?: string) => Promise<ChatResponse>;
-  isLoading: boolean;
-  error: Error | null;
-}
 
 const useVoiceAI = (): UseVoiceAIReturn => {
   const [isLoading, setIsLoading] = useState<boolean>(false);

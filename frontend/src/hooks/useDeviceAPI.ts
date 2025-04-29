@@ -1,4 +1,3 @@
-// src/hooks/useDeviceAPI.ts
 import { useState, useEffect, useCallback } from 'react';
 import { Device } from '@/types/dashboard.types';
 import authorizedAxiosInstance from '@/lib/axios';
