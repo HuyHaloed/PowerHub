@@ -9,4 +9,5 @@ scikit-learn
 paho-mqtt
 requests
 fastapi
-uvicorn
+uvicorn[standard]
+asyncio

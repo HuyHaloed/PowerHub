@@ -7,10 +7,6 @@ from fastapi import FastAPI, WebSocket, Request
 from config import USE_AI_PREDICTION, USE_VOICE_INTERPRETER
 from ai_manager import AiManager
 from mqttservice import turn_on_light, turn_off_light, turn_on_fan, turn_off_fan
-USE_AI_PREDICTION = True
-USE_VOICE_INTERPRETER = False
-USE_TRANSPREDICTION = True
-app = FastAPI()
 
 logger = logging.getLogger(__name__)
 INACTIVITY_TIMEOUT_SECONDS = 10
@@ -147,47 +143,51 @@ def execute_payload(payload: dict):
     elif payload.get("sharevalueFan") == False:
         turn_off_fan()
 
-# === API ===
-if USE_AI_PREDICTION:
-    @app.get("/predict")
-    async def predict():
-        temp, humid = ai_manager.make_prediction()
-        return {"predicted_temperature": temp, "predicted_humidity": humid}
+async def create_app() -> FastAPI:
+    #todo
+    app = FastAPI()
+    # === API ===
+    if USE_AI_PREDICTION:
+        @app.get("/predict")
+        async def predict():
+            temp, humid = ai_manager.make_prediction()
+            return {"predicted_temperature": temp, "predicted_humidity": humid}
 
-if USE_VOICE_INTERPRETER:
-    @app.post("/voice")
-    async def voice(cmd: dict):
-        if "text" not in cmd:
-            return {"status": "error", "message": "Missing 'text' field"}
-        text = cmd["text"]
-        status, payload = ai_manager.interpret_text_command(text)
-        if status == "OK" and payload:
-            execute_payload(payload)
-        return {"status": status, "payload": payload}
-
-    @app.websocket("/ws/voice")
-    async def websocket_voice(websocket: WebSocket):
-        await websocket.accept()
-        try:
-            while True:
-                data = await websocket.receive_text()
-                status, payload = ai_manager.interpret_text_command(data)
-                await websocket.send_json({"status": status, "payload": payload})
-
-                if status == "OK" and payload:
-                    execute_payload(payload)
-
-        except Exception:
-            await websocket.close()
-
-@app.post("/telemetry")
-async def telemetry(data: dict):
-    return {"status": "received"}
-
-# === Startup Tasks ===
-@app.on_event("startup")
-async def startup_event():
     if USE_VOICE_INTERPRETER:
-        asyncio.create_task(run_voice_control())
-    elif USE_AI_PREDICTION:
-        asyncio.create_task(run_prediction_only())
+        @app.post("/voice")
+        async def voice(cmd: dict):
+            if "text" not in cmd:
+                return {"status": "error", "message": "Missing 'text' field"}
+            text = cmd["text"]
+            status, payload = ai_manager.interpret_text_command(text)
+            if status == "OK" and payload:
+                execute_payload(payload)
+            return {"status": status, "payload": payload}
+
+        @app.websocket("/ws/voice")
+        async def websocket_voice(websocket: WebSocket):
+            await websocket.accept()
+            try:
+                while True:
+                    data = await websocket.receive_text()
+                    status, payload = ai_manager.interpret_text_command(data)
+                    await websocket.send_json({"status": status, "payload": payload})
+
+                    if status == "OK" and payload:
+                        execute_payload(payload)
+
+            except Exception:
+                await websocket.close()
+
+    @app.post("/telemetry")
+    async def telemetry(data: dict):
+        return {"status": "received"}
+
+    # === Startup Tasks ===
+    @app.on_event("startup")
+    async def startup_event():
+        if USE_VOICE_INTERPRETER:
+            asyncio.create_task(run_voice_control())
+        elif USE_AI_PREDICTION:
+            asyncio.create_task(run_prediction_only())
+    return app

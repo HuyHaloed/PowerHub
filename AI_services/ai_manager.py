@@ -12,9 +12,6 @@ import collections
 import datetime
 import numpy as np
 import uuid
-USE_AI_PREDICTION = True
-USE_VOICE_INTERPRETER = False
-USE_TRANSPREDICTION = True
 
 # Import local modules
 # Ensure these files exist in the same directory or are accessible via PYTHONPATH

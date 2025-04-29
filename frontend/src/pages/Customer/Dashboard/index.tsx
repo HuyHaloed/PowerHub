@@ -12,7 +12,8 @@ import DevicesView from '@/pages/Customer/Dashboard/DevicesView';
 import AnalyticsView from '@/pages/Customer/Dashboard/AnalyticsView';
 import SettingsView from '@/pages/Customer/Dashboard/SettingsView';
 import { Stat, Device } from '@/types/dashboard.types';
-import { TemperatureCard, HumidityCard } from '@/components/DashboardIOT/EnvironmentDataCard';
+import { TemperatureCard, HumidityCard, BrightnessCard } from '@/components/DashboardIOT/EnvironmentDataCard';
+
 
 // Custom Alert Component
 const CustomAlert = ({ 
@@ -75,18 +76,18 @@ export default function Dashboard() {
     if (isDashboardLoading || isQuickStatsLoading) {
       return <div className="p-8 text-center">Đang tải dữ liệu...</div>;
     }
-    
+  
     if (dashboardError || !dashboardData) {
       return (
-        <CustomAlert 
-          title="Lỗi" 
+        <CustomAlert
+          title="Lỗi"
           message="Không thể tải dữ liệu dashboard. Vui lòng thử lại sau."
           severity="error"
         />
       );
     }
-    const unreadAlerts = dashboardData.alerts?.filter(alert => !alert.read) || [];
-    
+    const unreadAlerts = dashboardData.alerts?.filter((alert) => !alert.read) || [];
+  
     return (
       <div className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -99,7 +100,7 @@ export default function Dashboard() {
             <h2 className="text-lg font-medium mb-3">Cảnh báo gần đây</h2>
             <div className="space-y-3">
               {unreadAlerts.map((alert) => (
-                <CustomAlert 
+                <CustomAlert
                   key={alert.id}
                   title={alert.title}
                   message={alert.message}
@@ -109,7 +110,7 @@ export default function Dashboard() {
             </div>
           </div>
         )}
-
+  
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-3">
             <EnergyConsumptionChart />
@@ -117,27 +118,29 @@ export default function Dashboard() {
           <div>
             <UserInfoCard user={dashboardData.user} />
           </div>
-          
           <div className="lg:col-span-2">
             <EnergyDistributionChart />
           </div>
-          
           <div>
             <TemperatureCard />
           </div>
-          
           <div>
             <HumidityCard />
           </div>
-          
+          <div>
+            <BrightnessCard /> {/* Thêm BrightnessCard */}
+          </div>
           <div>
             <h2 className="text-lg font-medium mb-3">Thiết bị đang hoạt động</h2>
             <div className="space-y-4">
               {activeDevicesData && activeDevicesData.length > 0 ? (
                 activeDevicesData.slice(0, 3).map((device: Device) => (
-                  <DeviceStatusCard device={device} onToggle={function (status: 'on' | 'off'): void {
-                    throw new Error('Function not implemented.');
-                  } } />
+                  <DeviceStatusCard
+                    device={device}
+                    onToggle={function (status: 'on' | 'off'): void {
+                      throw new Error('Function not implemented.');
+                    }}
+                  />
                 ))
               ) : (
                 <p className="text-gray-500 text-sm">Không có thiết bị nào đang hoạt động</p>
@@ -147,7 +150,7 @@ export default function Dashboard() {
         </div>
       </div>
     );
-  };  
+  };
 
   return (
     <>

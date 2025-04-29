@@ -100,27 +100,26 @@ export const useEnergyPredictions = (timeRange: string, periods = 7) => {
   const [error, setError] = useState<any>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        const url = `/energy/predictions?timeRange=${timeRange}&periods=${periods}`;
-        const response = await axiosWithAuth().get(url);
-        setData(response.data);
-        setError(null);
-      } catch (err) {
-        console.error('Error fetching energy predictions:', err);
-        setError(err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+      const fetchData = async () => {
+          setIsLoading(true);
+          try {
+              const url = `/energy/predictions?timeRange=${timeRange}&periods=${periods}`;
+              const response = await axiosWithAuth().get(url);
+              setData(response.data);
+              setError(null);
+          } catch (err) {
+              console.error('Error fetching energy predictions:', err);
+              setError(err);
+          } finally {
+              setIsLoading(false);
+          }
+      };
 
-    fetchData();
+      fetchData();
   }, [timeRange, periods]);
 
   return { data, isLoading, error };
 };
-
 export const useEnergyComparison = (timeRange: string, startDate?: string, endDate?: string) => {
   const [data, setData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);

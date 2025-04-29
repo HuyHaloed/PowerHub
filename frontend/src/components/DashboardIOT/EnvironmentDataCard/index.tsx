@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Thermometer, Droplets, MapPin } from 'lucide-react';
+import { Thermometer, Droplets, MapPin, Sun } from 'lucide-react';
 import { useAdafruitData } from '@/hooks/useEnvironmentData';
 
 const EnvironmentDataCard = ({ 
@@ -104,6 +104,26 @@ export const HumidityCard = () => {
           value={data.humidity !== undefined ? data.humidity : null} 
           unit="%" 
           icon={<Droplets className="h-6 w-6" />}
+          isLoading={isLoading}
+          lastUpdated={data.lastUpdated}
+          location="Phòng khách"
+        />
+      </div>
+    </div>
+  );
+};
+
+export const BrightnessCard = () => {
+  const { data, isLoading, error } = useAdafruitData();
+
+  return (
+    <div className="h-full flex flex-col">
+      <div className="flex-grow">
+        <EnvironmentDataCard
+          title="Độ sáng"
+          value={data.brightness !== undefined ? data.brightness : null}
+          unit="lux"
+          icon={<Sun className="h-6 w-6" />}
           isLoading={isLoading}
           lastUpdated={data.lastUpdated}
           location="Phòng khách"
