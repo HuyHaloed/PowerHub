@@ -1,13 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import axios from 'axios';
+import authorizedAxiosInstance from '@/lib/axios';
 import DeviceEnergyChart from '@/components/DashboardIOT/DeviceEnergyChart';
 import { Power, Thermometer, Clock, Settings, Share2, AlertTriangle, Calendar } from 'lucide-react';
 
-// Base API URL
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
-
-// Get auth token from sessionStorage
 const getAuthToken = () => {
   return sessionStorage.getItem('auth_token');
 };
@@ -27,7 +23,7 @@ const DeviceDetail: React.FC = () => {
       setIsLoading(true);
       try {
         const token = getAuthToken();
-        const response = await axios.get(`${API_URL}/devices/${id}`, {
+        const response = await authorizedAxiosInstance.get(`/devices/${id}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -51,8 +47,8 @@ const DeviceDetail: React.FC = () => {
     setIsControlling(true);
     try {
       const token = getAuthToken();
-      const response = await axios.put(
-        `${API_URL}/devices/${id}/control`,
+      const response = await authorizedAxiosInstance.put(
+        `/devices/${id}/control`,
         { status },
         {
           headers: {
@@ -80,8 +76,8 @@ const DeviceDetail: React.FC = () => {
     
     try {
       const token = getAuthToken();
-      await axios.post(
-        `${API_URL}/devices/share`,
+      await authorizedAxiosInstance.post(
+        `/devices/share`,
         {
           deviceId: id,
           emailToShare: shareEmail
@@ -152,7 +148,6 @@ const DeviceDetail: React.FC = () => {
         </div>
       </div>
       
-      {/* Device status card */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <div className="bg-white p-4 rounded-lg shadow-sm">
           <h2 className="text-lg font-medium mb-4">Trạng thái thiết bị</h2>
@@ -194,7 +189,6 @@ const DeviceDetail: React.FC = () => {
           </div>
         </div>
         
-        {/* Device information */}
         <div className="bg-white p-4 rounded-lg shadow-sm">
           <h2 className="text-lg font-medium mb-4">Thông tin thiết bị</h2>
           
@@ -231,7 +225,6 @@ const DeviceDetail: React.FC = () => {
           </div>
         </div>
         
-        {/* Share device */}
         <div className="bg-white p-4 rounded-lg shadow-sm">
           <h2 className="text-lg font-medium mb-4">Chia sẻ thiết bị</h2>
           
@@ -278,11 +271,9 @@ const DeviceDetail: React.FC = () => {
           </div>
         </div>
       </div>
-      
-      {/* Energy consumption chart */}
+
       <DeviceEnergyChart deviceId={id || ''} />
       
-      {/* Device history */}
       <div className="mt-6">
         <h2 className="text-lg font-medium mb-4">Lịch sử hoạt động</h2>
         
@@ -336,8 +327,7 @@ const DeviceDetail: React.FC = () => {
           </div>
         )}
       </div>
-      
-      {/* Installation information */}
+
       <div className="mt-6 bg-white p-4 rounded-lg shadow-sm">
         <div className="flex items-center mb-4">
           <Calendar className="h-5 w-5 text-blue-600 mr-2" />

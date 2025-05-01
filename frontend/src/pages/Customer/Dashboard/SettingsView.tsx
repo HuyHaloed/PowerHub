@@ -10,16 +10,10 @@ export default function SettingsView() {
   const { data: user } = useAccount();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
-
-  // Password change state
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-
-  // Delete account state
   const [deletePassword, setDeletePassword] = useState('');
-
-  // Hooks
   const updateProfileMutation = useUpdateProfile();
   const changePasswordMutation = useChangePassword();
   const deleteAccountMutation = useDeleteAccount();
@@ -59,7 +53,6 @@ export default function SettingsView() {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Personal Information Section */}
       <div className="bg-white shadow rounded-lg p-6">
         <h2 className="text-xl font-semibold mb-4">Thông tin cá nhân</h2>
         <div className="space-y-4">
@@ -87,7 +80,6 @@ export default function SettingsView() {
         </div>
       </div>
 
-      {/* Change Password Section */}
       <div className="bg-white shadow rounded-lg p-6">
         <h2 className="text-xl font-semibold mb-4">Đổi mật khẩu</h2>
         <div className="space-y-4">
@@ -115,7 +107,6 @@ export default function SettingsView() {
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              // placeholder="Nhập lại mật khẩu mới"
             />
           </div>
           <div className="flex justify-end">
@@ -126,7 +117,6 @@ export default function SettingsView() {
         </div>
       </div>
 
-      {/* Delete Account Section */}
       <div className="bg-white shadow rounded-lg p-6 border-red-500 border">
         <h2 className="text-xl font-semibold mb-4 text-red-600">Xóa tài khoản</h2>
         <p className="text-sm text-gray-600 mb-4">

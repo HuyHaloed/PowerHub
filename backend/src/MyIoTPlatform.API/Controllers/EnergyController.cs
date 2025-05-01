@@ -94,9 +94,9 @@ namespace MyIoTPlatform.API.Controllers
             {
                 return Unauthorized(new { message = "User not authenticated" });
             }
-            
+
             var predictions = await _energyService.GetEnergyPredictionsAsync(userId, timeRange, periods);
-            
+
             return Ok(predictions);
         }
 

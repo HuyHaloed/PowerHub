@@ -11,7 +11,6 @@ export interface User {
   preferences?: UserPreferences;
 }
 
-// Các interface khác giữ nguyên
 
 export interface UserSubscription {
   plan: string;
@@ -71,4 +70,16 @@ export interface SignupResponse {
     token: string;
     user: User;
   };
+}
+
+export interface UpdateProfileRequest {
+  name: string;
+  phone?: string;
+  language?: string;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
 }
