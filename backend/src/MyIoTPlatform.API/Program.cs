@@ -111,6 +111,7 @@ builder.Services.AddSingleton<IMqttClientService, AdafruitMqttService>();
 builder.Services.AddHostedService<AdafruitMqttService>();
 
 
+
 // Build app
 var app = builder.Build();
 
@@ -133,14 +134,6 @@ app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-
-
-
-
-
-
-
-
 // Thêm sau các cấu hình dịch vụ và trước app.Run()
 
 // Cấu hình WebSocket
