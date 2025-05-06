@@ -21,6 +21,8 @@ import {
   useEnergyComparison
 } from '@/hooks/useEnergyData';
 
+import PredictionChart from '@/components/DashboardIOT/PredictionChart';
+
 const timeRangeOptions = [
   { id: 'day', label: 'Ngày' },
   { id: 'week', label: 'Tuần' },
@@ -369,6 +371,8 @@ const AnalyticsView: React.FC = () => {
           </p>
         </div>
       </div>
+      <hr className="my-8 border-gray-300" />
+      <PredictionChart />
     </div>
   );
 }
