@@ -17,6 +17,10 @@ using Microsoft.AspNetCore.Authentication.Google;
 using System.Text;
 using MyIoTPlatform.Infrastructure.Communication.Adafruit;
 using System.Net.WebSockets;
+using MQTTnet;
+using MQTTnet.Client;
+using System.Collections.Concurrent;
+using MyIoTPlatform.API.Controllers;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -110,7 +114,47 @@ builder.Services.Configure<AdafruitMqttConfig>(builder.Configuration.GetSection(
 builder.Services.AddSingleton<IMqttClientService, AdafruitMqttService>();
 builder.Services.AddHostedService<AdafruitMqttService>();
 
+// THÊM ĐĂNG KÝ CHO MQTT CLIENT và CÁC DỊCH VỤ SCHEDULER
+// Đăng ký IMqttClient
+builder.Services.AddSingleton<IMqttClient>(sp =>
+{
+    var factory = new MqttFactory();
+    var client = factory.CreateMqttClient();
+    
+    // Tạo options từ cấu hình
+    var mqttConfig = builder.Configuration.GetSection("Mqtt");
+    var options = new MqttClientOptionsBuilder()
+        .WithClientId(mqttConfig["ClientId"] ?? $"api-client-{Guid.NewGuid()}")
+        .WithTcpServer(mqttConfig["Host"] ?? "192.168.1.9", int.Parse(mqttConfig["Port"] ?? "1883"))
+        .Build();
 
+    // Xử lý kết nối lại khi bị ngắt
+    client.DisconnectedAsync += async e =>
+    {
+        Console.WriteLine("MQTT client disconnected. Trying to reconnect in 5 seconds...");
+        await Task.Delay(TimeSpan.FromSeconds(5));
+        try
+        {
+            await client.ConnectAsync(options);
+            Console.WriteLine("MQTT client reconnected.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"MQTT reconnection failed: {ex.Message}");
+        }
+    };
+
+    // Kết nối ngay lập tức (tùy chọn)
+    // client.ConnectAsync(options).GetAwaiter().GetResult();
+    
+    return client;
+});
+
+// Đăng ký ConcurrentDictionary cho lưu trữ lịch trình
+builder.Services.AddSingleton<ConcurrentDictionary<string, DeviceScheduleEntry>>();
+
+// Đăng ký ScheduleBackgroundService
+builder.Services.AddHostedService<ScheduleBackgroundService>();
 
 // Build app
 var app = builder.Build();
@@ -237,4 +281,6 @@ async Task HandleWebSocketConnection(WebSocket webSocket, CancellationToken canc
             await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Server closing connection", CancellationToken.None);
         }
     }
-}app.Run();
+}
+
+app.Run();

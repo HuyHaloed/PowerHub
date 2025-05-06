@@ -13,6 +13,8 @@ namespace MyIoTPlatform.API.Services
     public class MongoDbService
     {
         private readonly IMongoCollection<User> _usersCollection;
+        private readonly IMongoCollection<DeviceSchedule> _schedulesCollection;
+
         private readonly IMongoCollection<Device> _devicesCollection;
         private readonly IMongoCollection<EnergyConsumption> _energyConsumptionCollection;
         private readonly IMongoCollection<Alert> _alertsCollection;
@@ -34,9 +36,60 @@ namespace MyIoTPlatform.API.Services
             _sessionsCollection = mongoDatabase.GetCollection<Session>("Sessions");
             _energyDistributionCollection = mongoDatabase.GetCollection<EnergyDistribution>("EnergyDistribution");
             _environmentDataCollection = mongoDatabase.GetCollection<EnvironmentData>("EnvironmentData");
+            
+            // Thêm collection mới cho lịch trình
+            _schedulesCollection = mongoDatabase.GetCollection<DeviceSchedule>("DeviceSchedules");
         }
 
         #region User Operations
+        public async Task<DeviceSchedule> GetScheduleByDeviceIdAsync(string deviceId)
+        {
+            return await _schedulesCollection.Find(s => s.DeviceId == deviceId).FirstOrDefaultAsync();
+        }
+
+        // Lấy tất cả lịch trình cho một danh sách thiết bị
+        public async Task<List<DeviceSchedule>> GetSchedulesByDeviceIdsAsync(List<string> deviceIds)
+        {
+            var filter = Builders<DeviceSchedule>.Filter.In(s => s.DeviceId, deviceIds);
+            return await _schedulesCollection.Find(filter).ToListAsync();
+        }
+
+        // Lấy tất cả lịch trình đang hoạt động
+        public async Task<List<DeviceSchedule>> GetAllActiveSchedulesAsync()
+        {
+            return await _schedulesCollection.Find(s => s.IsActive).ToListAsync();
+        }
+
+        // Tạo lịch trình mới
+        public async Task CreateScheduleAsync(DeviceSchedule schedule)
+        {
+            await _schedulesCollection.InsertOneAsync(schedule);
+        }
+
+        // Cập nhật lịch trình
+        public async Task UpdateScheduleAsync(string id, DeviceSchedule updatedSchedule)
+        {
+            await _schedulesCollection.ReplaceOneAsync(s => s.Id == id, updatedSchedule);
+        }
+
+        // Xóa lịch trình
+        public async Task<bool> DeleteScheduleAsync(string deviceId)
+        {
+            var result = await _schedulesCollection.DeleteOneAsync(s => s.DeviceId == deviceId);
+            return result.DeletedCount > 0;
+        }
+
+        // Cập nhật trạng thái kích hoạt của lịch trình
+        public async Task<bool> UpdateScheduleActiveStatusAsync(string deviceId, bool isActive)
+        {
+            var filter = Builders<DeviceSchedule>.Filter.Eq(s => s.DeviceId, deviceId);
+            var update = Builders<DeviceSchedule>.Update
+                .Set(s => s.IsActive, isActive)
+                .Set(s => s.UpdatedAt, DateTime.UtcNow);
+                
+            var result = await _schedulesCollection.UpdateOneAsync(filter, update);
+            return result.ModifiedCount > 0;
+        }
 
         public async Task<User> GetUserByIdAsync(string id)
         {
@@ -708,6 +761,5 @@ namespace MyIoTPlatform.API.Services
         }
         
     }
-
     
 }

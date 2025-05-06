@@ -173,7 +173,8 @@ def generate_current_weather() -> WeatherData:
         humidity=random.uniform(50, 70),
         pressure=random.uniform(1005, 1015),
         windSpeed=random.uniform(5, 20),
-        light=random.uniform(30, 80)
+        light=random.uniform(30, 80),
+        comfortScore=random.uniform(0, 50)
     )
 
     current_data.comfortScore = predict_comfort_score_from_model(

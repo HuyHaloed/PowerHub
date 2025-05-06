@@ -29,18 +29,39 @@ interface BackendDeviceSchedule {
 	deviceId?: string | null;
 	onTime: string;
 	offTime: string;
+	daysOfWeek?: number[]; // Thêm hỗ trợ cho ngày trong tuần
 }
-
 
 interface DeviceSchedulerProps {
 	devices: Device[];
 	onScheduleUpdate?: () => void;
 }
 
+// Ensure the baseURL is set
 if (!authorizedAxiosInstance.defaults.baseURL) {
 	authorizedAxiosInstance.defaults.baseURL = 'http://localhost:5000';
 }
 
+// Day of week mapping
+const dayValueToNumberMap: Record<string, number> = {
+	"monday": 1,
+	"tuesday": 2,
+	"wednesday": 3,
+	"thursday": 4,
+	"friday": 5,
+	"saturday": 6,
+	"sunday": 0
+};
+
+const numberToDayValueMap: Record<number, string> = {
+	1: "monday",
+	2: "tuesday",
+	3: "wednesday",
+	4: "thursday",
+	5: "friday", 
+	6: "saturday",
+	0: "sunday"
+};
 
 export default function DeviceScheduler({ devices, onScheduleUpdate }: DeviceSchedulerProps) {
 	const [date, setDate] = useState<Date | undefined>(new Date());
@@ -75,11 +96,78 @@ export default function DeviceScheduler({ devices, onScheduleUpdate }: DeviceSch
 		}
 
 		try {
+			// Fetch all schedules at once first - THÊM PREFIX 
+			const allSchedulesResponse = await authorizedAxiosInstance.get('/Scheduler');
+			
+			if (allSchedulesResponse.data && Array.isArray(allSchedulesResponse.data)) {
+				const backendSchedules: BackendDeviceSchedule[] = allSchedulesResponse.data;
+				
+				const allSchedules: DeviceScheduleEvent[] = [];
+				
+				for (const backendSchedule of backendSchedules) {
+					const deviceId = backendSchedule.deviceId;
+					if (!deviceId) continue;
+					
+					const device = devices.find(d => d.id === deviceId);
+					if (!device) continue;
+					
+					// Convert days of week from backend format to frontend format
+					const scheduleDays = backendSchedule.daysOfWeek && backendSchedule.daysOfWeek.length > 0
+						? backendSchedule.daysOfWeek.map(day => numberToDayValueMap[day] || "").filter(Boolean)
+						: daysOfWeek.map(d => d.value); // If no days specified, schedule for all days
+					
+					if (backendSchedule.onTime && backendSchedule.onTime !== "00:00:00") {
+						try {
+							const [hours, minutes] = backendSchedule.onTime.split(':').map(Number);
+							allSchedules.push({
+								id: `${deviceId}-on`,
+								deviceId: deviceId,
+								title: `Bật ${device.name}`,
+								time: `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`,
+								days: scheduleDays,
+								action: 'on',
+								active: true,
+							});
+						} catch (e) {
+							console.error(`Error parsing OnTime for device ${deviceId}: ${backendSchedule.onTime}`, e);
+						}
+					}
+					
+					if (backendSchedule.offTime && backendSchedule.offTime !== "00:00:00") {
+						try {
+							const [hours, minutes] = backendSchedule.offTime.split(':').map(Number);
+							allSchedules.push({
+								id: `${deviceId}-off`,
+								deviceId: deviceId,
+								title: `Tắt ${device.name}`,
+								time: `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`,
+								days: scheduleDays,
+								action: 'off',
+								active: true,
+							});
+						} catch (e) {
+							console.error(`Error parsing OffTime for device ${deviceId}: ${backendSchedule.offTime}`, e);
+						}
+					}
+				}
+				
+				setSchedules(allSchedules);
+			}
+		} catch (err: any) {
+			// If the /Scheduler endpoint fails, try individual device fetches as fallback
+			console.warn("Failed to fetch all schedules, falling back to individual device schedule fetching:", err);
+			
 			const allSchedules: DeviceScheduleEvent[] = [];
 			for (const device of devices) {
 				try {
-					const response = await authorizedAxiosInstance.get<BackendDeviceSchedule>(`/api/scheduler/${device.id}`);
+					// THÊM PREFIX 
+					const response = await authorizedAxiosInstance.get<BackendDeviceSchedule>(`/Scheduler/${device.id}`);
 					const backendSchedule = response.data;
+
+					// Default to all days if none specified
+					const scheduleDays = backendSchedule.daysOfWeek && backendSchedule.daysOfWeek.length > 0
+						? backendSchedule.daysOfWeek.map(day => numberToDayValueMap[day] || "").filter(Boolean)
+						: daysOfWeek.map(d => d.value);
 
 					if (backendSchedule.onTime && backendSchedule.onTime !== "00:00:00") {
 						try {
@@ -89,7 +177,7 @@ export default function DeviceScheduler({ devices, onScheduleUpdate }: DeviceSch
 								deviceId: device.id,
 								title: `Bật ${device.name}`,
 								time: `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`,
-								days: daysOfWeek.map(d => d.value),
+								days: scheduleDays,
 								action: 'on',
 								active: true,
 							});
@@ -97,6 +185,7 @@ export default function DeviceScheduler({ devices, onScheduleUpdate }: DeviceSch
 							console.error(`Error parsing OnTime for device ${device.id}: ${backendSchedule.onTime}`, e);
 						}
 					}
+					
 					if (backendSchedule.offTime && backendSchedule.offTime !== "00:00:00") {
 						try {
 							const [hours, minutes] = backendSchedule.offTime.split(':').map(Number);
@@ -105,7 +194,7 @@ export default function DeviceScheduler({ devices, onScheduleUpdate }: DeviceSch
 								deviceId: device.id,
 								title: `Tắt ${device.name}`,
 								time: `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`,
-								days: daysOfWeek.map(d => d.value),
+								days: scheduleDays,
 								action: 'off',
 								active: true,
 							});
@@ -113,7 +202,6 @@ export default function DeviceScheduler({ devices, onScheduleUpdate }: DeviceSch
 							console.error(`Error parsing OffTime for device ${device.id}: ${backendSchedule.offTime}`, e);
 						}
 					}
-
 				} catch (error: any) {
 					if (error.response && error.response.status === 404) {
 						console.log(`No schedule found for device ${device.id}`);
@@ -122,11 +210,8 @@ export default function DeviceScheduler({ devices, onScheduleUpdate }: DeviceSch
 					}
 				}
 			}
+			
 			setSchedules(allSchedules);
-
-		} catch (err) {
-			console.error("Không thể lấy danh sách lịch:", err);
-			toast.error("Không thể lấy danh sách lịch.");
 		}
 	};
 
@@ -137,17 +222,9 @@ export default function DeviceScheduler({ devices, onScheduleUpdate }: DeviceSch
 	const getSchedulesForDate = () => {
 		return schedules.filter(schedule => {
 			if (!date) return false;
-			const dayIndex = date.getDay();
-			const dayMap: Record<number, string> = {
-				0: "sunday",
-				1: "monday",
-				2: "tuesday",
-				3: "wednesday",
-				4: "thursday",
-				5: "friday",
-				6: "saturday"
-			};
-			return schedule.days.includes(dayMap[dayIndex]);
+			const dayIndex = date.getDay(); // 0 for Sunday, 1 for Monday, etc.
+			const dayValue = numberToDayValueMap[dayIndex];
+			return schedule.days.includes(dayValue);
 		});
 	};
 
@@ -161,15 +238,30 @@ export default function DeviceScheduler({ devices, onScheduleUpdate }: DeviceSch
 			const [hours, minutes] = newSchedule.time.split(':').map(Number);
 			const timeSpanString = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`;
 
-			const payload: Partial<BackendDeviceSchedule> = {};
-			if (newSchedule.action === 'on') {
-				payload.onTime = timeSpanString;
-			} else {
-				payload.offTime = timeSpanString;
-			}
+			// Convert selected days to DaysOfWeek numbers for the backend
+			const dayNumbers = newSchedule.days.map(day => dayValueToNumberMap[day]).filter(day => day !== undefined);
 
-			// GỌI ĐÚNG API BACKEND: /api/scheduler/{selectedDevice}
-			const response = await authorizedAxiosInstance.post<BackendDeviceSchedule>(`/api/scheduler/${selectedDevice}`, payload);
+			// Prepare the payload based on whether we're setting an ON or OFF schedule
+			const payload: BackendDeviceSchedule = newSchedule.action === 'on' 
+				? {
+					onTime: timeSpanString,
+					offTime: "00:00:00", // Provide a default for offTime
+					daysOfWeek: dayNumbers
+				}
+				: {
+					onTime: "00:00:00", // Provide a default for onTime
+					offTime: timeSpanString,
+					daysOfWeek: dayNumbers
+				};
+
+			// THÊM PREFIX  và sử dụng đúng casing
+			console.log("Sending request to:", `/Scheduler/${selectedDevice}`);
+			console.log("Payload:", JSON.stringify(payload));
+			
+			const response = await authorizedAxiosInstance.post<BackendDeviceSchedule>(
+				`/Scheduler/${selectedDevice}`, 
+				payload
+			);
 
 			await fetchSchedules();
 
@@ -181,8 +273,8 @@ export default function DeviceScheduler({ devices, onScheduleUpdate }: DeviceSch
 				onScheduleUpdate();
 			}
 		} catch (err) {
+			console.error("Error adding schedule:", err);
 			toast.error("Không thể thêm/cập nhật lịch: " + (err as Error).message);
-			console.error(err);
 		}
 	};
 
@@ -194,8 +286,8 @@ export default function DeviceScheduler({ devices, onScheduleUpdate }: DeviceSch
 				return;
 			}
 
-			// GỌI ĐÚNG API BACKEND: /api/scheduler/{deviceId}
-			await authorizedAxiosInstance.delete(`/api/scheduler/${scheduleToDelete.deviceId}`);
+			// THÊM PREFIX 
+			await authorizedAxiosInstance.delete(`/Scheduler/${scheduleToDelete.deviceId}`);
 
 			await fetchSchedules();
 
@@ -205,8 +297,8 @@ export default function DeviceScheduler({ devices, onScheduleUpdate }: DeviceSch
 				onScheduleUpdate();
 			}
 		} catch (err) {
+			console.error("Error deleting schedule:", err);
 			toast.error("Không thể xóa lịch: " + (err as Error).message);
-			console.error(err);
 		}
 	};
 
@@ -217,7 +309,6 @@ export default function DeviceScheduler({ devices, onScheduleUpdate }: DeviceSch
 
 		toast.success(`Đã ${!currentActive ? 'kích hoạt' : 'vô hiệu hóa'} lịch (chỉ trên giao diện)!`);
 	};
-
 
 	const resetNewScheduleForm = () => {
 		setSelectedDevice("");

@@ -474,4 +474,34 @@ namespace MyIoTPlatform.API.Models
         public string Location { get; set; } = "Phòng khách";
     }
     #endregion
+
+    public class DeviceSchedule
+    {
+        [BsonId]
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string Id { get; set; }
+        
+        public string DeviceId { get; set; }
+        
+        public string UserId { get; set; }
+        
+        public string OnTime { get; set; } // format "HH:mm:ss"
+        
+        public string OffTime { get; set; } // format "HH:mm:ss"
+        
+        // Các ngày trong tuần mà lịch trình hoạt động (0 = Chủ nhật, 1 = Thứ 2, 2 = Thứ 3, ...)
+        public List<int> DaysOfWeek { get; set; } = new List<int>();
+        
+        // Tên Feed của Adafruit cho thiết bị này
+        public string AdafruitFeed { get; set; }
+        
+        // Trạng thái kích hoạt
+        public bool IsActive { get; set; } = true;
+        
+        // Thời gian tạo
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        
+        // Thời gian cập nhật
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    }
 }
