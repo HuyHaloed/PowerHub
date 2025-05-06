@@ -29,7 +29,7 @@ namespace MyIoTPlatform.API.Controllers
             _mqttClient = factory.CreateMqttClient();
 
             _mqttOptions = new MqttClientOptionsBuilder()
-                .WithClientId("api-scheduler-controller")
+                .WithClientId("api-controller")
                 .WithTcpServer("192.168.1.9", 1883)
                 .WithCleanSession()
                 .Build();
