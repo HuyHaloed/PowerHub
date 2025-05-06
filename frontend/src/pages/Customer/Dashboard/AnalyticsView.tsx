@@ -372,7 +372,10 @@ const AnalyticsView: React.FC = () => {
         </div>
       </div>
       <hr className="my-8 border-gray-300" />
-      <PredictionChart />
+      <div className="p-6">
+      <PredictionChart
+      />
+    </div>
     </div>
   );
 }

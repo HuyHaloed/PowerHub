@@ -1,266 +1,350 @@
 import time
 import os
 import logging
+from datetime import date, timedelta
+from fastapi import FastAPI, Query, HTTPException, Request, Depends
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field
+from typing import List, Optional, Dict, Any, Callable
+import random
 import pickle
 import pandas as pd
 
-from fastapi import FastAPI, HTTPException, Query
-from fastapi.middleware.cors import CORSMiddleware
-import uvicorn
-from datetime import date, timedelta
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 
+# Cấu hình limiter
+limiter = Limiter(key_func=get_remote_address)
+
+app = FastAPI()
+app.state.limiter = limiter
+app.add_middleware(SlowAPIMiddleware)
+
+# Cấu hình logger
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def load_model(model_path):
-    try:
-        if not os.path.exists(model_path):
-             logger.error(f"Model file not found at: {model_path}")
-             return None
-        with open(model_path, 'rb') as f:
-            model = pickle.load(f)
-        logger.info(f"Model loaded successfully from {model_path}")
-        return model
-    except Exception as e:
-        logger.error(f"Error loading model from {model_path}: {e}")
-        return None
+# Xử lý lỗi khi vượt quá giới hạn truy cập
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
+    return JSONResponse(
+        status_code=429,
+        content={
+            "detail": "Rate limit exceeded. Try again later.",
+            "retry-after": 10  # Seconds to wait before retry
+        },
+        headers={"Retry-After": "10"}
+    )
 
-MODEL_DIR = os.path.join(os.path.dirname(__file__), 'model')
-WEATHER_MODEL_PATH = os.path.join(MODEL_DIR, 'weather_model.pkl')
-COMFORT_MODEL_PATH = os.path.join(MODEL_DIR, 'comfort_model.pkl')
-
-WEATHER_MODEL = load_model(WEATHER_MODEL_PATH)
-COMFORT_MODEL = load_model(COMFORT_MODEL_PATH)
-
-try:
-    from comfort_prediction.prediction import calculate_comfort as calculate_comfort_formula
-    logger.info("Imported calculate_comfort formula.")
-except ImportError:
-    logger.warning("Could not import calculate_comfort formula. Check path or define it.")
-    calculate_comfort_formula = None
-
-def get_weather_forecast_data(days: int):
-    logger.info(f"Generating weather forecast for {days} days using model...")
-    forecast_list = []
-    today = date.today()
-
-    if WEATHER_MODEL is None:
-        logger.error("Weather model not loaded. Cannot generate forecast.")
-        for i in range(days):
-             future_date = today + timedelta(days=i)
-             temp = 25 + i*0.5 + (time.time() % 5 - 2.5)
-             humidity = 50 + i*1 + (time.time() % 10 - 5)
-             pressure = 1010 + i*0.1 + (time.time() % 2 - 1)
-             wind_speed = 10 + i*0.2 + (time.time() % 3 - 1.5)
-             forecast_list.append({
-                "date": future_date.strftime("%Y-%m-%d"),
-                "temperature": round(temp, 1),
-                "humidity": round(humidity, 1),
-                "pressure": round(pressure, 1),
-                "windSpeed": round(wind_speed, 1),
-             })
-        return forecast_list
-
-    base_humidity = 60
-    base_pressure = 1010
-    base_wind = 15
-    variation_seed = time.time()
-
-    for i in range(days):
-        future_date = today + timedelta(days=i)
-        future_humidity = base_humidity + i * 0.5 + 10 * (i % 7 - 3) / 3
-        future_pressure = base_pressure + i * 0.1 + 5 * (i % 5 - 2) / 2
-        future_wind = base_wind + i * 0.2 + 7 * (i % 6 - 2.5) / 2.5
-
-        future_humidity = max(0, min(100, future_humidity))
-        future_pressure = max(980, min(1050, future_pressure))
-        future_wind = max(0, min(30, future_wind))
-
-        input_data = pd.DataFrame({
-            'Humidity': [future_humidity],
-            'Pressure': [future_pressure],
-            'Wind Speed': [future_wind]
-        })
-
-        predicted_temp = None
-        try:
-            predicted_temp = WEATHER_MODEL.predict(input_data)[0]
-            predicted_temp = round(float(predicted_temp), 1)
-        except Exception as e:
-             logger.error(f"Error predicting weather forecast for day {i} with model: {e}")
-
-        forecast_list.append({
-            "date": future_date.strftime("%Y-%m-%d"),
-            "temperature": predicted_temp,
-            "humidity": round(float(future_humidity), 1),
-            "pressure": round(float(future_pressure), 1),
-            "windSpeed": round(float(future_wind), 1),
-        })
-
-    return [item for item in forecast_list if item['temperature'] is not None]
-
-def get_comfort_forecast_data(days: int):
-    logger.info(f"Generating comfort forecast for {days} days using model/formula...")
-    forecast_list = []
-    today = date.today()
-
-    if COMFORT_MODEL is None and calculate_comfort_formula is None:
-         logger.error("Comfort model not loaded and formula not available. Cannot generate forecast.")
-         return []
-
-    base_temp = 24
-    base_humidity = 55
-    base_light = 60
-    variation_seed = time.time()
-
-    for i in range(days):
-        future_date = today + timedelta(days=i)
-        future_temp = base_temp + i * 0.2 + 3 * (i % 7 - 3) / 3
-        future_humidity = base_humidity + i * 0.3 + 8 * (i % 5 - 2) / 2
-        future_light = base_light + i * 1 + 15 * (i % 6 - 2.5) / 2.5
-
-        future_temp = max(15, min(35, future_temp))
-        future_humidity = max(0, min(100, future_humidity))
-        future_light = max(0, min(100, future_light))
-
-        predicted_comfort_score = None
-
-        if COMFORT_MODEL is not None:
-             try:
-                 input_data = pd.DataFrame({
-                     'Temperature': [future_temp],
-                     'Humidity': [future_humidity],
-                     'Light': [future_light]
-                 })
-                 predicted_comfort_score = COMFORT_MODEL.predict(input_data)[0]
-                 predicted_comfort_score = max(0, min(100, predicted_comfort_score))
-                 predicted_comfort_score = round(float(predicted_comfort_score), 1)
-             except Exception as e:
-                  logger.error(f"Error predicting comfort forecast for day {i} with model: {e}")
-        elif calculate_comfort_formula is not None:
-             try:
-                  predicted_comfort_score = calculate_comfort_formula(future_temp, future_humidity, future_light)
-             except Exception as e:
-                  logger.error(f"Error calculating comfort formula for day {i}: {e}")
-
-        forecast_list.append({
-            "date": future_date.strftime("%Y-%m-%d"),
-            "temperature": round(float(future_temp), 1),
-            "humidity": round(float(future_humidity), 1),
-            "light": round(float(future_light), 1),
-            "comfortScore": predicted_comfort_score,
-        })
-
-    return [item for item in forecast_list if item['comfortScore'] is not None]
-
-def get_current_conditions_data():
-    logger.info("Getting current conditions using model/formula...")
-
-    current_temp = 28 + (time.time() % 5 - 2.5)
-    current_humidity = 60 + (time.time() % 10 - 5)
-    current_pressure = 1012 + (time.time() % 3 - 1.5)
-    current_wind = 15 + (time.time() % 5 - 2.5)
-    current_light = 70 + (time.time() % 20 - 10)
-
-    current_weather_data = {
-        "date": date.today().strftime("%Y-%m-%d"),
-        "temperature": round(float(current_temp), 1),
-        "humidity": round(float(current_humidity), 1),
-        "pressure": round(float(current_pressure), 1),
-        "windSpeed": round(float(current_wind), 1),
-        "light": round(float(current_light), 1),
-    }
-
-    current_comfort_score = None
-
-    if COMFORT_MODEL is not None:
-         try:
-              input_data = pd.DataFrame({
-                  'Temperature': [current_temp],
-                  'Humidity': [current_humidity],
-                  'Light': [current_light]
-              })
-              predicted_comfort_score = COMFORT_MODEL.predict(input_data)[0]
-              predicted_comfort_score = max(0, min(100, predicted_comfort_score))
-              predicted_comfort_score = round(float(predicted_comfort_score), 1)
-         except Exception as e:
-              logger.error(f"Error predicting current comfort with model: {e}")
-    elif calculate_comfort_formula is not None:
-         try:
-             predicted_comfort_score = calculate_comfort_formula(current_temp, current_humidity, current_light)
-         except Exception as e:
-             logger.error(f"Error calculating current comfort with formula: {e}")
-
-    current_weather_data["comfortScore"] = predicted_comfort_score
-
-    return current_weather_data
-
-app = FastAPI(
-    title="PowerHub AI Services API",
-    description="API for Weather and Comfort Predictions",
-    version="0.1.0",
-    docs_url="/docs",
-    redoc_url="/redoc"
-)
-
-origins = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:8001",
-]
-
+# CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=[
+        "http://localhost",
+        "http://localhost:5173",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-@app.get("/api/weather/forecast", summary="Get Weather Forecast")
-async def weather_forecast_api(days: int = Query(7, ge=1, le=14, description="Number of forecast days (1-14)")):
-    logger.info(f"API: Received request for weather forecast for {days} days.")
+# Models
+class WeatherData(BaseModel):
+    date: str
+    temperature: Optional[float]
+    humidity: Optional[float]
+    pressure: Optional[float]
+    windSpeed: Optional[float]
+    light: Optional[float]
+    comfortScore: Optional[float]
+
+class ForecastWeatherData(BaseModel):
+    date: str
+    humidity: Optional[float]
+    pressure: Optional[float]
+    windSpeed: Optional[float]
+    temperature: Optional[float]
+
+class ComfortDataFromAPI(BaseModel):
+    date: str
+    temperature: Optional[float]
+    humidity: Optional[float]
+    light: Optional[float]
+    comfortScore: Optional[float]
+
+# Request bundling model
+class BundledRequest(BaseModel):
+    weather_forecast: Optional[bool] = False
+    comfort_forecast: Optional[bool] = False
+    current_weather: Optional[bool] = False
+    days: Optional[int] = 7
+
+class BundledResponse(BaseModel):
+    weather_forecast: Optional[List[ForecastWeatherData]] = None
+    comfort_forecast: Optional[List[ComfortDataFromAPI]] = None
+    current_weather: Optional[WeatherData] = None
+
+# Cache implementation
+class APICache:
+    def __init__(self, ttl: int = 300):  # Default TTL: 5 minutes
+        self.cache: Dict[str, Dict[str, Any]] = {}
+        self.ttl = ttl
+    
+    def get(self, key: str) -> Any:
+        if key in self.cache:
+            item = self.cache[key]
+            if time.time() < item["expiry"]:
+                return item["data"]
+            else:
+                del self.cache[key]
+        return None
+    
+    def set(self, key: str, data: Any, ttl: Optional[int] = None) -> None:
+        expiry = time.time() + (ttl if ttl is not None else self.ttl)
+        self.cache[key] = {"data": data, "expiry": expiry}
+
+# Initialize cache
+cache = APICache(ttl=300)  # 5 minutes cache for most data
+current_weather_cache = APICache(ttl=60)  # 1 minute cache for current weather
+
+# Load model
+WEATHER_MODEL_PATH = './model/weather_model.pkl'
+COMFORT_MODEL_PATH = './model/comfort_model.pkl'
+weather_model = None
+comfort_model = None
+
+def load_models():
+    global weather_model, comfort_model
     try:
-        forecast_data = get_weather_forecast_data(days)
-        if not forecast_data:
-             raise HTTPException(status_code=404, detail="Weather forecast data not available")
-        return forecast_data
-    except HTTPException:
-        raise
+        if os.path.exists(WEATHER_MODEL_PATH):
+            with open(WEATHER_MODEL_PATH, 'rb') as f:
+                weather_model = pickle.load(f)
+            logger.info(f"Loaded weather model from {WEATHER_MODEL_PATH}")
+        else:
+            logger.warning(f"Weather model not found at {WEATHER_MODEL_PATH}")
+
+        if os.path.exists(COMFORT_MODEL_PATH):
+            with open(COMFORT_MODEL_PATH, 'rb') as f:
+                comfort_model = pickle.load(f)
+            logger.info(f"Loaded comfort model from {COMFORT_MODEL_PATH}")
+        else:
+            logger.warning(f"Comfort model not found at {COMFORT_MODEL_PATH}")
+
     except Exception as e:
-        logger.error(f"API Error getting weather forecast: {e}")
-        raise HTTPException(status_code=500, detail=f"Internal Server Error retrieving weather forecast: {e}")
+        logger.error(f"Error loading models: {e}")
 
-@app.get("/api/comfort/forecast", summary="Get Comfort Forecast")
-async def comfort_forecast_api(days: int = Query(7, ge=1, le=14, description="Number of forecast days (1-14)")):
-    logger.info(f"API: Received request for comfort forecast for {days} days.")
-    try:
-        forecast_data = get_comfort_forecast_data(days)
-        if not forecast_data:
-             raise HTTPException(status_code=404, detail="Comfort forecast data not available")
-        return forecast_data
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"API Error getting comfort forecast: {e}")
-        raise HTTPException(status_code=500, detail=f"Internal Server Error retrieving comfort forecast: {e}")
+# Predict comfort score
+def predict_comfort_score_from_model(temperature: float, humidity: float, light: float) -> Optional[float]:
+    if comfort_model:
+        try:
+            df = pd.DataFrame([[temperature, humidity, light]], columns=['Temperature', 'Humidity', 'Light'])
+            prediction = comfort_model.predict(df)[0]
+            return round(max(0.0, min(100.0, prediction)), 2)
+        except Exception as e:
+            logger.error(f"Comfort model prediction error: {e}")
+            return None
+    return calculate_comfort_fallback(temperature, humidity, light)
 
-@app.get("/api/weather/current", summary="Get Current Conditions")
-async def current_conditions_api():
-    logger.info("API: Received request for current conditions.")
-    try:
-        current_data = get_current_conditions_data()
-        if not current_data or current_data.get("temperature") is None:
-             raise HTTPException(status_code=404, detail="Current conditions data not available")
+# Fallback
+def calculate_comfort_fallback(temperature: float, humidity: float, light: float) -> float:
+    score = 100.0
+    if temperature < 22: score -= 3.0 * (22 - temperature)
+    elif temperature > 25: score -= 3.0 * (temperature - 25)
+    if humidity < 40: score -= 1.5 * (40 - humidity)
+    elif humidity > 60: score -= 1.5 * (humidity - 60)
+    if light < 40: score -= 1.0 * (40 - light)
+    elif light > 70: score -= 1.0 * (light - 70)
+    return round(max(0.0, min(100.0, score)), 2)
 
-        return current_data
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"API Error getting current conditions: {e}")
-        raise HTTPException(status_code=500, detail=f"Internal Server Error retrieving current conditions: {e}")
+# Generate cache key
+def get_cache_key(prefix: str, **kwargs) -> str:
+    sorted_items = sorted(kwargs.items(), key=lambda x: x[0])
+    params = "_".join([f"{k}={v}" for k, v in sorted_items])
+    return f"{prefix}_{params}" if params else prefix
 
+# Helper to generate current weather data
+def generate_current_weather() -> WeatherData:
+    current_data = WeatherData(
+        date=date.today().strftime("%Y-%m-%d"),
+        temperature=random.uniform(25, 32),
+        humidity=random.uniform(50, 70),
+        pressure=random.uniform(1005, 1015),
+        windSpeed=random.uniform(5, 20),
+        light=random.uniform(30, 80)
+    )
+
+    current_data.comfortScore = predict_comfort_score_from_model(
+        current_data.temperature or 0,
+        current_data.humidity or 0,
+        current_data.light or 0
+    )
+    
+    return current_data
+
+# Helper to generate weather forecast
+def generate_weather_forecast(days: int) -> List[ForecastWeatherData]:
+    today = date.today()
+    forecast_list = [
+        ForecastWeatherData(
+            date=(today + timedelta(days=i)).strftime("%Y-%m-%d"),
+            temperature=random.uniform(26, 33),
+            humidity=random.uniform(55, 75),
+            pressure=random.uniform(1000, 1018),
+            windSpeed=random.uniform(8, 25)
+        )
+        for i in range(days)
+    ]
+    return forecast_list
+
+# Helper to generate comfort forecast
+def generate_comfort_forecast(days: int) -> List[ComfortDataFromAPI]:
+    today = date.today()
+    forecast_list = []
+
+    for i in range(days):
+        forecast_date = today + timedelta(days=i)
+        temp = random.uniform(20, 30)
+        hum = random.uniform(40, 80)
+        light = random.uniform(50, 90)
+
+        score = predict_comfort_score_from_model(temp, hum, light)
+        forecast_list.append(ComfortDataFromAPI(
+            date=forecast_date.strftime("%Y-%m-%d"),
+            temperature=temp,
+            humidity=hum,
+            light=light,
+            comfortScore=score
+        ))
+    
+    return forecast_list
+
+# API: Current weather
+@app.get("/api/weather/current", response_model=WeatherData)
+@limiter.limit("10/minute")  # Increased limit for individual endpoints
+async def get_current_weather(request: Request):
+    logger.info("API: Current weather requested.")
+    
+    # Check cache first
+    cache_key = "current_weather"
+    cached_data = current_weather_cache.get(cache_key)
+    
+    if cached_data:
+        logger.info("API: Returning cached current weather.")
+        return cached_data
+    
+    # Generate new data
+    current_data = generate_current_weather()
+    
+    # Cache the result
+    current_weather_cache.set(cache_key, current_data)
+    
+    logger.info(f"API: Returning fresh current weather")
+    return current_data
+
+# API: Forecast weather
+@app.get("/api/weather/forecast", response_model=List[ForecastWeatherData])
+@limiter.limit("10/minute")  # Increased limit for individual endpoints
+async def get_weather_forecast(request: Request, days: int = Query(7, ge=1, le=14)):
+    logger.info(f"API: Forecast weather for {days} days requested.")
+    
+    # Check cache first
+    cache_key = get_cache_key("weather_forecast", days=days)
+    cached_data = cache.get(cache_key)
+    
+    if cached_data:
+        logger.info("API: Returning cached weather forecast.")
+        return cached_data
+    
+    # Generate new forecast
+    forecast_list = generate_weather_forecast(days)
+    
+    # Cache the result
+    cache.set(cache_key, forecast_list)
+    
+    logger.info(f"API: Returning fresh forecast for {days} days.")
+    return forecast_list
+
+# API: Forecast comfort score
+@app.get("/api/comfort/forecast", response_model=List[ComfortDataFromAPI])
+@limiter.limit("10/minute")  # Increased limit for individual endpoints
+async def get_comfort_forecast(request: Request, days: int = Query(7, ge=1, le=14)):
+    logger.info(f"API: Comfort forecast for {days} days requested.")
+    
+    # Check cache first
+    cache_key = get_cache_key("comfort_forecast", days=days)
+    cached_data = cache.get(cache_key)
+    
+    if cached_data:
+        logger.info("API: Returning cached comfort forecast.")
+        return cached_data
+    
+    # Generate new forecast
+    forecast_list = generate_comfort_forecast(days)
+    
+    # Cache the result
+    cache.set(cache_key, forecast_list)
+    
+    logger.info(f"API: Returning fresh comfort forecast.")
+    return forecast_list
+
+# NEW ENDPOINT: Bundled API request
+# This allows the frontend to request multiple data types in a single API call
+@app.post("/api/bundled", response_model=BundledResponse)
+@limiter.limit("15/minute")  # Higher limit for the bundled endpoint
+async def get_bundled_data(request: Request, bundle_request: BundledRequest):
+    logger.info(f"API: Bundled request received: {bundle_request}")
+    response = BundledResponse()
+    
+    # Process each requested data type
+    if bundle_request.current_weather:
+        cache_key = "current_weather"
+        cached_data = current_weather_cache.get(cache_key)
+        
+        if cached_data:
+            response.current_weather = cached_data
+        else:
+            current_data = generate_current_weather()
+            current_weather_cache.set(cache_key, current_data)
+            response.current_weather = current_data
+    
+    if bundle_request.weather_forecast:
+        days = bundle_request.days
+        cache_key = get_cache_key("weather_forecast", days=days)
+        cached_data = cache.get(cache_key)
+        
+        if cached_data:
+            response.weather_forecast = cached_data
+        else:
+            forecast_data = generate_weather_forecast(days)
+            cache.set(cache_key, forecast_data)
+            response.weather_forecast = forecast_data
+    
+    if bundle_request.comfort_forecast:
+        days = bundle_request.days
+        cache_key = get_cache_key("comfort_forecast", days=days)
+        cached_data = cache.get(cache_key)
+        
+        if cached_data:
+            response.comfort_forecast = cached_data
+        else:
+            comfort_data = generate_comfort_forecast(days)
+            cache.set(cache_key, comfort_data)
+            response.comfort_forecast = comfort_data
+    
+    logger.info("API: Returning bundled response")
+    return response
+
+# Health check endpoint
+@app.get("/api/health")
+async def health_check():
+    return {"status": "ok", "timestamp": time.time()}
+
+# Start app
 if __name__ == "__main__":
-    logger.info("Bắt đầu ứng dụng FastAPI...")
+    import uvicorn
+    logger.info("Starting FastAPI app...")
+    load_models()
     uvicorn.run(app, host="0.0.0.0", port=8001)
-    logger.info("Ứng dụng FastAPI đã dừng.")

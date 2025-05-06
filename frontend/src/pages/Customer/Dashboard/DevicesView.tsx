@@ -11,7 +11,8 @@ import { toast } from 'react-toastify';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import authorizedAxiosInstance from '@/lib/axios';
 import { ShareDeviceModal } from '@/components/DashboardIOT/ShareDeviceModal';
-import VoiceMicro from '@/components/DashboardIOT/VoiceMicro'; 
+import VoiceMicro from '@/components/DashboardIOT/VoiceMicro';
+import DeviceScheduler from '@/components/DashboardIOT/DeviceScheduler'; 
 
 export default function DevicesView() {
   const { devices: allDevices, isLoading, error, fetchDevices } = useDevices();
@@ -408,6 +409,10 @@ export default function DevicesView() {
           </CardContent>
         </Card>
       )}
+      <div className="mt-6">
+        <h2 className="text-lg font-medium mb-4">Lịch trình thiết bị</h2>
+      <DeviceScheduler devices={filteredDevices} />
+      </div>
     </div>
   );
 }
