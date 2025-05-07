@@ -1,4 +1,3 @@
-
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Concurrent;
 using System.Net.Http;
@@ -66,6 +65,117 @@ namespace MyIoTPlatform.API.Controllers
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             httpClient.DefaultRequestHeaders.Add("X-AIO-Key", _adafruitOptions.IoKey);
             return httpClient;
+        }
+
+        // Helper method to schedule device events
+        private void ScheduleDeviceEvents(string deviceId, DeviceScheduleEntry schedule, 
+            TimeSpan timeUntilOn, TimeSpan timeUntilOff, 
+            DateTime onTime, DateTime offTime)
+        {
+            var device = _mongoDbService.GetDeviceByIdAsync(deviceId).GetAwaiter().GetResult();
+            if (device == null) return;
+
+            // Schedule the ON event
+            _ = Task.Run(async () => 
+            {
+                try
+                {
+                    await Task.Delay(timeUntilOn);
+                    
+                    // Check if this is still the active schedule before executing
+                    if (_schedules.TryGetValue(deviceId, out var currentSchedule) && 
+                        currentSchedule.OnTime.Equals(schedule.OnTime) && 
+                        currentSchedule.OffTime.Equals(schedule.OffTime))
+                    {
+                        string feedName = device.Name.ToLower().Replace(" ", "_");
+                        _logger.LogInformation($"Executing scheduled ON for device '{device.Name}' on feed '{feedName}'");
+                        
+                        // Use MQTT client service
+                        await _mqttClientService.PublishAsync(feedName, "ON", true, 1);
+                        
+                        // Update device status in database
+                        await _mongoDbService.ControlDeviceAsync(deviceId, "ON");
+                        
+                        _logger.LogInformation($"Successfully turned ON device '{device.Name}' according to schedule");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"Error executing scheduled ON for device '{device.Name}'");
+                }
+            });
+            
+            // Schedule the OFF event
+            _ = Task.Run(async () => 
+            {
+                try
+                {
+                    await Task.Delay(timeUntilOff);
+                    
+                    // Check if this is still the active schedule before executing
+                    if (_schedules.TryGetValue(deviceId, out var currentSchedule) && 
+                        currentSchedule.OnTime.Equals(schedule.OnTime) && 
+                        currentSchedule.OffTime.Equals(schedule.OffTime))
+                    {
+                        string feedName = device.Name.ToLower().Replace(" ", "_");
+                        _logger.LogInformation($"Executing scheduled OFF for device '{device.Name}' on feed '{feedName}'");
+                        
+                        // Use MQTT client service
+                        await _mqttClientService.PublishAsync(feedName, "OFF", true, 1);
+                        
+                        // Update device status in database
+                        await _mongoDbService.ControlDeviceAsync(deviceId, "OFF");
+                        
+                        _logger.LogInformation($"Successfully turned OFF device '{device.Name}' according to schedule");
+                        
+                        // If days of week is specified, reschedule for the next occurrence
+                        if (schedule.DaysOfWeek.Count > 0)
+                        {
+                            // Reschedule for next week
+                            var nextOnTime = onTime.AddDays(7);
+                            var nextOffTime = offTime.AddDays(7);
+                            
+                            _logger.LogInformation($"Rescheduling device '{device.Name}': Next ON at {nextOnTime}, OFF at {nextOffTime}");
+                            
+                            // Create a new schedule for the next occurrence
+                            var newSchedule = new DeviceScheduleEntry
+                            {
+                                DeviceId = deviceId,
+                                DeviceName = device.Name,
+                                OnTime = schedule.OnTime,
+                                OffTime = schedule.OffTime,
+                                DaysOfWeek = schedule.DaysOfWeek
+                            };
+                            
+                            // Calculate new time delays for the next week
+                            var now = DateTime.Now;
+                            var timeUntilNextOn = nextOnTime - now;
+                            var timeUntilNextOff = nextOffTime - now;
+                            
+                            // Recursively schedule the next week's events
+                            ScheduleDeviceEvents(deviceId, newSchedule, timeUntilNextOn, timeUntilNextOff, nextOnTime, nextOffTime);
+                            
+                            // Update the schedule in memory
+                            _schedules.AddOrUpdate(deviceId, newSchedule, (key, oldValue) => newSchedule);
+                            
+                            // Update database schedule (in a fire-and-forget manner)
+                            _ = Task.Run(async () =>
+                            {
+                                var dbSchedule = await _mongoDbService.GetScheduleByDeviceIdAsync(deviceId);
+                                if (dbSchedule != null)
+                                {
+                                    dbSchedule.UpdatedAt = DateTime.UtcNow;
+                                    await _mongoDbService.UpdateScheduleAsync(dbSchedule.Id, dbSchedule);
+                                }
+                            });
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"Error executing scheduled OFF for device '{device.Name}'");
+                }
+            });
         }
 
         [HttpPost("{deviceId}")]
@@ -147,110 +257,8 @@ namespace MyIoTPlatform.API.Controllers
 
                 _logger.LogInformation($"Device '{device.Name}': Scheduled ON in {timeUntilOn.TotalMinutes:0.0} minutes, OFF in {timeUntilOff.TotalMinutes:0.0} minutes");
 
-                // Set up timers for ON and OFF events (immediate scheduling)
-                // Note: In a production app, these would be persisted and recovered on service restart
-                
-                // Schedule the ON event
-                _ = Task.Run(async () => 
-                {
-                    try
-                    {
-                        await Task.Delay(timeUntilOn);
-                        
-                        // Check if this is still the active schedule before executing
-                        if (_schedules.TryGetValue(deviceId, out var currentSchedule) && 
-                            currentSchedule.OnTime.Equals(schedule.OnTime) && 
-                            currentSchedule.OffTime.Equals(schedule.OffTime))
-                        {
-                            string feedName = device.Name.ToLower().Replace(" ", "_");
-                            _logger.LogInformation($"Executing scheduled ON for device '{device.Name}' on feed '{feedName}'");
-                            
-                            // Use MQTT client service instead of HTTP
-                            await _mqttClientService.PublishAsync(feedName, "ON", true, 1);
-                            
-                            // Also update device status in database
-                            await _mongoDbService.ControlDeviceAsync(deviceId, "ON");
-                            
-                            _logger.LogInformation($"Successfully turned ON device '{device.Name}' according to schedule");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, $"Error executing scheduled ON for device '{device.Name}'");
-                    }
-                });
-                
-                // Schedule the OFF event
-                _ = Task.Run(async () => 
-                {
-                    try
-                    {
-                        await Task.Delay(timeUntilOff);
-                        
-                        // Check if this is still the active schedule before executing
-                        if (_schedules.TryGetValue(deviceId, out var currentSchedule) && 
-                            currentSchedule.OnTime.Equals(schedule.OnTime) && 
-                            currentSchedule.OffTime.Equals(schedule.OffTime))
-                        {
-                            string feedName = device.Name.ToLower().Replace(" ", "_");
-                            _logger.LogInformation($"Executing scheduled OFF for device '{device.Name}' on feed '{feedName}'");
-                            
-                            // Use MQTT client service instead of HTTP
-                            await _mqttClientService.PublishAsync(feedName, "OFF", true, 1);
-                            
-                            // Also update device status in database
-                            await _mongoDbService.ControlDeviceAsync(deviceId, "OFF");
-                            
-                            _logger.LogInformation($"Successfully turned OFF device '{device.Name}' according to schedule");
-                            
-                            // If days of week is specified, reschedule for the next occurrence
-                            if (schedule.DaysOfWeek.Count > 0)
-                            {
-                                // Reschedule for next week
-                                var nextOnTime = onTime.AddDays(7);
-                                var nextOffTime = offTime.AddDays(7);
-                                
-                                _logger.LogInformation($"Rescheduling device '{device.Name}': Next ON at {nextOnTime}, OFF at {nextOffTime}");
-                                
-                                // Create a new schedule for the next occurrence
-                                var newSchedule = new DeviceScheduleEntry
-                                {
-                                    DeviceId = deviceId,
-                                    DeviceName = device.Name,
-                                    OnTime = schedule.OnTime,
-                                    OffTime = schedule.OffTime,
-                                    DaysOfWeek = schedule.DaysOfWeek
-                                };
-                                
-                                // Update the schedule in memory
-                                _schedules.AddOrUpdate(deviceId, newSchedule, (key, oldValue) => newSchedule);
-                                
-                                // Recursively call this method to schedule the next occurrence
-                                var requestUri = $"{Request.Scheme}://{Request.Host}/api/scheduler/{deviceId}";
-                                using (var httpClient = new HttpClient())
-                                {
-                                    // Add authorization header if needed
-                                    var authHeader = Request.Headers["Authorization"].FirstOrDefault();
-                                    if (!string.IsNullOrEmpty(authHeader))
-                                    {
-                                        httpClient.DefaultRequestHeaders.Add("Authorization", authHeader);
-                                    }
-                                    
-                                    var content = new StringContent(
-                                        JsonSerializer.Serialize(newSchedule),
-                                        Encoding.UTF8,
-                                        "application/json");
-                                    
-                                    await httpClient.PostAsync(requestUri, content);
-                                }
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, $"Error executing scheduled OFF for device '{device.Name}'");
-                    }
-                });
+                // Use the helper method to schedule the events
+                ScheduleDeviceEvents(deviceId, schedule, timeUntilOn, timeUntilOff, onTime, offTime);
 
                 // Also save schedule to database for persistence across restarts
                 // Create a database schedule object with a different name to avoid conflicts

@@ -25,6 +25,7 @@ interface DeviceScheduleEvent {
 }
 
 interface BackendDeviceSchedule {
+  id?: string;
   deviceId?: string | null;
   onTime: string;
   offTime: string;
@@ -51,14 +52,15 @@ const dayValueToNumberMap: Record<string, number> = {
 };
 
 const numberToDayValueMap: Record<number, string> = {
-	1: "monday",
-	2: "tuesday",
-	3: "wednesday",
-	4: "thursday",
-	5: "friday",
-	6: "saturday",
-	0: "sunday"
-  };
+  1: "monday",
+  2: "tuesday",
+  3: "wednesday",
+  4: "thursday",
+  5: "friday",
+  6: "saturday",
+  0: "sunday"
+};
+
 // Chuyển đổi từ 24 giờ sang 12 giờ với AM/PM
 const formatTimeTo12Hour = (time: string): string => {
   const [hours, minutes] = time.split(':').map(Number);
@@ -74,12 +76,13 @@ export default function DeviceScheduler({ devices, onScheduleUpdate }: DeviceSch
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
   const [schedules, setSchedules] = useState<DeviceScheduleEvent[]>([]);
-  const [newSchedule, setNewSchedule] = useState<Omit<DeviceScheduleEvent, 'id'>>({
+  // Modified to track both on and off times
+  const [newSchedule, setNewSchedule] = useState({
     deviceId: "",
     title: "",
-    time: "12:00",
-    days: [],
-    action: "on",
+    onTime: "08:00",  // Default ON time
+    offTime: "20:00", // Default OFF time
+    days: [] as string[],
     active: true
   });
 
@@ -118,12 +121,15 @@ export default function DeviceScheduler({ devices, onScheduleUpdate }: DeviceSch
             ? backendSchedule.daysOfWeek.map(day => numberToDayValueMap[day] || "").filter(Boolean)
             : daysOfWeek.map(d => d.value);
           
+          // Each schedule ID now includes a unique identifier (timestamp) to prevent collisions
+          const scheduleUniqueId = backendSchedule.id || Date.now().toString();
+          
           if (backendSchedule.onTime && backendSchedule.onTime !== "00:00:00") {
             try {
               const [hours, minutes] = backendSchedule.onTime.split(':').map(Number);
               const time24 = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
               allSchedules.push({
-                id: `${deviceId}-on`,
+                id: `${deviceId}-on-${scheduleUniqueId}`,
                 deviceId: deviceId,
                 title: `Bật ${device.name}`,
                 time: formatTimeTo12Hour(time24),
@@ -141,7 +147,7 @@ export default function DeviceScheduler({ devices, onScheduleUpdate }: DeviceSch
               const [hours, minutes] = backendSchedule.offTime.split(':').map(Number);
               const time24 = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
               allSchedules.push({
-                id: `${deviceId}-off`,
+                id: `${deviceId}-off-${scheduleUniqueId}`,
                 deviceId: deviceId,
                 title: `Tắt ${device.name}`,
                 time: formatTimeTo12Hour(time24),
@@ -163,9 +169,11 @@ export default function DeviceScheduler({ devices, onScheduleUpdate }: DeviceSch
       const allSchedules: DeviceScheduleEvent[] = [];
       for (const device of devices) {
         try {
-          const response = await authorizedAxiosInstance.get<BackendDeviceSchedule>(`/Scheduler/${device.id}/turnon`);
+          const response = await authorizedAxiosInstance.get<BackendDeviceSchedule>(`/Scheduler/${device.id}`);
           const backendSchedule = response.data;
-
+          
+          const scheduleUniqueId = backendSchedule.id || Date.now().toString();
+          
           const scheduleDays = backendSchedule.daysOfWeek && backendSchedule.daysOfWeek.length > 0
             ? backendSchedule.daysOfWeek.map(day => numberToDayValueMap[day] || "").filter(Boolean)
             : daysOfWeek.map(d => d.value);
@@ -175,7 +183,7 @@ export default function DeviceScheduler({ devices, onScheduleUpdate }: DeviceSch
               const [hours, minutes] = backendSchedule.onTime.split(':').map(Number);
               const time24 = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
               allSchedules.push({
-                id: `${device.id}-on`,
+                id: `${device.id}-on-${scheduleUniqueId}`,
                 deviceId: device.id,
                 title: `Bật ${device.name}`,
                 time: formatTimeTo12Hour(time24),
@@ -193,7 +201,7 @@ export default function DeviceScheduler({ devices, onScheduleUpdate }: DeviceSch
               const [hours, minutes] = backendSchedule.offTime.split(':').map(Number);
               const time24 = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
               allSchedules.push({
-                id: `${device.id}-off`,
+                id: `${device.id}-off-${scheduleUniqueId}`,
                 deviceId: device.id,
                 title: `Tắt ${device.name}`,
                 time: formatTimeTo12Hour(time24),
@@ -232,28 +240,28 @@ export default function DeviceScheduler({ devices, onScheduleUpdate }: DeviceSch
   };
 
   const handleAddSchedule = async () => {
-    if (!selectedDevice || !newSchedule.time || newSchedule.days.length === 0) {
+    if (!selectedDevice || !newSchedule.onTime || !newSchedule.offTime || newSchedule.days.length === 0) {
       toast.error("Vui lòng điền đầy đủ thông tin lịch");
       return;
     }
 
     try {
-      const [hours, minutes] = newSchedule.time.split(':').map(Number);
-      const timeSpanString = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`;
+      // Parse ON time
+      const [onHours, onMinutes] = newSchedule.onTime.split(':').map(Number);
+      const onTimeString = `${String(onHours).padStart(2, '0')}:${String(onMinutes).padStart(2, '0')}:00`;
+      
+      // Parse OFF time
+      const [offHours, offMinutes] = newSchedule.offTime.split(':').map(Number);
+      const offTimeString = `${String(offHours).padStart(2, '0')}:${String(offMinutes).padStart(2, '0')}:00`;
 
       const dayNumbers = newSchedule.days.map(day => dayValueToNumberMap[day]).filter(day => day !== undefined);
 
-      const payload: BackendDeviceSchedule = newSchedule.action === 'on'
-        ? {
-            onTime: timeSpanString,
-            offTime: "00:00:00",
-            daysOfWeek: dayNumbers
-          }
-        : {
-            onTime: "00:00:00",
-            offTime: timeSpanString,
-            daysOfWeek: dayNumbers
-          };
+      // Now including both onTime and offTime in the same payload
+      const payload: BackendDeviceSchedule = {
+        onTime: onTimeString,
+        offTime: offTimeString,
+        daysOfWeek: dayNumbers
+      };
 
       console.log("Sending request to:", `/Scheduler/${selectedDevice}`);
       console.log("Payload:", JSON.stringify(payload));
@@ -280,13 +288,17 @@ export default function DeviceScheduler({ devices, onScheduleUpdate }: DeviceSch
 
   const handleDeleteSchedule = async (scheduleId: string) => {
     try {
+      // Extract the device ID from the schedule ID
+      const parts = scheduleId.split('-');
+      const deviceId = parts[0]; // First part is always deviceId
+      
       const scheduleToDelete = schedules.find(s => s.id === scheduleId);
       if (!scheduleToDelete) {
         toast.error("Không tìm thấy lịch để xóa.");
         return;
       }
 
-      await authorizedAxiosInstance.delete(`/Scheduler/${scheduleToDelete.deviceId}`);
+      await authorizedAxiosInstance.delete(`/Scheduler/${deviceId}`);
 
       await fetchSchedules();
 
@@ -314,9 +326,9 @@ export default function DeviceScheduler({ devices, onScheduleUpdate }: DeviceSch
     setNewSchedule({
       deviceId: "",
       title: "",
-      time: "12:00",
+      onTime: "08:00",
+      offTime: "20:00",
       days: [],
-      action: "on",
       active: true
     });
   };
@@ -384,28 +396,21 @@ export default function DeviceScheduler({ devices, onScheduleUpdate }: DeviceSch
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Thời gian</label>
+                <label className="text-sm font-medium">Thời gian bật</label>
                 <Input
                   type="time"
-                  value={newSchedule.time}
-                  onChange={(e) => setNewSchedule({ ...newSchedule, time: e.target.value })}
+                  value={newSchedule.onTime}
+                  onChange={(e) => setNewSchedule({ ...newSchedule, onTime: e.target.value })}
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Hành động</label>
-                <Select
-                  value={newSchedule.action}
-                  onValueChange={(value: 'on' | 'off') => setNewSchedule({ ...newSchedule, action: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Chọn hành động" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="on">Bật thiết bị</SelectItem>
-                    <SelectItem value="off">Tắt thiết bị</SelectItem>
-                  </SelectContent>
-                </Select>
+                <label className="text-sm font-medium">Thời gian tắt</label>
+                <Input
+                  type="time"
+                  value={newSchedule.offTime}
+                  onChange={(e) => setNewSchedule({ ...newSchedule, offTime: e.target.value })}
+                />
               </div>
 
               <div className="space-y-2">
