@@ -21,6 +21,8 @@ using MQTTnet;
 using MQTTnet.Client;
 using System.Collections.Concurrent;
 using MyIoTPlatform.API.Controllers;
+using MyIoTPlatform.API.Controllers; // For DeviceHub
+using Microsoft.AspNetCore.SignalR; 
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,6 +30,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 
 // Add services to the container.
+
+builder.Services.AddHttpClient();
+
 builder.Services.AddApplicationServices(); // Registers MediatR, AutoMapper, Validators
 builder.Services.AddInfrastructureServices(builder.Configuration); // Registers DBContext, Repos, Mqtt, ML Service etc.
 
@@ -113,6 +118,7 @@ builder.Services.AddScoped<UserService>();
 builder.Services.Configure<AdafruitMqttConfig>(builder.Configuration.GetSection("Adafruit"));
 builder.Services.AddSingleton<IMqttClientService, AdafruitMqttService>();
 builder.Services.AddHostedService<AdafruitMqttService>();
+builder.Services.AddSignalR();
 
 // THÊM ĐĂNG KÝ CHO MQTT CLIENT và CÁC DỊCH VỤ SCHEDULER
 // Đăng ký IMqttClient
@@ -121,41 +127,25 @@ builder.Services.AddSingleton<IMqttClient>(sp =>
     var factory = new MqttFactory();
     var client = factory.CreateMqttClient();
     
-    // Tạo options từ cấu hình
+    // Create Logger for MQTT client
+    var logger = sp.GetRequiredService<ILogger<IMqttClient>>();
+    
+    // Get MQTT configuration
     var mqttConfig = builder.Configuration.GetSection("Mqtt");
-    var options = new MqttClientOptionsBuilder()
-        .WithClientId(mqttConfig["ClientId"] ?? $"api-client-{Guid.NewGuid()}")
-        .WithTcpServer(mqttConfig["Host"] ?? "192.168.1.9", int.Parse(mqttConfig["Port"] ?? "1883"))
-        .Build();
-
-    // Xử lý kết nối lại khi bị ngắt
-    client.DisconnectedAsync += async e =>
-    {
-        Console.WriteLine("MQTT client disconnected. Trying to reconnect in 5 seconds...");
-        await Task.Delay(TimeSpan.FromSeconds(5));
-        try
-        {
-            await client.ConnectAsync(options);
-            Console.WriteLine("MQTT client reconnected.");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"MQTT reconnection failed: {ex.Message}");
-        }
-    };
-
-    // Kết nối ngay lập tức (tùy chọn)
-    // client.ConnectAsync(options).GetAwaiter().GetResult();
+    var host = mqttConfig["Host"] ?? "192.168.1.9";
+    var port = int.Parse(mqttConfig["Port"] ?? "1883");
+    var clientId = mqttConfig["ClientId"] ?? $"api-client-{Guid.NewGuid().ToString().Substring(0, 8)}";
+    
+    logger.LogInformation("Creating MQTT client with ID {ClientId} for {Host}:{Port}", clientId, host, port);
     
     return client;
 });
 
-// Đăng ký ConcurrentDictionary cho lưu trữ lịch trình
+// Singleton dictionary for device schedules
 builder.Services.AddSingleton<ConcurrentDictionary<string, DeviceScheduleEntry>>();
 
-// Đăng ký ScheduleBackgroundService
+// Register Background Service with improved error handling
 builder.Services.AddHostedService<ScheduleBackgroundService>();
-
 // Build app
 var app = builder.Build();
 
@@ -178,6 +168,7 @@ app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<DeviceHub>("/deviceHub");
 // Thêm sau các cấu hình dịch vụ và trước app.Run()
 
 // Cấu hình WebSocket

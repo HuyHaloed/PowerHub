@@ -121,6 +121,56 @@ namespace MyIoTPlatform.API.Controllers
                 return StatusCode(500, new { message = $"Error: {ex.Message}" });
             }
         }
+
+        [Route("api/test")]
+        public class TestController : ControllerBase
+        {
+            private readonly IMqttClientService _adafruitMqttService;
+            private readonly ILogger<TestController> _logger;
+
+            public TestController(IMqttClientService adafruitMqttService, ILogger<TestController> logger)
+            {
+                _adafruitMqttService = adafruitMqttService;
+                _logger = logger;
+            }
+
+            [HttpPost("mqtt")]
+            public async Task<IActionResult> TestMqttPublish([FromBody] TestPublishRequest request)
+            {
+                if (string.IsNullOrEmpty(request.DeviceName) || string.IsNullOrEmpty(request.Value))
+                {
+                    return BadRequest("Device name and value are required");
+                }
+
+                try
+                {
+                    _logger.LogInformation("DIRECT TEST: Starting MQTT publish test");
+                    
+                    // Format the feed name for Adafruit IO
+                    string feedName = request.DeviceName.ToLower().Replace(" ", "_");
+                    
+                    _logger.LogInformation($"DIRECT TEST: Publishing '{request.Value}' to feed '{feedName}'");
+                    
+                    // Directly use the MQTT service
+                    await _adafruitMqttService.PublishAsync(feedName, request.Value, true, 1);
+                    
+                    _logger.LogInformation("DIRECT TEST: Publish completed successfully");
+                    
+                    return Ok(new { message = $"Test message published to feed '{feedName}' successfully" });
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "DIRECT TEST: Error during MQTT publish test");
+                    return StatusCode(500, new { message = $"Error: {ex.Message}" });
+                }
+            }
+        }
+
+        public class TestPublishRequest
+        {
+            public string DeviceName { get; set; }
+            public string Value { get; set; }
+        }
     }
 
     public class AdafruitPublishRequest
