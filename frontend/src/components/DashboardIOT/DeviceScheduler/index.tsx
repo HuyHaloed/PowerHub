@@ -360,10 +360,10 @@ export default function DeviceScheduler({ devices, onScheduleUpdate }: DeviceSch
         <h1 className="text-2xl font-bold">Lịch thiết bị</h1>
         <Dialog open={isScheduleModalOpen} onOpenChange={setIsScheduleModalOpen}>
           <DialogTrigger asChild>
-            <Button size="sm" className="flex items-center">
+            {/* <Button size="sm" className="flex items-center">
               <Plus className="mr-2 h-4 w-4" />
               Thêm lịch mới
-            </Button>
+            </Button> */}
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>

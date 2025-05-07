@@ -61,6 +61,75 @@ namespace MyIoTPlatform.API.Controllers
 
             return Ok(device);
         }
+        // Add to DevicesController class
+
+        [HttpGet("{id}/threshold")]
+        public async Task<IActionResult> GetDeviceThreshold(string id)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { message = "User not authenticated" });
+            }
+
+            var device = await _mongoDbService.GetDeviceByIdAsync(id);
+            if (device == null || !device.UserIds.Contains(userId))
+                return NotFound($"Device with ID {id} not found.");
+
+            var threshold = await _mongoDbService.GetDeviceThresholdAsync(id);
+            if (threshold == null)
+            {
+                return Ok(new
+                {
+                    isEnabled = false,
+                    value = 100,
+                    action = "turnOff"
+                });
+            }
+
+            return Ok(new
+            {
+                isEnabled = threshold.IsEnabled,
+                value = threshold.Value,
+                action = threshold.Action
+            });
+        }
+
+        [HttpPost("{id}/threshold")]
+        public async Task<IActionResult> SetDeviceThreshold(string id, [FromBody] ThresholdRequest request)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { message = "User not authenticated" });
+            }
+
+            var device = await _mongoDbService.GetDeviceByIdAsync(id);
+            if (device == null || !device.UserIds.Contains(userId))
+                return NotFound($"Device with ID {id} not found.");
+
+            var threshold = new DeviceThreshold
+            {
+                DeviceId = id,
+                UserId = userId,
+                IsEnabled = request.IsEnabled,
+                Value = request.Value,
+                Action = request.Action
+            };
+
+            await _mongoDbService.SetDeviceThresholdAsync(threshold);
+
+            return Ok(new
+            {
+                message = "Threshold settings saved successfully",
+                threshold = new
+                {
+                    isEnabled = threshold.IsEnabled,
+                    value = threshold.Value,
+                    action = threshold.Action
+                }
+            });
+        }
 
         [HttpPut("{id}/control")]
         public async Task<IActionResult> ControlDevice(string id, [FromBody] ControlDeviceRequest request)

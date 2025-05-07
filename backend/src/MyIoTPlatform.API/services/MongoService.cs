@@ -15,6 +15,7 @@ namespace MyIoTPlatform.API.Services
     {
         private readonly IMongoCollection<User> _usersCollection;
         private readonly IMongoCollection<DeviceSchedule> _schedulesCollection;
+        private readonly IMongoCollection<DeviceThreshold> _thresholdsCollection;
 
         private readonly IMongoCollection<Device> _devicesCollection;
         private readonly IMongoCollection<EnergyConsumption> _energyConsumptionCollection;
@@ -37,6 +38,7 @@ namespace MyIoTPlatform.API.Services
             _sessionsCollection = mongoDatabase.GetCollection<Session>("Sessions");
             _energyDistributionCollection = mongoDatabase.GetCollection<EnergyDistribution>("EnergyDistribution");
             _environmentDataCollection = mongoDatabase.GetCollection<EnvironmentData>("EnvironmentData");
+            _thresholdsCollection = mongoDatabase.GetCollection<DeviceThreshold>("DeviceThresholds");
             
             // Thêm collection mới cho lịch trình
             _schedulesCollection = mongoDatabase.GetCollection<DeviceSchedule>("DeviceSchedules");
@@ -261,6 +263,67 @@ namespace MyIoTPlatform.API.Services
                 filter &= Builders<Device>.Filter.Regex(d => d.Name, new BsonRegularExpression(search, "i"));
 
             return await _devicesCollection.Find(filter).ToListAsync();
+        }
+        public async Task<DeviceThreshold> GetDeviceThresholdAsync(string deviceId)
+        {
+            return await _thresholdsCollection.Find(t => t.DeviceId == deviceId).FirstOrDefaultAsync();
+        }
+
+        public async Task<DeviceThreshold> SetDeviceThresholdAsync(DeviceThreshold threshold)
+        {
+            var existingThreshold = await GetDeviceThresholdAsync(threshold.DeviceId);
+            
+            if (existingThreshold != null)
+            {
+                threshold.Id = existingThreshold.Id;
+                threshold.CreatedAt = existingThreshold.CreatedAt;
+                threshold.UpdatedAt = DateTime.UtcNow;
+                
+                await _thresholdsCollection.ReplaceOneAsync(t => t.Id == existingThreshold.Id, threshold);
+                return threshold;
+            }
+            
+            threshold.CreatedAt = DateTime.UtcNow;
+            threshold.UpdatedAt = DateTime.UtcNow;
+            await _thresholdsCollection.InsertOneAsync(threshold);
+            return threshold;
+        }
+
+        public async Task<bool> CheckAndApplyThresholdAsync(string deviceId, double consumption)
+        {
+            var threshold = await GetDeviceThresholdAsync(deviceId);
+            
+            if (threshold == null || !threshold.IsEnabled)
+                return false;
+            
+            var device = await GetDeviceByIdAsync(deviceId);
+            if (device == null)
+                return false;
+            
+            bool shouldApplyAction = false;
+            
+            if (threshold.Action == "turnOff" && consumption >= threshold.Value)
+            {
+                shouldApplyAction = true;
+            }
+            else if (threshold.Action == "turnOn" && consumption <= threshold.Value)
+            {
+                shouldApplyAction = true;
+            }
+            
+            if (shouldApplyAction)
+            {
+                string newStatus = threshold.Action == "turnOff" ? "OFF" : "ON";
+                
+                // Only change status if it's different
+                if (device.Status != newStatus)
+                {
+                    await ControlDeviceAsync(deviceId, newStatus);
+                    return true;
+                }
+            }
+            
+            return false;
         }
 
         public async Task<List<Device>> GetActiveDevicesAsync()
@@ -720,7 +783,12 @@ namespace MyIoTPlatform.API.Services
         {
             throw new NotImplementedException();
         }
+
+
         #endregion
+
+
+        
     }
 
     public class MongoDbSettings

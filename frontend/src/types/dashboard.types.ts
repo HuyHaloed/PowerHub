@@ -234,3 +234,27 @@ export interface DeviceSchedule {
   createdAt?: string;
   updatedAt?: string;
 }
+
+
+// Add these interfaces to your dashboard.types.ts file
+
+export interface DeviceThreshold {
+  isEnabled: boolean;
+  value: number;
+  action: 'turnOn' | 'turnOff';
+  deviceId?: string;
+  userId?: string;
+  id?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ThresholdResponse {
+  deviceId: string;
+  deviceName: string;
+  isEnabled: boolean;
+  value: number;
+  action: string;
+  currentConsumption: number;
+  isExceeding: boolean;
+}

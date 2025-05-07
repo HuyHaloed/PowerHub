@@ -3,8 +3,9 @@ import { useDevices, useDeviceControl } from '@/hooks/useDeviceAPI';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
 import DeviceStatusCard from '@/components/DashboardIOT/DeviceStatusCard';
-import { Plus, Search, Filter, Sliders } from 'lucide-react';
+import { Plus, Search, Filter, Sliders, ZapOff } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Device } from '@/types/dashboard.types';
 import { toast } from 'react-toastify';
@@ -13,6 +14,18 @@ import authorizedAxiosInstance from '@/lib/axios';
 import { ShareDeviceModal } from '@/components/DashboardIOT/ShareDeviceModal';
 import VoiceMicro from '@/components/DashboardIOT/VoiceMicro';
 import DeviceScheduler from '@/components/DashboardIOT/DeviceScheduler'; 
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
+// Thêm interface cho thiết lập ngưỡng quá tải
+interface OverloadThreshold {
+  isEnabled: boolean;
+  value: number; // giá trị ngưỡng (Watt)
+  action: 'turnOn' | 'turnOff'; // hành động khi vượt ngưỡng
+}
 
 export default function DevicesView() {
   const { devices: allDevices, isLoading, error, fetchDevices } = useDevices();
@@ -23,6 +36,13 @@ export default function DevicesView() {
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
   const [filteredDevices, setFilteredDevices] = useState<Device[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isOverloadModalOpen, setIsOverloadModalOpen] = useState(false);
+  const [selectedDeviceForThreshold, setSelectedDeviceForThreshold] = useState<Device | null>(null);
+  const [overloadThreshold, setOverloadThreshold] = useState<OverloadThreshold>({
+    isEnabled: false,
+    value: 100,
+    action: 'turnOff',
+  });
   const [newDevice, setNewDevice] = useState({
     name: "",
     type: "",
@@ -75,6 +95,27 @@ export default function DevicesView() {
     devicesByLocation[location].push(device);
   });
 
+  // Lấy thông tin ngưỡng quá tải cho thiết bị
+  const fetchDeviceThreshold = async (deviceId: string) => {
+    try {
+      const response = await authorizedAxiosInstance.get(`/devices/${deviceId}/threshold`);
+      if (response.data) {
+        setOverloadThreshold({
+          isEnabled: response.data.isEnabled,
+          value: response.data.value,
+          action: response.data.action,
+        });
+      }
+    } catch (error) {
+      console.error("Không thể lấy thông tin ngưỡng quá tải:", error);
+      // Set default values if no threshold is set
+      setOverloadThreshold({
+        isEnabled: false,
+        value: 100,
+        action: 'turnOff',
+      });
+    }
+  };
 
   const handleToggleDevice = async (deviceName: string, newStatus: "on" | "off") => {
     try {
@@ -134,20 +175,6 @@ export default function DevicesView() {
       const userIds = response.data.userIds || [];
       const firstUserId = userIds.length > 0 ? userIds[0] : null;
   
-      // await authorizedAxiosInstance.post('/mqtt/publish', {
-      //   topic: 'devices/new',
-      //   payload: JSON.stringify({
-      //     deviceId: response.data.id,
-      //     userIds: [firstUserId],
-      //     name: newDevice.name,
-      //     type: newDevice.type,
-      //     location: newDevice.location,
-      //     status: response.data.status,
-      //   }),
-      //   retain: false,
-      //   qosLevel: 1,
-      // });
-  
       toast.success("Thêm thiết bị thành công!");
       setIsAddModalOpen(false);
       fetchDevices();
@@ -168,15 +195,63 @@ export default function DevicesView() {
     }
   };
 
-  // Hiển thị thẻ thiết bị với nút chia sẻ
-  // Hiển thị thẻ thiết bị với nút chia sẻ
+  // Mở modal thiết lập ngưỡng quá tải
+  const openOverloadModal = (device: Device) => {
+    setSelectedDeviceForThreshold(device);
+    fetchDeviceThreshold(device.id);
+    setIsOverloadModalOpen(true);
+  };
+
+  // Lưu thiết lập ngưỡng quá tải
+  const saveOverloadThreshold = async () => {
+    if (!selectedDeviceForThreshold) return;
+
+    try {
+      await authorizedAxiosInstance.post(`/devices/${selectedDeviceForThreshold.id}/threshold`, overloadThreshold);
+      toast.success("Đã lưu thiết lập ngưỡng quá tải!");
+      setIsOverloadModalOpen(false);
+      // Refresh device list to make sure threshold indicators update
+      fetchDevices();
+    } catch (err) {
+      toast.error("Không thể lưu thiết lập ngưỡng quá tải: " + (err as Error).message);
+      console.error(err);
+    }
+  };
+
+  // Kiểm tra xem thiết bị có đang vượt ngưỡng hay không
+  const isDeviceExceedingThreshold = (device: Device, threshold: OverloadThreshold) => {
+    if (!threshold.isEnabled) return false;
+    
+    if (threshold.action === 'turnOff') {
+      return device.consumption >= threshold.value;
+    } else {
+      return device.consumption <= threshold.value;
+    }
+  };
+
+  // Hiển thị thẻ thiết bị với nút thiết lập ngưỡng quá tải
   const renderDeviceCard = (device: Device) => (
     <div key={device.id} className="relative">
       <DeviceStatusCard 
         device={device} 
         onToggle={(status) => handleToggleDevice(device.name, status)}
       />
-      <div className="absolute top-2 right-2">
+      <div className="absolute top-2 right-2 flex gap-2">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button 
+                className="p-1 bg-orange-100 rounded-full hover:bg-orange-200 transition-colors"
+                onClick={() => openOverloadModal(device)}
+              >
+                <ZapOff className="h-4 w-4 text-orange-500" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Thiết lập ngưỡng quá tải</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
         <ShareDeviceModal 
           device={device}
           onDeviceShared={() => fetchDevices()}
@@ -302,6 +377,74 @@ export default function DevicesView() {
         </div>
       </div>
 
+      {/* Modal thiết lập ngưỡng quá tải */}
+      <Dialog open={isOverloadModalOpen} onOpenChange={setIsOverloadModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Thiết lập ngưỡng quá tải</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <Switch 
+                id="threshold-enabled"
+                checked={overloadThreshold.isEnabled}
+                onCheckedChange={(checked) => setOverloadThreshold({...overloadThreshold, isEnabled: checked})}
+              />
+              <Label htmlFor="threshold-enabled">
+                {overloadThreshold.isEnabled ? 'Kích hoạt' : 'Không kích hoạt'}
+              </Label>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">
+                Ngưỡng điện năng tiêu thụ: {overloadThreshold.value} Watt
+              </label>
+              <Slider
+                defaultValue={[overloadThreshold.value]}
+                min={10}
+                max={1000}
+                step={10}
+                onValueChange={(value) => setOverloadThreshold({...overloadThreshold, value: value[0]})}
+                disabled={!overloadThreshold.isEnabled}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">Hành động khi vượt ngưỡng</label>
+              <Select
+                value={overloadThreshold.action}
+                onValueChange={(value: 'turnOn' | 'turnOff') => setOverloadThreshold({...overloadThreshold, action: value})}
+                disabled={!overloadThreshold.isEnabled}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Chọn hành động" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="turnOff">Tắt thiết bị</SelectItem>
+                  <SelectItem value="turnOn">Bật thiết bị</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="bg-gray-50 rounded-md p-3 text-sm">
+              <div className="font-medium mb-1">Cách hoạt động:</div>
+              <p className="text-gray-600">
+                {overloadThreshold.isEnabled
+                  ? overloadThreshold.action === 'turnOff'
+                    ? `Khi mức tiêu thụ điện của thiết bị vượt quá ${overloadThreshold.value} Watt, thiết bị sẽ tự động tắt.`
+                    : `Khi mức tiêu thụ điện của thiết bị giảm xuống dưới ${overloadThreshold.value} Watt, thiết bị sẽ tự động bật.`
+                  : 'Tính năng ngưỡng quá tải đang tắt cho thiết bị này.'}
+              </p>
+            </div>
+            
+            <div className="flex justify-end space-x-2 pt-4">
+              <Button variant="outline" onClick={() => setIsOverloadModalOpen(false)}>Hủy</Button>
+              <Button onClick={saveOverloadThreshold}>Lưu</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Tìm kiếm và Bộ lọc */}
       <div className="bg-white rounded-lg shadow p-4 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -384,35 +527,44 @@ export default function DevicesView() {
         )}
       </div>
 
-      {Object.keys(devicesByLocation).length > 0 ? (
-        Object.keys(devicesByLocation).map((location) => (
-          <div key={location} className="mb-8">
-            <h2 className="text-lg font-medium mb-4">{location}</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {devicesByLocation[location].map(renderDeviceCard)}
-            </div>
-          </div>
-        ))
-      ) : (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-10">
-            <div className="rounded-full bg-gray-100 p-3">
-              <Sliders className="h-6 w-6 text-gray-400" />
-            </div>
-            <h3 className="mt-4 text-lg font-medium">Không tìm thấy thiết bị</h3>
-            <p className="mt-2 text-sm text-gray-500 text-center max-w-xs">
-              Không có thiết bị nào phù hợp với bộ lọc đã chọn. Hãy thử các bộ lọc khác.
-            </p>
-            <Button variant="outline" className="mt-4" onClick={resetFilters}>
-              Xóa bộ lọc
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-      <div className="mt-6">
-        <h2 className="text-lg font-medium mb-4">Lịch trình thiết bị</h2>
-      <DeviceScheduler devices={filteredDevices} />
-      </div>
+      <Tabs defaultValue="devices" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="devices">Thiết bị</TabsTrigger>
+          <TabsTrigger value="scheduler">Lịch trình</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="devices">
+          {Object.keys(devicesByLocation).length > 0 ? (
+            Object.keys(devicesByLocation).map((location) => (
+              <div key={location} className="mb-8">
+                <h2 className="text-lg font-medium mb-4">{location}</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {devicesByLocation[location].map(renderDeviceCard)}
+                </div>
+              </div>
+            ))
+          ) : (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-10">
+                <div className="rounded-full bg-gray-100 p-3">
+                  <Sliders className="h-6 w-6 text-gray-400" />
+                </div>
+                <h3 className="mt-4 text-lg font-medium">Không tìm thấy thiết bị</h3>
+                <p className="mt-2 text-sm text-gray-500 text-center max-w-xs">
+                  Không có thiết bị nào phù hợp với bộ lọc đã chọn. Hãy thử các bộ lọc khác.
+                </p>
+                <Button variant="outline" className="mt-4" onClick={resetFilters}>
+                  Xóa bộ lọc
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+        
+        <TabsContent value="scheduler">
+          <DeviceScheduler devices={filteredDevices} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

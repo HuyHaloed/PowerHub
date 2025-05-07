@@ -156,6 +156,36 @@ namespace MyIoTPlatform.API.Models
         public double Consumption { get; set; }
     }
 
+    // Add this to the Models namespace
+    public class DeviceThreshold
+    {
+        [BsonId]
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string Id { get; set; }
+        
+        public string DeviceId { get; set; }
+        
+        public string UserId { get; set; }
+        
+        public bool IsEnabled { get; set; } = false;
+        
+        public int Value { get; set; } = 100;
+        
+        public string Action { get; set; } = "turnOff"; // "turnOn" or "turnOff"
+        
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    }
+
+    // Add request model
+    public class ThresholdRequest
+    {
+        public bool IsEnabled { get; set; }
+        public int Value { get; set; }
+        public string Action { get; set; } // "turnOn" or "turnOff"
+    }
+
     
     #endregion
     #region EnergyConsumption

@@ -111,7 +111,12 @@ builder.Services.Configure<AdafruitMqttConfig>(builder.Configuration.GetSection(
 builder.Services.AddSingleton<IMqttClientService, AdafruitMqttService>();
 builder.Services.AddHostedService<AdafruitMqttService>();
 builder.Services.AddSignalR();
-// builder.Services.AddHostedService<SchedulerBackgroundService>();
+builder.Services.AddHostedService<ThresholdBackgroundService>();
+
+builder.Services.AddHostedService<ThresholdMonitorService>();
+
+// Make sure this is also registered as a scoped service
+builder.Services.AddScoped<ThresholdMonitorService>();
 
 
 // THÊM ĐĂNG KÝ CHO MQTT CLIENT và CÁC DỊCH VỤ SCHEDULER
