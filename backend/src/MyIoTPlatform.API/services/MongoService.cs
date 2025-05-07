@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using MyIoTPlatform.API.Controllers;
 
 
 namespace MyIoTPlatform.API.Services
@@ -713,6 +714,11 @@ namespace MyIoTPlatform.API.Services
             
             // Mọi người dùng đều có thể sử dụng tính năng này trong ví dụ này
             return user != null;
+        }
+
+        internal async Task CreateScheduleAsync(ScheduleDbModel dbScheduleData)
+        {
+            throw new NotImplementedException();
         }
         #endregion
     }

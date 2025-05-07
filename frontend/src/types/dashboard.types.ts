@@ -219,3 +219,18 @@ export interface DashboardData {
   quickStats: Stat[];
   notifications: Notification[];
 }
+
+
+
+export interface DeviceSchedule {
+  id?: string;
+  deviceId: string;
+  userId?: string;
+  onTime: string;
+  offTime: string;
+  daysOfWeek: number[];
+  adafruitFeed?: string;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}

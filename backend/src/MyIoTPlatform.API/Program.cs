@@ -12,18 +12,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using MyIoTPlatform.Application.Interfaces.Persistence;
-using MyIoTPlatform.Infrastructure.Persistence;
-using Microsoft.AspNetCore.Authentication.Google;
-using System.Text;
 using MyIoTPlatform.Infrastructure.Communication.Adafruit;
 using System.Net.WebSockets;
 using MQTTnet;
 using MQTTnet.Client;
-using System.Collections.Concurrent;
-using MyIoTPlatform.API.Controllers;
-using MyIoTPlatform.API.Controllers; // For DeviceHub
-using Microsoft.AspNetCore.SignalR; 
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -119,6 +111,8 @@ builder.Services.Configure<AdafruitMqttConfig>(builder.Configuration.GetSection(
 builder.Services.AddSingleton<IMqttClientService, AdafruitMqttService>();
 builder.Services.AddHostedService<AdafruitMqttService>();
 builder.Services.AddSignalR();
+// builder.Services.AddHostedService<SchedulerBackgroundService>();
+
 
 // THÊM ĐĂNG KÝ CHO MQTT CLIENT và CÁC DỊCH VỤ SCHEDULER
 // Đăng ký IMqttClient
@@ -141,11 +135,7 @@ builder.Services.AddSingleton<IMqttClient>(sp =>
     return client;
 });
 
-// Singleton dictionary for device schedules
-builder.Services.AddSingleton<ConcurrentDictionary<string, DeviceScheduleEntry>>();
 
-// Register Background Service with improved error handling
-builder.Services.AddHostedService<ScheduleBackgroundService>();
 // Build app
 var app = builder.Build();
 
@@ -168,7 +158,7 @@ app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-app.MapHub<DeviceHub>("/deviceHub");
+
 // Thêm sau các cấu hình dịch vụ và trước app.Run()
 
 // Cấu hình WebSocket
