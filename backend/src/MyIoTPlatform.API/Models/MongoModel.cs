@@ -51,6 +51,7 @@ namespace MyIoTPlatform.API.Models
         public const string User = "User";
         public const string Admin = "Admin";
     }
+    
 
     public class UserSubscription
     {
@@ -533,5 +534,19 @@ namespace MyIoTPlatform.API.Models
         
         // Thời gian cập nhật
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    }
+    public class SensorReading
+    {
+        [BsonId]
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string Id { get; set; }
+        
+        public string UserId { get; set; }
+        
+        public string FeedName { get; set; }
+        
+        public double Value { get; set; }
+        
+        public DateTime Timestamp { get; set; } = DateTime.UtcNow;
     }
 }

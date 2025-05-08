@@ -26,32 +26,62 @@ export const useDeviceEnergyData = (deviceIds: string[] = []) => {
     deviceIdsRef.current = deviceIds;
   }, [deviceIds]);
 
+  // Function to determine the feed name based on device type
+  const getFeedNameForDevice = (deviceId: string, deviceType: string = ''): string => {
+    const id = deviceId.toLowerCase();
+    const type = deviceType.toLowerCase();
+    
+    if (id.includes('light') || type.includes('light')) {
+      return 'powerlight';
+    } else if (id.includes('fan') || type.includes('fan')) {
+      return 'powerfan';
+    } else if (id.includes('ac') || type.includes('ac') || type.includes('air')) {
+      return 'powerac';
+    } else if (id.includes('tv') || type.includes('tv')) {
+      return 'powertv';
+    } else {
+      // Default to powerlight if we can't determine the type
+      return 'powerlight';
+    }
+  };
+
   const fetchDeviceData = async () => {
     if (deviceIds.length === 0) return;
     
     setIsLoading(true);
     try {
+      // First, fetch device information to get their types
+      const devicesResponse = await authorizedAxiosInstance.get('/devices', {
+        timeout: 5000
+      });
+      
+      const devices = devicesResponse.data;
+      const deviceMap = devices.reduce((acc: any, device: any) => {
+        acc[device.id] = device;
+        return acc;
+      }, {});
+      
       // Fetch data for each feed corresponding to each device
       const energyPromises = deviceIds.map(async (deviceId) => {
-        // Map device IDs to their Adafruit feed names
-        const feedName = deviceId.toLowerCase().includes('light') ? 'powerlight' : 'powerfan';
+        const device = deviceMap[deviceId];
+        // Get the appropriate feed name based on device type
+        const feedName = device ? getFeedNameForDevice(deviceId, device.type) : getFeedNameForDevice(deviceId);
         
         try {
           const response = await authorizedAxiosInstance.get(`/adafruit/data/${feedName}`, {
-            // Add timeout to prevent hanging requests
             timeout: 5000
           });
           
           return {
             deviceId,
-            deviceName: deviceId,
+            deviceName: device?.name || deviceId,
             consumption: response.data.value ? parseFloat(response.data.value) : 0,
             lastUpdated: response.data.created_at || new Date().toISOString(),
-            status: "unknown" // Will be updated by device status API
+            status: device?.status || "unknown"
           };
         } catch (error: any) {
-          console.error(`Error fetching energy data for ${deviceId}:`, error);
-          // Don't fail silently - alert the user of API issues
+          console.error(`Error fetching energy data for ${deviceId} (${feedName}):`, error);
+          
           if (error.code === 'ECONNABORTED') {
             setError(`Request timeout when fetching data for ${deviceId}`);
           } else if (error.response) {
@@ -63,10 +93,10 @@ export const useDeviceEnergyData = (deviceIds: string[] = []) => {
           // Return a default structure even if we can't fetch the data
           return {
             deviceId,
-            deviceName: deviceId,
+            deviceName: device?.name || deviceId,
             consumption: 0,
             lastUpdated: new Date().toISOString(),
-            status: "offline" // Default to offline if we can't fetch data
+            status: device?.status || "offline"
           };
         }
       });
@@ -79,35 +109,6 @@ export const useDeviceEnergyData = (deviceIds: string[] = []) => {
         acc[item.deviceId] = item;
         return acc;
       }, {} as Record<string, DeviceEnergyData>);
-      
-      // Update device statuses - wrapped in try/catch
-      try {
-        const statusResponse = await authorizedAxiosInstance.get('/devices', {
-          timeout: 5000 // Add timeout here too
-        });
-        const devices = statusResponse.data;
-        
-        // Update our energy data with the latest status info
-        devices.forEach((device: any) => {
-          if (energyDataMap[device.id]) {
-            energyDataMap[device.id] = {
-              ...energyDataMap[device.id],
-              deviceName: device.name,
-              status: device.status
-            };
-          }
-        });
-      } catch (error: any) {
-        console.error('Error fetching device statuses:', error);
-        // Don't fail silently
-        if (error.code === 'ECONNABORTED') {
-          setError('Request timeout when fetching device statuses');
-        } else if (error.response) {
-          setError(`Server error (${error.response.status}) when fetching device statuses`);
-        } else if (error.request) {
-          setError('No response received when fetching device statuses');
-        }
-      }
       
       setEnergyData(energyDataMap);
       
@@ -149,8 +150,7 @@ export const useDeviceEnergyData = (deviceIds: string[] = []) => {
         wsRef.current = null;
       }
       
-      // Determine appropriate WebSocket URL - try both localhost and current domain
-      // In production, you should use the same domain as your app is running on
+      // Determine appropriate WebSocket URL
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
       const domain = window.location.hostname;
       const port = domain === 'localhost' ? ':5000' : ''; // Use port 5000 only on localhost
@@ -171,37 +171,56 @@ export const useDeviceEnergyData = (deviceIds: string[] = []) => {
           try {
             const message = JSON.parse(event.data);
             
-            // Determine which device this is for
-            let targetDeviceId = null;
-            
-            if (message.feed?.includes('powerlight')) {
-              // This is for the light device
-              targetDeviceId = deviceIdsRef.current.find(id => id.toLowerCase().includes('light'));
-            } else if (message.feed === 'powerfan') {
-              // This is for the fan device
-              targetDeviceId = deviceIdsRef.current.find(id => id.toLowerCase().includes('fan'));
-            }
-            
-            if (targetDeviceId && energyData[targetDeviceId]) {
-              setEnergyData((prev) => ({
-                ...prev,
-                [targetDeviceId!]: {
-                  ...prev[targetDeviceId!],
-                  consumption: parseFloat(message.value) || 0,
-                  lastUpdated: new Date().toISOString()
-                }
-              }));
-            }
-            
-            // Handle status changes if the message contains status info
-            if (message.feed?.includes('chat') && message.value) {
-              const [deviceName, statusValue] = message.value.split(':');
-              if (deviceName && statusValue) {
-                const deviceId = deviceIdsRef.current.find(id => 
-                  id.toLowerCase().includes(deviceName.toLowerCase())
-                );
+            // Check if the message is for a power feed we're monitoring
+            if (message.feed) {
+              const feedName = message.feed.split('/').pop(); // Get the last part of the feed path
+              
+              // Find the device that corresponds to this feed
+              const matchedDevice = deviceIdsRef.current.find(id => {
+                const deviceInState = energyData[id];
+                if (!deviceInState) return false;
                 
-                if (deviceId && energyData[deviceId]) {
+                // Check if this feed corresponds to the device type
+                if (feedName === 'powerlight' && (id.toLowerCase().includes('light') || deviceInState.deviceName.toLowerCase().includes('light'))) {
+                  return true;
+                } else if (feedName === 'powerfan' && (id.toLowerCase().includes('fan') || deviceInState.deviceName.toLowerCase().includes('fan'))) {
+                  return true;
+                } else if (feedName === 'powerac' && (id.toLowerCase().includes('ac') || deviceInState.deviceName.toLowerCase().includes('air'))) {
+                  return true;
+                } else if (feedName === 'powertv' && (id.toLowerCase().includes('tv'))) {
+                  return true;
+                }
+                return false;
+              });
+              
+              if (matchedDevice && message.value) {
+                setEnergyData((prev) => ({
+                  ...prev,
+                  [matchedDevice]: {
+                    ...prev[matchedDevice],
+                    consumption: isNaN(parseFloat(message.value)) ? 0 : parseFloat(message.value),
+                    lastUpdated: new Date().toISOString()
+                  }
+                }));
+              }
+            }
+            
+            // Handle direct device status changes (from ON/OFF commands)
+            if (message.feed?.includes('chat') && message.value) {
+              // Parse the chat message format: "deviceName: status"
+              const matchPattern = /(.+?):\s*(.+)/;
+              const match = message.value.match(matchPattern);
+              
+              if (match && match.length === 3) {
+                const [_, deviceName, statusValue] = match;
+                
+                // Find device by name
+                const deviceId = deviceIdsRef.current.find(id => {
+                  const device = energyData[id];
+                  return device && device.deviceName.toLowerCase() === deviceName.toLowerCase().trim();
+                });
+                
+                if (deviceId) {
                   setEnergyData((prev) => ({
                     ...prev,
                     [deviceId]: {

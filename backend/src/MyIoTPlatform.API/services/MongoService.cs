@@ -14,6 +14,7 @@ namespace MyIoTPlatform.API.Services
     public class MongoDbService
     {
         private readonly IMongoCollection<User> _usersCollection;
+        private readonly IMongoCollection<SensorReading> _sensorReadingsCollection;
         private readonly IMongoCollection<DeviceSchedule> _schedulesCollection;
         private readonly IMongoCollection<DeviceThreshold> _thresholdsCollection;
           private readonly IMongoCollection<Device> _devicesCollection;
@@ -41,10 +42,12 @@ namespace MyIoTPlatform.API.Services
             _energyDistributionCollection = mongoDatabase.GetCollection<EnergyDistribution>("EnergyDistribution");
             _environmentDataCollection = mongoDatabase.GetCollection<EnvironmentData>("EnvironmentData");
             _thresholdsCollection = mongoDatabase.GetCollection<DeviceThreshold>("DeviceThresholds");
-            
+            _sensorReadingsCollection = mongoDatabase.GetCollection<SensorReading>("SensorReadings");
+
             // Thêm collection mới cho lịch trình
             _schedulesCollection = mongoDatabase.GetCollection<DeviceSchedule>("DeviceSchedules");
         }
+        
 
         #region User Operations
         public async Task<DeviceSchedule> GetScheduleByDeviceIdAsync(string deviceId)
@@ -850,6 +853,44 @@ namespace MyIoTPlatform.API.Services
                 return false;
             }
         }
+        public async Task AddSensorReadingAsync(SensorReading reading)
+        {
+            await _sensorReadingsCollection.InsertOneAsync(reading);
+        }
+
+        public async Task<List<SensorReading>> GetSensorReadingsForUserAsync(
+            string userId, 
+            string feedName,
+            DateTime? startDate = null,
+            DateTime? endDate = null)
+        {
+            var filter = Builders<SensorReading>.Filter.Eq(r => r.UserId, userId);
+            
+            if (!string.IsNullOrEmpty(feedName))
+                filter &= Builders<SensorReading>.Filter.Eq(r => r.FeedName, feedName);
+            
+            if (startDate.HasValue)
+                filter &= Builders<SensorReading>.Filter.Gte(r => r.Timestamp, startDate.Value);
+            
+            if (endDate.HasValue)
+                filter &= Builders<SensorReading>.Filter.Lte(r => r.Timestamp, endDate.Value);
+            
+            return await _sensorReadingsCollection.Find(filter)
+                .SortByDescending(r => r.Timestamp)
+                .ToListAsync();
+        }
+
+        public async Task<SensorReading> GetLatestSensorReadingForUserAsync(string userId, string feedName)
+        {
+            var filter = Builders<SensorReading>.Filter.Eq(r => r.UserId, userId);
+            
+            if (!string.IsNullOrEmpty(feedName))
+                filter &= Builders<SensorReading>.Filter.Eq(r => r.FeedName, feedName);
+            
+            return await _sensorReadingsCollection.Find(filter)
+                .SortByDescending(r => r.Timestamp)
+                .FirstOrDefaultAsync();
+        }
     }
 
     public class MongoDbSettings
@@ -897,6 +938,8 @@ namespace MyIoTPlatform.API.Services
         
         
     }
+
+    
 
 
     

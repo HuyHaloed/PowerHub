@@ -566,5 +566,45 @@ namespace MyIoTPlatform.API.Services
             
             return (currentData, previousData, change);
         }
+        public async Task UpdateEnergyDistributionAsync(string userId)
+        {
+            // Get all devices for this user
+            var devices = await _mongoDbService.GetDevicesByUserIdAsync(userId);
+            
+            // Calculate total consumption across all devices
+            double totalConsumption = devices.Sum(d => d.Consumption);
+            
+            if (totalConsumption <= 0)
+            {
+                return;
+            }
+            
+            var colors = new[] { "#4CAF50", "#2196F3", "#FFC107", "#9C27B0", "#F44336", "#607D8B" };
+            var distributions = new List<EnergyDistribution>();
+            
+            for (int i = 0; i < devices.Count; i++)
+            {
+                var device = devices[i];
+                double percentage = (device.Consumption / totalConsumption) * 100;
+                
+                distributions.Add(new EnergyDistribution
+                {
+                    UserId = userId,
+                    DeviceId = device.Id,
+                    Name = device.Name,
+                    Value = Math.Round(percentage, 1),
+                    Color = colors[i % colors.Length],
+                    Date = DateTime.UtcNow
+                });
+            }
+            
+            // Save all distributions
+            foreach (var distribution in distributions)
+            {
+                await _mongoDbService.AddEnergyDistributionAsync(distribution);
+            }
+            
+        }
     }
+    
 }

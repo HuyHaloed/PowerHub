@@ -117,7 +117,7 @@ builder.Services.AddHostedService<ThresholdMonitorService>();
 
 // Make sure this is also registered as a scoped service
 builder.Services.AddScoped<ThresholdMonitorService>();
-
+builder.Services.AddHostedService<AdafruitDataCollectorService>();
 
 // THÊM ĐĂNG KÝ CHO MQTT CLIENT và CÁC DỊCH VỤ SCHEDULER
 // Đăng ký IMqttClient
