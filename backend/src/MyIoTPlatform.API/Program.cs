@@ -111,7 +111,7 @@ builder.Services.Configure<AdafruitMqttConfig>(builder.Configuration.GetSection(
 builder.Services.AddSingleton<IMqttClientService, AdafruitMqttService>();
 builder.Services.AddHostedService<AdafruitMqttService>();
 builder.Services.AddSignalR();
-builder.Services.AddHostedService<ThresholdBackgroundService>();
+// builder.Services.AddHostedService<ThresholdBackgroundService>();
 
 builder.Services.AddHostedService<ThresholdMonitorService>();
 

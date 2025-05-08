@@ -1,105 +1,150 @@
-// src/hooks/useScheduleAPI.ts
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import authorizedAxiosInstance from '@/lib/axios';
-import { DeviceSchedule } from '@/types/dashboard.types';
-import { toast } from 'react-toastify';
 
-export function useSchedules() {
-  const [schedules, setSchedules] = useState<DeviceSchedule[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+export interface DeviceSchedule {
+  id: string;
+  deviceId: string;
+  onTime: string;
+  offTime: string;
+  daysOfWeek: number[];
+  adafruitFeed: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
 
-  const fetchSchedules = useCallback(async () => {
+export interface CreateScheduleParams {
+  deviceId: string;
+  onTime: string;
+  offTime: string;
+  daysOfWeek: number[];
+}
+
+export interface UpdateScheduleParams extends CreateScheduleParams {
+  id: string;
+  isActive?: boolean;
+}
+
+export const useDeviceSchedule = (deviceId?: string) => {
+  const [schedule, setSchedule] = useState<DeviceSchedule | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch schedule for a specific device
+  const fetchSchedule = async (id: string) => {
     setIsLoading(true);
+    setError(null);
     try {
-      const response = await authorizedAxiosInstance.get('/schedules');
-      setSchedules(response.data);
-      setError(null);
-      return response.data;
+      const response = await authorizedAxiosInstance.get(`/devices/${id}/schedule`);
+      if (response.data) {
+        setSchedule(response.data);
+      } else {
+        setSchedule(null);
+      }
     } catch (err) {
-      console.error('Error fetching schedules:', err);
-      setError(err instanceof Error ? err : new Error('Đã xảy ra lỗi khi tải lịch trình'));
-      return [];
+      console.error("Lỗi khi tải lịch trình thiết bị:", err);
+      setError("Không thể tải lịch trình thiết bị");
+      setSchedule(null);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  };
 
-  const createSchedule = useCallback(async (schedule: DeviceSchedule) => {
+  // Create a new schedule
+  const createSchedule = async (params: CreateScheduleParams): Promise<DeviceSchedule | null> => {
+    setIsLoading(true);
+    setError(null);
     try {
-      const response = await authorizedAxiosInstance.post('/schedules', schedule);
-      toast.success('Lịch trình đã được tạo thành công');
-      await fetchSchedules();
-      return response.data;
-    } catch (err) {
-      toast.error('Không thể tạo lịch trình');
-      throw err;
-    }
-  }, [fetchSchedules]);
-
-  const updateSchedule = useCallback(async (id: string, schedule: DeviceSchedule) => {
-    try {
-      const response = await authorizedAxiosInstance.put(`/schedules/${id}`, schedule);
-      toast.success('Lịch trình đã được cập nhật');
-      await fetchSchedules();
-      return response.data;
-    } catch (err) {
-      toast.error('Không thể cập nhật lịch trình');
-      throw err;
-    }
-  }, [fetchSchedules]);
-
-// src/hooks/useScheduleAPI.ts (continued)
-const deleteSchedule = useCallback(async (deviceId: string) => {
-    try {
-      await authorizedAxiosInstance.delete(`/schedules/${deviceId}`);
-      toast.success('Lịch trình đã được xóa');
-      await fetchSchedules();
-      return true;
-    } catch (err) {
-      toast.error('Không thể xóa lịch trình');
-      throw err;
-    }
-  }, [fetchSchedules]);
-
-  const toggleScheduleStatus = useCallback(async (deviceId: string, isActive: boolean) => {
-    try {
-      await authorizedAxiosInstance.put(`/schedules/${deviceId}/status`, { isActive });
-      toast.success(`Lịch trình đã được ${isActive ? 'kích hoạt' : 'vô hiệu hóa'}`);
-      await fetchSchedules();
-      return true;
-    } catch (err) {
-      toast.error('Không thể cập nhật trạng thái lịch trình');
-      throw err;
-    }
-  }, [fetchSchedules]);
-
-  const getScheduleForDevice = useCallback(async (deviceId: string) => {
-    try {
-      const response = await authorizedAxiosInstance.get(`/schedules/${deviceId}`);
-      return response.data;
-    } catch (err) {
-    //   // Don't show error toast here as it's expected to not find schedules for some devices
-    //   if (err.response && err.response.status !== 404) {
-    //     toast.error('Không thể tải lịch trình');
-    //   }
+      const response = await authorizedAxiosInstance.post('/schedules', params);
+      if (response.data) {
+        setSchedule(response.data);
+        return response.data;
+      }
       return null;
+    } catch (err) {
+      console.error("Lỗi khi tạo lịch trình thiết bị:", err);
+      setError("Không thể tạo lịch trình thiết bị");
+      return null;
+    } finally {
+      setIsLoading(false);
     }
-  }, []);
+  };
 
+  // Update an existing schedule
+  const updateSchedule = async (params: UpdateScheduleParams): Promise<DeviceSchedule | null> => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await authorizedAxiosInstance.put(`/schedules/${params.id}`, params);
+      if (response.data) {
+        setSchedule(response.data);
+        return response.data;
+      }
+      return null;
+    } catch (err) {
+      console.error("Lỗi khi cập nhật lịch trình thiết bị:", err);
+      setError("Không thể cập nhật lịch trình thiết bị");
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Delete a schedule
+  const deleteSchedule = async (id: string): Promise<boolean> => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await authorizedAxiosInstance.delete(`/schedules/${id}`);
+      if (response.status === 200) {
+        setSchedule(null);
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.error("Lỗi khi xóa lịch trình thiết bị:", err);
+      setError("Không thể xóa lịch trình thiết bị");
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Toggle schedule active status
+  const toggleScheduleStatus = async (id: string, isActive: boolean): Promise<boolean> => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await authorizedAxiosInstance.patch(`/schedules/${id}/status`, { isActive });
+      if (response.status === 200) {
+        setSchedule(prev => prev ? { ...prev, isActive } : null);
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.error("Lỗi khi thay đổi trạng thái lịch trình:", err);
+      setError("Không thể thay đổi trạng thái lịch trình");
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Load schedule data on component mount if deviceId is provided
   useEffect(() => {
-    fetchSchedules();
-  }, [fetchSchedules]);
+    if (deviceId) {
+      fetchSchedule(deviceId);
+    }
+  }, [deviceId]);
 
   return {
-    schedules,
+    schedule,
     isLoading,
     error,
-    fetchSchedules,
+    fetchSchedule,
     createSchedule,
     updateSchedule,
     deleteSchedule,
-    toggleScheduleStatus,
-    getScheduleForDevice
+    toggleScheduleStatus
   };
-}
+};

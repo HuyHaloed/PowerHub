@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useOutletContext } from "react-router-dom";
 import { useDashboardData, useActiveDevices, useQuickStats } from '@/hooks/useDashboardIOTData';
 import DashboardSidebar from '@/components/DashboardIOT/DashboardSidebar';
@@ -13,6 +13,8 @@ import AnalyticsView from '@/pages/Customer/Dashboard/AnalyticsView';
 import SettingsView from '@/pages/Customer/Dashboard/SettingsView';
 import { Stat, Device } from '@/types/dashboard.types';
 import { TemperatureCard, HumidityCard, BrightnessCard } from '@/components/DashboardIOT/EnvironmentDataCard';
+import DeleteAllAlertsButton from '@/components/DashboardIOT/DeleteAllAlertsButton';
+
 const CustomAlert = ({ 
   title, 
   message, 
@@ -41,6 +43,7 @@ const CustomAlert = ({
     </div>
   );
 };
+
 type LayoutContextType = {
   isMobile: boolean;
   isSidebarOpen: boolean;
@@ -49,10 +52,16 @@ type LayoutContextType = {
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = React.useState("dashboard");
-  const { data: dashboardData, isLoading: isDashboardLoading, error: dashboardError } = useDashboardData();
+  const { data: dashboardData, isLoading: isDashboardLoading, error: dashboardError, refetch: refetchDashboardData } = useDashboardData();
   const { data: activeDevicesData, isLoading: isActiveDevicesLoading } = useActiveDevices();
   const { data: quickStatsData, isLoading: isQuickStatsLoading } = useQuickStats();
   const { isMobile, isSidebarOpen, setSidebarOpen } = useOutletContext<LayoutContextType>();
+  
+  // Handler for when all alerts are deleted
+  const handleAllAlertsDeleted = () => {
+    // Refetch dashboard data to update the alerts list
+    refetchDashboardData();
+  };
   
   const renderContent = () => {
     switch (activeTab) {
@@ -92,9 +101,14 @@ export default function Dashboard() {
             <QuickStatCard key={stat.id} stat={stat} />
           ))}
         </div>
+        
         {unreadAlerts.length > 0 && (
           <div className="mb-6">
-            <h2 className="text-lg font-medium mb-3">Cảnh báo gần đây</h2>
+            <div className="flex justify-between items-center mb-3">
+              <h2 className="text-lg font-medium">Cảnh báo gần đây</h2>
+              {/* Add the DeleteAllAlertsButton here */}
+              <DeleteAllAlertsButton onAllAlertsDeleted={handleAllAlertsDeleted} />
+            </div>
             <div className="space-y-3">
               {unreadAlerts.map((alert) => (
                 <CustomAlert
@@ -133,6 +147,7 @@ export default function Dashboard() {
               {activeDevicesData && activeDevicesData.length > 0 ? (
                 activeDevicesData.slice(0, 3).map((device: Device) => (
                   <DeviceStatusCard
+                    key={device.id}
                     device={device}
                     onToggle={function (status: 'on' | 'off'): void {
                       throw new Error('Function not implemented.');

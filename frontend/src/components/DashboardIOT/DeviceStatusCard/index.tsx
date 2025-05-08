@@ -1,4 +1,3 @@
-// src/components/DashboardIOT/DeviceStatusCard.tsx
 import React, { useState, useEffect } from 'react';
 import { Device } from '@/types/dashboard.types';
 import { Card, CardContent } from "@/components/ui/card";
@@ -7,6 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { Lightbulb, Tv, AirVent, AreaChart, Thermometer, Refrigerator, Plug, Laptop, ZapOff, AlertTriangle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import authorizedAxiosInstance from '@/lib/axios';
+import { useDeviceEnergyData } from '@/hooks/useDeviceEnergyData';
 
 interface DeviceStatusCardProps {
   device: Device;
@@ -14,11 +14,12 @@ interface DeviceStatusCardProps {
   isToggling?: boolean;
 }
 
-// Thêm interface cho thiết lập ngưỡng quá tải
+// Interface for threshold settings
 interface OverloadThreshold {
   isEnabled: boolean;
   value: number;
   action: 'turnOn' | 'turnOff';
+  feedName: string;
 }
 
 const DeviceStatusCard: React.FC<DeviceStatusCardProps> = ({ 
@@ -28,6 +29,30 @@ const DeviceStatusCard: React.FC<DeviceStatusCardProps> = ({
 }) => {
   const [threshold, setThreshold] = useState<OverloadThreshold | null>(null);
   const [isLoadingThreshold, setIsLoadingThreshold] = useState(false);
+  const [lastThresholdCheck, setLastThresholdCheck] = useState<number>(0);
+  
+  // Use our new hook to get real-time energy consumption
+  const { getDeviceEnergyData, isLoading: isLoadingEnergyData } = useDeviceEnergyData([device.id]);
+  const energyData = getDeviceEnergyData(device.id);
+
+  // Use energy data from Adafruit IO if available, otherwise use the value from the device object
+  const currentConsumption = energyData?.consumption !== undefined ? energyData.consumption : device.consumption;
+
+  // Xác định feedName dựa trên loại thiết bị
+  const determineFeedName = (deviceType: string): string => {
+    const type = deviceType.toLowerCase();
+    if (type.includes('light')) {
+      return 'powerlight';
+    } else if (type.includes('fan')) {
+      return 'powerfan';
+    } else if (type.includes('air') || type.includes('ac')) {
+      return 'powerac';
+    } else if (type.includes('tv')) {
+      return 'powertv';
+    } else {
+      return 'powerlight'; // Mặc định nếu không xác định được
+    }
+  };
 
   // Fetch threshold info when the component mounts
   useEffect(() => {
@@ -36,10 +61,14 @@ const DeviceStatusCard: React.FC<DeviceStatusCardProps> = ({
         setIsLoadingThreshold(true);
         const response = await authorizedAxiosInstance.get(`/devices/${device.id}/threshold`);
         if (response.data) {
+          // Dùng feedName dựa trên loại thiết bị
+          const feedName = determineFeedName(device.type);
+          
           setThreshold({
             isEnabled: response.data.isEnabled,
             value: response.data.value,
             action: response.data.action,
+            feedName: feedName
           });
         }
       } catch (error) {
@@ -50,30 +79,54 @@ const DeviceStatusCard: React.FC<DeviceStatusCardProps> = ({
     };
 
     fetchThreshold();
-  }, [device.id]);
+  }, [device.id, device.type]);
 
-  const getDeviceIcon = () => {
-    const isOn = device.status.toUpperCase() === 'ON';
+  // Kiểm tra cập nhật trạng thái thiết bị dựa vào ngưỡng
+  useEffect(() => {
+    // Chỉ kiểm tra nếu threshold đã được kích hoạt và có dữ liệu tiêu thụ
+    if (threshold?.isEnabled && currentConsumption !== undefined && !isLoadingThreshold) {
+      const isExceeding = isExceedingThreshold();
+      
+      // Tránh kiểm tra liên tục bằng cách chỉ kiểm tra sau mỗi 5 giây
+      const now = Date.now();
+      if (now - lastThresholdCheck > 5000) {
+        checkAndApplyThreshold(isExceeding);
+        setLastThresholdCheck(now);
+      }
+    }
+  }, [currentConsumption, threshold?.isEnabled, device.status]);
+
+  // Kiểm tra và áp dụng ngưỡng nếu cần
+  const checkAndApplyThreshold = async (isExceeding: boolean) => {
+    if (!threshold || !threshold.isEnabled) return;
     
-    switch(device.type?.toLowerCase()) {
-      case 'light':
-        return <Lightbulb className={`h-5 w-5 ${isOn ? 'text-yellow-500' : 'text-gray-400'}`} />;
-      case 'tv':
-      case 'entertainment':
-        return <Tv className={`h-5 w-5 ${isOn ? 'text-blue-500' : 'text-gray-400'}`} />;
-      case 'ac':
-        return <AirVent className={`h-5 w-5 ${isOn ? 'text-blue-500' : 'text-gray-400'}`} />;
-      case 'sensor':
-        return <AreaChart className={`h-5 w-5 ${isOn ? 'text-green-500' : 'text-gray-400'}`} />;
-      case 'thermostat':
-        return <Thermometer className={`h-5 w-5 ${isOn ? 'text-red-500' : 'text-gray-400'}`} />;
-      case 'refrigerator':
-        return <Refrigerator className={`h-5 w-5 ${isOn ? 'text-blue-500' : 'text-gray-400'}`} />;
-      case 'computer':
-      case 'laptop':
-        return <Laptop className={`h-5 w-5 ${isOn ? 'text-purple-500' : 'text-gray-400'}`} />;
-      default:
-        return <Plug className={`h-5 w-5 ${isOn ? 'text-blue-500' : 'text-gray-400'}`} />;
+    // Xác định trạng thái mục tiêu dựa trên ngưỡng và hành động
+    let targetStatus: "on" | "off" | null = null;
+    
+    if (isExceeding) {
+      // Nếu vượt ngưỡng
+      if (threshold.action === 'turnOff') {
+        targetStatus = 'off';
+      } else if (threshold.action === 'turnOn') {
+        targetStatus = 'on';
+      }
+    } 
+    
+    // Chỉ kích hoạt khi có trạng thái mục tiêu và khác trạng thái hiện tại
+    const currentStatus = device.status.toLowerCase() as "on" | "off";
+    
+    if (targetStatus && targetStatus !== currentStatus) {
+      try {
+        // Gọi API để thay đổi trạng thái thiết bị theo ngưỡng
+        await authorizedAxiosInstance.post(`/thresholds/check/${device.id}`);
+        
+        // Nếu thành công, thông báo cho component cha
+        onToggle(targetStatus);
+        
+        console.log(`Thiết bị ${device.name} đã được ${targetStatus === 'on' ? 'bật' : 'tắt'} do ${threshold.action === 'turnOff' ? 'vượt quá' : 'thấp hơn'} ngưỡng ${threshold.value}W`);
+      } catch (error) {
+        console.error("Lỗi khi áp dụng ngưỡng quá tải:", error);
+      }
     }
   };
 
@@ -93,9 +146,9 @@ const DeviceStatusCard: React.FC<DeviceStatusCardProps> = ({
     if (!threshold || !threshold.isEnabled) return false;
     
     if (threshold.action === 'turnOff') {
-      return device.consumption >= threshold.value;
+      return currentConsumption >= threshold.value;
     } else {
-      return device.consumption <= threshold.value;
+      return currentConsumption <= threshold.value;
     }
   };
   
@@ -128,12 +181,47 @@ const DeviceStatusCard: React.FC<DeviceStatusCardProps> = ({
             <div className="p-1 max-w-xs">
               <p className="font-medium text-sm">{thresholdText}</p>
               <p className="text-xs mt-1">{currentStatusText}</p>
-              <p className="text-xs font-medium mt-1">Mức tiêu thụ hiện tại: {formatConsumption(device.consumption)}</p>
+              <p className="text-xs font-medium mt-1">Mức tiêu thụ hiện tại: {formatConsumption(currentConsumption)}</p>
+              <p className="text-xs mt-1">Feed: <span className="font-medium">{threshold.feedName}</span></p>
             </div>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
     );
+  };
+
+  const getDeviceIcon = () => {
+    const isOn = device.status.toUpperCase() === 'ON';
+    
+    switch(device.type?.toLowerCase()) {
+      case 'light':
+        return <Lightbulb className={`h-5 w-5 ${isOn ? 'text-yellow-500' : 'text-gray-400'}`} />;
+      case 'tv':
+      case 'entertainment':
+        return <Tv className={`h-5 w-5 ${isOn ? 'text-blue-500' : 'text-gray-400'}`} />;
+      case 'ac':
+        return <AirVent className={`h-5 w-5 ${isOn ? 'text-blue-500' : 'text-gray-400'}`} />;
+      case 'sensor':
+        return <AreaChart className={`h-5 w-5 ${isOn ? 'text-green-500' : 'text-gray-400'}`} />;
+      case 'thermostat':
+        return <Thermometer className={`h-5 w-5 ${isOn ? 'text-red-500' : 'text-gray-400'}`} />;
+      case 'refrigerator':
+        return <Refrigerator className={`h-5 w-5 ${isOn ? 'text-blue-500' : 'text-gray-400'}`} />;
+      case 'computer':
+      case 'laptop':
+        return <Laptop className={`h-5 w-5 ${isOn ? 'text-purple-500' : 'text-gray-400'}`} />;
+      default:
+        return <Plug className={`h-5 w-5 ${isOn ? 'text-blue-500' : 'text-gray-400'}`} />;
+    }
+  };
+  
+  // Format the last updated timestamp
+  const formatLastUpdated = () => {
+    const timestamp = energyData?.lastUpdated 
+      ? new Date(energyData.lastUpdated)
+      : new Date(device.lastUpdated);
+      
+    return timestamp.toLocaleString();
   };
   
   return (
@@ -165,7 +253,11 @@ const DeviceStatusCard: React.FC<DeviceStatusCardProps> = ({
           <div>
             <span className="text-xs text-gray-500">Tiêu thụ</span>
             <p className={`font-medium ${device.status.toUpperCase() === 'ON' ? 'text-blue-600' : 'text-gray-400'}`}>
-              {formatConsumption(device.consumption)}
+              {isLoadingEnergyData ? (
+                <span className="text-xs text-gray-400">Đang tải...</span>
+              ) : (
+                formatConsumption(currentConsumption)
+              )}
               
               {/* Display small threshold indicator next to consumption if applicable */}
               {threshold?.isEnabled && (
@@ -192,7 +284,7 @@ const DeviceStatusCard: React.FC<DeviceStatusCardProps> = ({
         </div>
         
         <div className="mt-2">
-          <span className="text-xs text-gray-500 block">Cập nhật cuối: {new Date(device.lastUpdated).toLocaleString()}</span>
+          <span className="text-xs text-gray-500 block">Cập nhật cuối: {formatLastUpdated()}</span>
         </div>
       </CardContent>
     </Card>

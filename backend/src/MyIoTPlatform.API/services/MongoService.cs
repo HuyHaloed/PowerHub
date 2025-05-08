@@ -16,10 +16,12 @@ namespace MyIoTPlatform.API.Services
         private readonly IMongoCollection<User> _usersCollection;
         private readonly IMongoCollection<DeviceSchedule> _schedulesCollection;
         private readonly IMongoCollection<DeviceThreshold> _thresholdsCollection;
-
-        private readonly IMongoCollection<Device> _devicesCollection;
-        private readonly IMongoCollection<EnergyConsumption> _energyConsumptionCollection;
+          private readonly IMongoCollection<Device> _devicesCollection;
         private readonly IMongoCollection<Alert> _alertsCollection;
+        private readonly ILogger<MongoDbService> _logger;
+
+
+        private readonly IMongoCollection<EnergyConsumption> _energyConsumptionCollection;
         private readonly IMongoCollection<Notification> _notificationsCollection;
         private readonly IMongoCollection<Session> _sessionsCollection;
         private readonly IMongoCollection<EnergyDistribution> _energyDistributionCollection;
@@ -788,7 +790,66 @@ namespace MyIoTPlatform.API.Services
         #endregion
 
 
-        
+        public async Task<Alert> GetAlertByIdAsync(string alertId)
+        {
+            try
+            {
+                var filter = Builders<Alert>.Filter.Eq("_id", ObjectId.Parse(alertId));
+                return await _alertsCollection.Find(filter).FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi lấy cảnh báo theo ID {AlertId}", alertId);
+                return null;
+            }
+        }
+
+        // // Thêm một cảnh báo mới
+        // public async Task<string> AddAlertAsync(Alert alert)
+        // {
+        //     try
+        //     {
+        //         await _alertsCollection.InsertOneAsync(alert);
+        //         return alert.Id.ToString();
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         _logger.LogError(ex, "Lỗi khi thêm cảnh báo mới");
+        //         return null;
+        //     }
+        // }
+
+        // Xóa một cảnh báo
+        public async Task<bool> DeleteAlertAsync(string alertId)
+        {
+            try
+            {
+                var filter = Builders<Alert>.Filter.Eq("_id", ObjectId.Parse(alertId));
+                var result = await _alertsCollection.DeleteOneAsync(filter);
+                return result.DeletedCount > 0;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi xóa cảnh báo {AlertId}", alertId);
+                return false;
+            }
+        }
+
+        // Xóa tất cả cảnh báo của một người dùng
+        public async Task<bool> DeleteAllUserAlertsAsync(string userId)
+        {
+            try
+            {
+                var filter = Builders<Alert>.Filter.Eq(a => a.UserId, userId);
+                var result = await _alertsCollection.DeleteManyAsync(filter);
+                return result.DeletedCount > 0;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi xóa tất cả cảnh báo của người dùng {UserId}", userId);
+                return false;
+            }
+        }
     }
 
     public class MongoDbSettings
@@ -834,6 +895,10 @@ namespace MyIoTPlatform.API.Services
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
         
+        
     }
+
+
+    
     
 }

@@ -56,6 +56,9 @@ namespace MyIoTPlatform.API.Controllers
                         var device = devices.FirstOrDefault(d => d.Id == deviceId);
                         if (device != null)
                         {
+                            // Xác định feedName dựa trên loại thiết bị
+                            string feedName = DetermineFeedName(device.Type);
+                            
                             thresholds.Add(new ThresholdResponse
                             {
                                 DeviceId = deviceId,
@@ -64,7 +67,8 @@ namespace MyIoTPlatform.API.Controllers
                                 Value = threshold.Value,
                                 Action = threshold.Action,
                                 CurrentConsumption = device.Consumption,
-                                IsExceeding = IsThresholdExceeded(device.Consumption, threshold)
+                                IsExceeding = IsThresholdExceeded(device.Consumption, threshold),
+                                FeedName = feedName
                             });
                         }
                     }
@@ -97,6 +101,10 @@ namespace MyIoTPlatform.API.Controllers
                 }
 
                 var threshold = await _mongoDbService.GetDeviceThresholdAsync(deviceId);
+                
+                // Xác định feedName dựa trên loại thiết bị
+                string feedName = DetermineFeedName(device.Type);
+                
                 if (threshold == null)
                 {
                     return Ok(new ThresholdResponse
@@ -107,7 +115,8 @@ namespace MyIoTPlatform.API.Controllers
                         Value = 100,
                         Action = "turnOff",
                         CurrentConsumption = device.Consumption,
-                        IsExceeding = false
+                        IsExceeding = false,
+                        FeedName = feedName
                     });
                 }
 
@@ -119,7 +128,8 @@ namespace MyIoTPlatform.API.Controllers
                     Value = threshold.Value,
                     Action = threshold.Action,
                     CurrentConsumption = device.Consumption,
-                    IsExceeding = IsThresholdExceeded(device.Consumption, threshold)
+                    IsExceeding = IsThresholdExceeded(device.Consumption, threshold),
+                    FeedName = feedName
                 });
             }
             catch (Exception ex)
@@ -154,10 +164,11 @@ namespace MyIoTPlatform.API.Controllers
 
                 bool isExceeding = IsThresholdExceeded(device.Consumption, threshold);
                 bool actionApplied = false;
+                string newStatus = null;
 
                 if (isExceeding)
                 {
-                    string newStatus = threshold.Action == "turnOff" ? "OFF" : "ON";
+                    newStatus = threshold.Action == "turnOff" ? "OFF" : "ON";
                     
                     // Kiểm tra trạng thái hiện tại của thiết bị
                     if (device.Status != newStatus)
@@ -165,8 +176,10 @@ namespace MyIoTPlatform.API.Controllers
                         // Cập nhật trạng thái thiết bị trong cơ sở dữ liệu
                         await _mongoDbService.ControlDeviceAsync(deviceId, newStatus);
                         
+                        // Xác định feed name dựa trên loại thiết bị
+                        string feedName = DetermineFeedName(device.Type);
+                        
                         // Thông báo qua MQTT
-                        string feedName = device.Name.ToLower().Replace(" ", "_");
                         await _mqttClientService.PublishAsync(feedName, newStatus, true, 1);
                         
                         // Tạo cảnh báo cho người dùng
@@ -190,10 +203,12 @@ namespace MyIoTPlatform.API.Controllers
                 { 
                     applied = actionApplied, 
                     isExceeding, 
+                    newStatus,
                     threshold = new
                     {
                         value = threshold.Value,
-                        action = threshold.Action
+                        action = threshold.Action,
+                        feedName = DetermineFeedName(device.Type)
                     },
                     consumption = device.Consumption,
                     message = actionApplied 
@@ -204,6 +219,59 @@ namespace MyIoTPlatform.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Lỗi khi kiểm tra và áp dụng ngưỡng quá tải cho thiết bị {DeviceId}", deviceId);
+                return StatusCode(500, new { message = "Lỗi máy chủ: " + ex.Message });
+            }
+        }
+        
+        [HttpDelete("alerts/{alertId}")]
+        public async Task<IActionResult> DeleteAlert(string alertId)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { message = "Người dùng chưa đăng nhập" });
+            }
+
+            try
+            {
+                // Lấy thông tin cảnh báo
+                var alert = await _mongoDbService.GetAlertByIdAsync(alertId);
+                if (alert == null || alert.UserId != userId)
+                {
+                    return NotFound(new { message = "Không tìm thấy cảnh báo" });
+                }
+
+                // Xóa cảnh báo
+                await _mongoDbService.DeleteAlertAsync(alertId);
+                
+                return Ok(new { success = true, message = "Đã xóa cảnh báo" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi xóa cảnh báo {AlertId}", alertId);
+                return StatusCode(500, new { message = "Lỗi máy chủ: " + ex.Message });
+            }
+        }
+        
+        [HttpDelete("alerts/all")]
+        public async Task<IActionResult> DeleteAllAlerts()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { message = "Người dùng chưa đăng nhập" });
+            }
+
+            try
+            {
+                // Xóa tất cả cảnh báo của người dùng
+                await _mongoDbService.DeleteAllUserAlertsAsync(userId);
+                
+                return Ok(new { success = true, message = "Đã xóa tất cả cảnh báo" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi xóa tất cả cảnh báo của người dùng {UserId}", userId);
                 return StatusCode(500, new { message = "Lỗi máy chủ: " + ex.Message });
             }
         }
@@ -223,6 +291,33 @@ namespace MyIoTPlatform.API.Controllers
                 return consumption <= threshold.Value;
             }
         }
+        
+        // Helper method to determine feedName based on device type
+        private string DetermineFeedName(string deviceType)
+        {
+            string type = deviceType?.ToLower() ?? "";
+            
+            if (type.Contains("light"))
+            {
+                return "powerlight";
+            }
+            else if (type.Contains("fan"))
+            {
+                return "powerfan";
+            }
+            else if (type.Contains("air") || type.Contains("ac"))
+            {
+                return "powerac";
+            }
+            else if (type.Contains("tv"))
+            {
+                return "powertv";
+            }
+            else
+            {
+                return "powerlight"; // Mặc định nếu không xác định được
+            }
+        }
     }
 
     public class ThresholdResponse
@@ -234,5 +329,13 @@ namespace MyIoTPlatform.API.Controllers
         public string Action { get; set; }
         public double CurrentConsumption { get; set; }
         public bool IsExceeding { get; set; }
+        public string FeedName { get; set; }
+    }
+    
+    public class ThresholdUpdateRequest
+    {
+        public bool IsEnabled { get; set; }
+        public int Value { get; set; }
+        public string Action { get; set; }
     }
 }
