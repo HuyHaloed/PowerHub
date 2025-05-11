@@ -214,7 +214,7 @@ const contactInfo = [
         />
       </svg>
     ),
-    detail: "support@mediseek.vn",
+    detail: "support@powerhub.vn",
   },
 ];
 
