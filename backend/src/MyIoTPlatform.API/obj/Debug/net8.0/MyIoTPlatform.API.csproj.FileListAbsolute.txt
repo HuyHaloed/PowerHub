@@ -633,7 +633,6 @@ D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.API\obj\Debug\net8.0
 D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.API\obj\Debug\net8.0\MyIoTPlatform.API.pdb
 D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.API\obj\Debug\net8.0\MyIoTPlatform.API.genruntimeconfig.cache
 D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.API\obj\Debug\net8.0\ref\MyIoTPlatform.API.dll
-D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.API\bin\Debug\net8.0\appsettings.Development.json
 D:\DHBK242\Đồ án đa ngành\Final\backend\src\MyIoTPlatform.API\bin\Debug\net8.0\appsettings.json
 D:\DHBK242\Đồ án đa ngành\Final\backend\src\MyIoTPlatform.API\bin\Debug\net8.0\MyIoTPlatform.API.staticwebassets.endpoints.json
 D:\DHBK242\Đồ án đa ngành\Final\backend\src\MyIoTPlatform.API\bin\Debug\net8.0\MyIoTPlatform.API.exe
@@ -846,3 +845,4 @@ D:\DHBK242\Đồ án đa ngành\Final\backend\src\MyIoTPlatform.API\obj\Debug\ne
 D:\DHBK242\Đồ án đa ngành\Final\backend\src\MyIoTPlatform.API\obj\Debug\net8.0\MyIoTPlatform.API.genruntimeconfig.cache
 D:\DHBK242\Đồ án đa ngành\Final\backend\src\MyIoTPlatform.API\obj\Debug\net8.0\ref\MyIoTPlatform.API.dll
 D:\DHBK242\Đồ án đa ngành\Final\backend\src\MyIoTPlatform.API\bin\Debug\net8.0\appsettings.Development.json
+D:\Bon Bon\project 1\git\PowerHub\backend\src\MyIoTPlatform.API\bin\Debug\net8.0\appsettings.Development.json

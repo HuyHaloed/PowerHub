@@ -1839,7 +1839,7 @@
         },
         "runtime": {
           "MyIoTPlatform.Application.dll": {
-            "assemblyVersion": "1.0.0.0",
+            "assemblyVersion": "1.0.0",
             "fileVersion": "1.0.0.0"
           }
         }
@@ -1855,7 +1855,7 @@
         },
         "runtime": {
           "MyIoTPlatform.Domain.dll": {
-            "assemblyVersion": "1.0.0.0",
+            "assemblyVersion": "1.0.0",
             "fileVersion": "1.0.0.0"
           }
         }
