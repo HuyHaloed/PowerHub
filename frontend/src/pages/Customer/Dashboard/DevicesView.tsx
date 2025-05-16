@@ -275,10 +275,10 @@ export default function DevicesView() {
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
         <h1 className="text-2xl font-bold">Quản lý thiết bị</h1>
         <div className="flex flex-col sm:flex-row gap-3">
-          <Button variant="outline" size="sm" className="flex items-center">
+          {/* <Button variant="outline" size="sm" className="flex items-center">
             <Filter className="mr-2 h-4 w-4" />
             Bộ lọc
-          </Button>
+          </Button> */}
           <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
             <DialogTrigger asChild>
               <Button size="sm" className="flex items-center">

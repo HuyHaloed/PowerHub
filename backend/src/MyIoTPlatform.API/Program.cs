@@ -148,6 +148,7 @@ var app = builder.Build();
 // if (app.Environment.IsDevelopment())
 // {
 //     app.UseSwagger();
+
 //     app.UseSwaggerUI();
     
 //     // Chỉ chạy initializer trong môi trường development
@@ -157,7 +158,6 @@ var app = builder.Build();
 //         await initializer.InitializeAsync();
 //     }
 // }
-
 app.UseHttpsRedirection();
 app.UseCors();
 app.UseAuthentication();

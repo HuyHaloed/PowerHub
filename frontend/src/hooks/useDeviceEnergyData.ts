@@ -20,6 +20,9 @@ export const useDeviceEnergyData = (deviceIds: string[] = []) => {
   const reconnectAttemptsRef = useRef<number>(0);
   const maxReconnectAttempts = 5;
   const deviceIdsRef = useRef<string[]>(deviceIds);
+  
+  // Store device info for WebSocket matching
+  const deviceInfoRef = useRef<Record<string, any>>({});
 
   // Update ref when deviceIds change
   useEffect(() => {
@@ -27,20 +30,29 @@ export const useDeviceEnergyData = (deviceIds: string[] = []) => {
   }, [deviceIds]);
 
   // Function to determine the feed name based on device type
-  const getFeedNameForDevice = (deviceId: string, deviceType: string = ''): string => {
+  const getFeedNameForDevice = (deviceId: string, deviceType: string = '', deviceName: string = ''): string => {
     const id = deviceId.toLowerCase();
     const type = deviceType.toLowerCase();
+    const name = deviceName.toLowerCase();
     
-    if (id.includes('light') || type.includes('light')) {
-      return 'powerlight';
-    } else if (id.includes('fan') || type.includes('fan')) {
+    // Log để debug
+    console.log(`Mapping device: ${deviceId}, type: ${deviceType}, name: ${deviceName}`);
+    
+    // Kiểm tra theo thứ tự ưu tiên
+    if (type.includes('fan') || id.includes('fan') || name.includes('fan')) {
+      console.log(`Mapped to powerfan for device: ${deviceId}`);
       return 'powerfan';
-    } else if (id.includes('ac') || type.includes('ac') || type.includes('air')) {
+    } else if (type.includes('light') || id.includes('light') || name.includes('light')) {
+      console.log(`Mapped to powerlight for device: ${deviceId}`);
+      return 'powerlight';
+    } else if (type.includes('ac') || type.includes('air') || id.includes('ac') || name.includes('ac')) {
+      console.log(`Mapped to powerac for device: ${deviceId}`);
       return 'powerac';
-    } else if (id.includes('tv') || type.includes('tv')) {
+    } else if (type.includes('tv') || id.includes('tv') || name.includes('tv')) {
+      console.log(`Mapped to powertv for device: ${deviceId}`);
       return 'powertv';
     } else {
-      // Default to powerlight if we can't determine the type
+      console.log(`Default mapping to powerlight for device: ${deviceId}`);
       return 'powerlight';
     }
   };
@@ -49,6 +61,8 @@ export const useDeviceEnergyData = (deviceIds: string[] = []) => {
     if (deviceIds.length === 0) return;
     
     setIsLoading(true);
+    console.log('Fetching device data for:', deviceIds);
+    
     try {
       // First, fetch device information to get their types
       const devicesResponse = await authorizedAxiosInstance.get('/devices', {
@@ -56,21 +70,36 @@ export const useDeviceEnergyData = (deviceIds: string[] = []) => {
       });
       
       const devices = devicesResponse.data;
+      console.log('Fetched devices:', devices);
+      
       const deviceMap = devices.reduce((acc: any, device: any) => {
         acc[device.id] = device;
         return acc;
       }, {});
       
+      // Store device info for WebSocket matching
+      deviceInfoRef.current = deviceMap;
+      
+      // Log device mapping
+      deviceIds.forEach(id => {
+        const device = deviceMap[id];
+        console.log(`Device ${id}: ${device ? JSON.stringify({name: device.name, type: device.type}) : 'NOT FOUND'}`);
+      });
+      
       // Fetch data for each feed corresponding to each device
       const energyPromises = deviceIds.map(async (deviceId) => {
         const device = deviceMap[deviceId];
         // Get the appropriate feed name based on device type
-        const feedName = device ? getFeedNameForDevice(deviceId, device.type) : getFeedNameForDevice(deviceId);
+        const feedName = device ? getFeedNameForDevice(deviceId, device.type, device.name) : getFeedNameForDevice(deviceId);
+        
+        console.log(`Fetching ${feedName} for device ${deviceId} (${device?.name || 'Unknown'})`);
         
         try {
           const response = await authorizedAxiosInstance.get(`/adafruit/data/${feedName}`, {
             timeout: 5000
           });
+          
+          console.log(`Got data for ${deviceId} (${feedName}):`, response.data);
           
           return {
             deviceId,
@@ -110,6 +139,7 @@ export const useDeviceEnergyData = (deviceIds: string[] = []) => {
         return acc;
       }, {} as Record<string, DeviceEnergyData>);
       
+      console.log('Final energy data:', energyDataMap);
       setEnergyData(energyDataMap);
       
       // If we got this far, clear any previous errors
@@ -170,30 +200,30 @@ export const useDeviceEnergyData = (deviceIds: string[] = []) => {
         ws.onmessage = (event) => {
           try {
             const message = JSON.parse(event.data);
+            console.log('Received WebSocket message:', message);
             
             // Check if the message is for a power feed we're monitoring
             if (message.feed) {
               const feedName = message.feed.split('/').pop(); // Get the last part of the feed path
+              console.log(`Processing feed: ${feedName}, value: ${message.value}`);
               
-              // Find the device that corresponds to this feed
-              const matchedDevice = deviceIdsRef.current.find(id => {
-                const deviceInState = energyData[id];
-                if (!deviceInState) return false;
-                
-                // Check if this feed corresponds to the device type
-                if (feedName === 'powerlight' && (id.toLowerCase().includes('light') || deviceInState.deviceName.toLowerCase().includes('light'))) {
-                  return true;
-                } else if (feedName === 'powerfan' && (id.toLowerCase().includes('fan') || deviceInState.deviceName.toLowerCase().includes('fan'))) {
-                  return true;
-                } else if (feedName === 'powerac' && (id.toLowerCase().includes('ac') || deviceInState.deviceName.toLowerCase().includes('air'))) {
-                  return true;
-                } else if (feedName === 'powertv' && (id.toLowerCase().includes('tv'))) {
-                  return true;
+              // Find the device that corresponds to this feed using device info
+              const matchedDevice = deviceIdsRef.current.find(deviceId => {
+                const device = deviceInfoRef.current[deviceId];
+                if (!device) {
+                  console.log(`No device info found for ${deviceId}`);
+                  return false;
                 }
-                return false;
+                
+                // Use the same logic as getFeedNameForDevice to determine expected feed
+                const expectedFeedName = getFeedNameForDevice(deviceId, device.type, device.name);
+                console.log(`Device ${deviceId} (${device.name}) expects feed ${expectedFeedName}, got ${feedName}`);
+                
+                return expectedFeedName === feedName;
               });
               
-              if (matchedDevice && message.value) {
+              if (matchedDevice && message.value !== undefined) {
+                console.log(`Updating ${matchedDevice} with value ${message.value}`);
                 setEnergyData((prev) => ({
                   ...prev,
                   [matchedDevice]: {
@@ -202,6 +232,13 @@ export const useDeviceEnergyData = (deviceIds: string[] = []) => {
                     lastUpdated: new Date().toISOString()
                   }
                 }));
+              } else {
+                console.log(`No matching device found for feed ${feedName}. Available devices:`, 
+                  deviceIdsRef.current.map(id => {
+                    const device = deviceInfoRef.current[id];
+                    return device ? `${id} (${device.name}, type: ${device.type})` : `${id} (no info)`;
+                  })
+                );
               }
             }
             
@@ -216,11 +253,12 @@ export const useDeviceEnergyData = (deviceIds: string[] = []) => {
                 
                 // Find device by name
                 const deviceId = deviceIdsRef.current.find(id => {
-                  const device = energyData[id];
-                  return device && device.deviceName.toLowerCase() === deviceName.toLowerCase().trim();
+                  const device = deviceInfoRef.current[id];
+                  return device && device.name.toLowerCase() === deviceName.toLowerCase().trim();
                 });
                 
                 if (deviceId) {
+                  console.log(`Updating status for ${deviceId} to ${statusValue}`);
                   setEnergyData((prev) => ({
                     ...prev,
                     [deviceId]: {
@@ -300,6 +338,16 @@ export const useDeviceEnergyData = (deviceIds: string[] = []) => {
     return fetchDeviceData();
   };
 
+  // Force refresh every 10 seconds to ensure synchronization
+  useEffect(() => {
+    const forceRefreshInterval = setInterval(() => {
+      console.log('Force refreshing energy data...');
+      fetchDeviceData();
+    }, 10000);
+    
+    return () => clearInterval(forceRefreshInterval);
+  }, [deviceIds]);
+
   return { 
     energyData, 
     isLoading, 
@@ -310,5 +358,3 @@ export const useDeviceEnergyData = (deviceIds: string[] = []) => {
     refreshData
   };
 };
-
-
