@@ -34,12 +34,9 @@ constexpr uint16_t FIRMWARE_PACKET_SIZE = 4096U;
 #define TXD2 21 // chân 10
 #define PZEM_SERIAL Serial2
 
-PZEM004Tv30 pzem(PZEM_SERIAL, RXD2, TXD2);
-
 const char *ssid = "Bonjour";
 const char *password = "hellosine";
 const char *TOKEN = "ZS9KjbmsPcXtniB8q9yP";
-// const char *THINGSBOARD_SERVER = "10.0.122.240";
 const char *THINGSBOARD_SERVER = "app.coreiot.io";
 
 // const char * TOKEN = "wX9hDkeN0TiumJZlr9Yv";
@@ -110,8 +107,6 @@ Arduino_MQTT_Client mqttClient(espClient);
 Server_Side_RPC<3U, 5U> rpc;
 Attribute_Request<2U, MAX_ATTRIBUTES> attr_request;
 Shared_Attribute_Update<3U, MAX_ATTRIBUTES> shared_update;
-
-// Initialize used apis
 OTA_Firmware_Update<> ota;
 
 const std::array<IAPI_Implementation *, 4U> apis = {
@@ -124,6 +119,7 @@ ThingsBoard tb(mqttClient, MAX_MESSAGE_SIZE, MAX_MESSAGE_SIZE, Default_Max_Stack
 Espressif_Updater<> updater;
 
 SimpleDHT11 dht(DHT_PIN);
+PZEM004Tv30 pzem(PZEM_SERIAL, RXD2, TXD2);
 
 QueueHandle_t sensorQueue = NULL;     // Khởi tạo null để kiểm tra
 SemaphoreHandle_t serialMutex = NULL; // Khởi tạo null để kiểm tra

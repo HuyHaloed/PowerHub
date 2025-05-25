@@ -9,7 +9,8 @@
         "string_view": "cpp",
         "initializer_list": "cpp",
         "regex": "cpp",
-        "cmath": "cpp"
+        "cmath": "cpp",
+        "fstream": "cpp"
     },
     "MicroPython.executeButton": [
         {

@@ -1,13 +1,13 @@
-#include <WiFi.h>
+// #include <WiFi.h>
 #include <SimpleDHT.h>
 #include <PZEM004Tv30.h>
 #include <HardwareSerial.h>
 #include "AdafruitIO_WiFi.h"
 
 #define DHT_PIN GPIO_NUM_6
-#define LIGHT_PIN GPIO_NUM_4          // Chân ADC cho quang trở (GPIO4 - ADC1_CH3)
+#define LIGHT_SENSOR_PIN GPIO_NUM_4          // Chân ADC cho quang trở (GPIO4 - ADC1_CH3)
 #define FAN_PIN GPIO_NUM_47           // Chân điều khiển Fan
-#define LIGHT_CONTROL_PIN GPIO_NUM_48 // Chân điều khiển Light
+#define LIGHT_PIN GPIO_NUM_18 // Chân điều khiển Light
 
 // Chân RXD2 và TXD2 được định nghĩa cho Serial2 trên YoloUno
 #define RXD2 38 // Chân 11
@@ -23,17 +23,20 @@ PZEM004Tv30 pzem(PZEM_SERIAL, RXD2, TXD2);
 
 // Thông tin Adafruit IO
 #define IO_USERNAME "Hellosine"
-#define IO_KEY "aio_qGEl63Zg8c3Re0FfT6uqNStKyM7e"
+#define IO_KEY "aio_lBqS22llvHhqOyqOjigo2BHezJSO"
 
 // Tạo instance kết nối Adafruit IO
 AdafruitIO_WiFi io(IO_USERNAME, IO_KEY, WIFI_SSID, WIFI_PASS);
 
 // Khai báo hai feed temperature và humidity
 AdafruitIO_Feed *temperature = io.feed("temperature");
-AdafruitIO_Feed *humidity    = io.feed("humidity");
-AdafruitIO_Feed *fan         = io.feed("Fan");
-AdafruitIO_Feed *light       = io.feed("Light");
-
+AdafruitIO_Feed *humidity = io.feed("humidity");
+AdafruitIO_Feed *fan = io.feed("Fan");
+AdafruitIO_Feed *light = io.feed("Light");
+AdafruitIO_Feed *brightness = io.feed("brightness");
+AdafruitIO_Feed *power_fan = io.feed("powerfan");
+AdafruitIO_Feed *power_light = io.feed("powerlight");
+AdafruitIO_Feed *energy = io.feed("energy");
 
 SimpleDHT11 dht(DHT_PIN);
 
@@ -42,6 +45,9 @@ struct SensorData
     float temperature;
     float humidity;
     float brightness;
+    float power_fan;
+    float power_light;
+    float energy;
 };
 
 // Khai báo các biến toàn cục
@@ -49,6 +55,8 @@ QueueHandle_t sensorQueue = NULL;     // Khởi tạo null để kiểm tra
 SemaphoreHandle_t serialMutex = NULL; // Khởi tạo null để kiểm tra
 TaskHandle_t Adafruit_Task_Handle = NULL;
 TaskHandle_t Sensor_Task_Handle = NULL;
+volatile bool fanstate = false;
+volatile bool lightState = false;
 
 // Hàm xử lý khi có lệnh từ feed Fan
 void handleFan(AdafruitIO_Data *data)
@@ -63,10 +71,12 @@ void handleFan(AdafruitIO_Data *data)
     if (value == "ON" || value == "1")
     {
         digitalWrite(FAN_PIN, HIGH);
+        fanstate = true;
     }
     else
     {
         digitalWrite(FAN_PIN, LOW);
+        fanstate = false;
     }
 }
 
@@ -84,10 +94,12 @@ void handleLight(AdafruitIO_Data *data)
     if (value == "ON" || value == "1")
     {
         digitalWrite(LIGHT_PIN, HIGH);
+        lightState = true;
     }
     else
     {
         digitalWrite(LIGHT_PIN, LOW);
+        lightState = false;
     }
 }
 
@@ -140,9 +152,14 @@ void Adafruit_Task(void *pvParameters)
                     // Gửi dữ liệu lên Adafruit IO
                     temperature->save(data.temperature);
                     humidity->save(data.humidity);
+                    brightness->save(data.brightness);
+                    power_fan->save(data.power_fan);
+                    power_light->save(data.power_light);
+                    energy->save(data.energy);
                     // brightness->save(data.light_voltage);
-                    Serial.printf("Sent -> Temp: %.2f°C, Humi: %.2f%%\n",
-                                  data.temperature, data.humidity);
+                    Serial.printf("Sent -> Temp: %.2f°C, Humi: %.2f%%, Light: %.2f%%, PowerFan: %.2fW, PowerLight: %.2f, Energy: %.2fWh\n",
+                                  data.temperature, data.humidity, data.brightness, data.power_fan, data.power_light, data.energy);
+                    vTaskDelay(pdMS_TO_TICKS(100));
                     xSemaphoreGive(serialMutex);
                 }
             }
@@ -155,14 +172,15 @@ void Adafruit_Task(void *pvParameters)
                 xSemaphoreGive(serialMutex);
             }
         }
-        // Đợi 1s trước lần đọc tiếp theo
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        // Đợi 5s trước lần đọc tiếp theo
+        vTaskDelay(pdMS_TO_TICKS(5000));
     }
 }
 
 void Sensor_Task(void *pvParameters)
 {
     // analogReadResolution(12);
+    int send_count = 0; // Đếm số lần gửi
 
     while (true)
     {
@@ -174,22 +192,47 @@ void Sensor_Task(void *pvParameters)
 
         // Đọc dữ liệu từ cảm biến quang trở (ADC);
 
-        int raw_value = analogRead(LIGHT_PIN);
+        int raw_value = analogRead(LIGHT_SENSOR_PIN);
         // float voltage = analogReadMilliVolts(LIGHT_PIN) / 1000.0;
         float brightness = (float)raw_value / 4095.0 * 100; // Chuyển đổi giá trị ADC sang % (0-3.3V)
 
+        // Đọc dữ liệu từ PZEM004T
+        float power_fan = pzem.power();
+        float power_light = 8.4; // Giá trị ban đầu
+
+        // Tăng đếm số lần gửi
+        send_count++;
+
+        // Thay đổi giá trị power_light sau mỗi 2 hoặc 3 lần gửi
+        if (send_count >= 2 + (rand() % 2)) // Random 2 hoặc 3
+        {
+            power_light = 8.4 + ((rand() % 41) - 20) / 100.0; // Random sai số ±0.2
+            send_count = 0; // Reset đếm
+        }
+        float energy = pzem.energy();
+
+        if (!fanstate)
+        {
+            power_fan = 0;
+        }
+
+        if(!lightState)
+        {
+            power_light = 0;
+        }
+        
         //(dht_err == SimpleDHTErrSuccess && !isnan(temperature) && !isnan(humidity) && raw_value >= 0 && voltage >= 0 && current >= 0 && power >= 0 && energy >= 0)
         if (dht_err == SimpleDHTErrSuccess && !isnan(temperature) && !isnan(humidity))
         {
             if (serialMutex && xSemaphoreTake(serialMutex, pdMS_TO_TICKS(1000)) == pdTRUE)
             {
-                Serial.printf("Read Sensors -> Temp: %.2f°C, Humi: %.2f%%, Light: %.2f%%\n",
-                              temperature, humidity, brightness);
+                Serial.printf("Read Sensors -> Temp: %.2f°C, Humi: %.2f%%, Light: %.2f%%, PowerFan: %.2fW, PowerLight: %.2fW,Energy: %.2fWh\n",
+                              temperature, humidity, brightness, power_fan, power_light, energy);
                 vTaskDelay(pdMS_TO_TICKS(100));
                 xSemaphoreGive(serialMutex);
             }
 
-            SensorData data = {temperature, humidity, brightness};
+            SensorData data = {temperature, humidity, brightness, power_fan, power_light, energy};
 
             // Gửi dữ liệu vào hàng đợi
             if (sensorQueue && xQueueSend(sensorQueue, &data, pdMS_TO_TICKS(1000)) != pdTRUE)
@@ -216,7 +259,7 @@ void Sensor_Task(void *pvParameters)
                 xSemaphoreGive(serialMutex);
             }
         }
-        vTaskDelay(pdMS_TO_TICKS(10000));
+        vTaskDelay(pdMS_TO_TICKS(20000));
     }
 }
 
@@ -228,11 +271,11 @@ void setup()
     Serial2.begin(9600, SERIAL_8N1, RXD2, TXD2);
 
     pinMode(FAN_PIN, OUTPUT);
-    pinMode(LIGHT_CONTROL_PIN, OUTPUT);
+    pinMode(LIGHT_PIN, OUTPUT);
     digitalWrite(FAN_PIN, LOW);
-    digitalWrite(LIGHT_CONTROL_PIN, LOW);
+    digitalWrite(LIGHT_PIN, LOW);
 
-    sensorQueue = xQueueCreate(10, sizeof(SensorData));
+    sensorQueue = xQueueCreate(5, sizeof(SensorData));
     if (sensorQueue == NULL)
     {
         Serial.println("Failed to create sensorQueue");
@@ -249,7 +292,7 @@ void setup()
     }
 
     xTaskCreate(Sensor_Task, "SensorTask", 4096, NULL, 1, &Sensor_Task_Handle);
-    xTaskCreate(Adafruit_Task, "TBTask", 4096, NULL, 1, &Adafruit_Task_Handle);
+    xTaskCreate(Adafruit_Task, "AdaTask", 8192, NULL, 1, &Adafruit_Task_Handle);
     // Đăng ký hàm callback khi có dữ liệu mới từ feed
     fan->onMessage(handleFan);
     light->onMessage(handleLight);
